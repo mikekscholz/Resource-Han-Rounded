@@ -2,6 +2,7 @@
 
 const { Ot } = require("ot-builder");
 const { roundTo } = require("./util");
+const { invertRadius, negativeGlyphs, skipGlyphs, modifyGlyphs } = require("./exceptions");
 
 function roundFont(font) {
 
@@ -10,14 +11,14 @@ function roundFont(font) {
 	//
 
 	const dimWght = font.fvar.axes[0].dim
-	const dimRond = new Ot.Var.Dim('ROND', 0, 100, 100);
-	const dimRondNameId = 256 + 32;
-	font.fvar.axes.push(new Ot.Fvar.Axis(dimRond, Ot.Fvar.AxisFlags.Default, dimRondNameId));
-	font.name.records.push({ platformID: 3, encodingID: 1, languageID: 0x0409, nameID: dimRondNameId, value: "Roundness" });
-	for (const instance of font.fvar.instances) {
-		instance.coordinates.set(dimRond, dimRond.default);
-	}
-	font.avar.segmentMaps.set(dimRond, [[-1, -1], [0, 0], [1, 1]]);
+	// const dimRond = new Ot.Var.Dim('ROND', 0, 100, 100);
+	// const dimRondNameId = 256 + 32;
+	// font.fvar.axes.push(new Ot.Fvar.Axis(dimRond, Ot.Fvar.AxisFlags.Default, dimRondNameId));
+	// font.name.records.push({ platformID: 3, encodingID: 1, languageID: 0x0409, nameID: dimRondNameId, value: "Roundness" });
+	// for (const instance of font.fvar.instances) {
+		// instance.coordinates.set(dimRond, dimRond.default);
+	// }
+	// font.avar.segmentMaps.set(dimRond, [[-1, -1], [0, 0], [1, 1]]);
 
 	//
 	// masters
@@ -25,33 +26,36 @@ function roundFont(font) {
 
 	const masterDimWghtMin = { dim: dimWght, min: 0, peak: 0, max: 1 };
 	const masterDimWghtMax = { dim: dimWght, min: 0, peak: 1, max: 1 };
-	const masterDimRondMin = { dim: dimRond, min: -1, peak: -1, max: 0 };
-	const masterDimRondMax = { dim: dimRond, min: -1, peak: 0, max: 0 };
+	// const masterDimRondMin = { dim: dimRond, min: -1, peak: -1, max: 0 };
+	// const masterDimRondMax = { dim: dimRond, min: -1, peak: 0, max: 0 };
 
-	const masterWghtMinRondMin = new Ot.Var.Master([masterDimWghtMin, masterDimRondMin]);
+	// const masterWghtMinRondMin = new Ot.Var.Master([masterDimWghtMin, masterDimRondMin]);
 	/* masterWghtMinRondMax is origin. */
-	const masterWghtMaxRondMin = new Ot.Var.Master([masterDimWghtMax, masterDimRondMin]);
-	const masterWghtMaxRondMax = new Ot.Var.Master([masterDimWghtMax, masterDimRondMax]);
+	// const masterWghtMaxRondMin = new Ot.Var.Master([masterDimWghtMax, masterDimRondMin]);
+	// const masterWghtMaxRondMax = new Ot.Var.Master([masterDimWghtMax, masterDimRondMax]);
+	const masterWghtMaxRondMax = new Ot.Var.Master([masterDimWghtMax]);
 
 	const masterSet = new Ot.Var.MasterSet();
-	masterSet.getOrPush(masterWghtMinRondMin);
-	masterSet.getOrPush(masterWghtMaxRondMin);
+	// masterSet.getOrPush(masterWghtMinRondMin);
+	// masterSet.getOrPush(masterWghtMaxRondMin);
 	masterSet.getOrPush(masterWghtMaxRondMax);
 	const valueFactory = new Ot.Var.ValueFactory(masterSet);
 
 	// create Ot.Var.Value from values of 4 vertices of the region.
 	function makeVariance(
-		valueWghtMinRondMin, valueWghtMinRondMax,
-		valueWghtMaxRondMin, valueWghtMaxRondMax,
+		// valueWghtMinRondMin, 
+		valueWghtMinRondMax,
+		// valueWghtMaxRondMin, 
+		valueWghtMaxRondMax,
 		precision = 1) {
-		valueWghtMinRondMin = roundTo(valueWghtMinRondMin, precision);
+		// valueWghtMinRondMin = roundTo(valueWghtMinRondMin, precision);
 		valueWghtMinRondMax = roundTo(valueWghtMinRondMax, precision);
-		valueWghtMaxRondMin = roundTo(valueWghtMaxRondMin, precision);
+		// valueWghtMaxRondMin = roundTo(valueWghtMaxRondMin, precision);
 		valueWghtMaxRondMax = roundTo(valueWghtMaxRondMax, precision);
 		const origin = valueWghtMinRondMax
 		return valueFactory.create(origin, [
-			[masterWghtMinRondMin, valueWghtMinRondMin - origin],
-			[masterWghtMaxRondMin, valueWghtMaxRondMin - valueWghtMinRondMin - valueWghtMaxRondMax + origin],
+			// [masterWghtMinRondMin, valueWghtMinRondMin - origin],
+			// [masterWghtMaxRondMin, valueWghtMaxRondMin - valueWghtMinRondMin - valueWghtMaxRondMax + origin],
 			[masterWghtMaxRondMax, valueWghtMaxRondMax - origin]
 		]);
 	}
@@ -60,7 +64,7 @@ function roundFont(font) {
 	// transform
 	//
 
-	const radius = { min: 18, max: 72, inner: 6 };
+	const radius = { min: 18, max: 70, inner: 6 };
 
 	// extract values of 2 masters.
 	const instanceShsWghtMax = new Map([[dimWght, 1]]);
@@ -268,7 +272,9 @@ function roundFont(font) {
 			return findDistanceImpl(coeff, dist, pBase, 0, 0.5);
 	}
 
-	function calculateRadius(prev, cur, next) {
+	function calculateRadius(prev, cur, next, name, spec = false) {
+		let swapRadii = negativeGlyphs.includes(name) || spec == "swapRadii";
+		// if (spec == "swapRadii") swapRadii = true;
 		// estimate radius based on the corner angle
 		const m0Arg1 = arg(prev.m0.t2, cur.m0.t1);
 		let m0Radius1 = 0;
@@ -304,17 +310,27 @@ function roundFont(font) {
 		if (-0.1 <= m1Arg1 && m1Arg1 <= 0.1)
 			;
 		else if (m1Arg1 < 0)
-			m1Radius1 = radius.inner;
-		else
-			m1Radius1 = Math.max(radius.max * (1 - Math.cos(m1Arg1)), radius.inner);
+			m1Radius1 = swapRadii ? radius.max : radius.inner;
+		else {
+			if (swapRadii) {
+				m1Radius1 = Math.min(radius.max * (1 - Math.cos(m1Arg1)), radius.inner);
+			} else {
+				m1Radius1 = Math.max(radius.max * (1 - Math.cos(m1Arg1)), radius.inner);
+			}
+		}
 		const m1Arg2 = arg(cur.m1.t2, next.m1.t1);
 		let m1Radius2 = 0;
 		if (-0.1 <= m1Arg2 && m1Arg2 <= 0.1)
 			;
 		else if (m1Arg2 < 0)
-			m1Radius2 = radius.inner;
-		else
-			m1Radius2 = Math.max(radius.max * (1 - Math.cos(m1Arg2)), radius.inner);
+			m1Radius2 = swapRadii ? radius.max : radius.inner;
+		else {
+			if (swapRadii) {
+				m1Radius2 = Math.min(radius.max * (1 - Math.cos(m1Arg2)), radius.inner);
+			} else {
+				m1Radius2 = Math.max(radius.max * (1 - Math.cos(m1Arg2)), radius.inner);
+			}
+		}
 
 		const m1Coeff = coefficientForm(cur.m1, cur.type);
 		let m1T1 = findDistanceFromBegin(m1Coeff, m1Radius1);
@@ -353,10 +369,25 @@ function roundFont(font) {
 		return sub;
 	}
 
-	function transformContour(contour) {
+	function transformContour(contour, name) {
 		const segments = splitContour(contour);
-		const result = [];
+		let spec = false;
+		if (modifyGlyphs.includes(name)) {
+			if (segments.length == 10) {
+				const firstSeg = segments.shift();
+				const lastSegment = segments[segments.length -1];
+				lastSegment.m0.p2 = firstSeg.m0.p2;
+				lastSegment.m1.p2 = firstSeg.m1.p2;
+			}
+		}
+		if (name in invertRadius) {
+			const invertedContours = invertRadius[name];
+			if (invertedContours.includes(segments.length)) {
+				spec = "swapRadii";
+			}
+		}
 		const length = segments.length;
+		const result = [];
 		if (length < 2) // malformed
 			return result;
 		const advance = index => (index == length - 1 ? 0 : index + 1);
@@ -370,7 +401,7 @@ function roundFont(font) {
 			const shsM1Seg = [];
 			const kind = [];
 
-			const [m0T1, m0T2, m1T1, m1T2] = calculateRadius(prev, cur, next);
+			const [m0T1, m0T2, m1T1, m1T2] = calculateRadius(prev, cur, next, name, spec);
 			const m0Coeff = coefficientForm(cur.m0, cur.type);
 			const m1Coeff = coefficientForm(cur.m1, cur.type);
 			let m0Sub, m1Sub;
@@ -482,13 +513,17 @@ function roundFont(font) {
 			}
 			for (let j = 0; j < m0Seg.length; j++) {
 				result.push(Ot.Glyph.Point.create(
-					makeVariance(shsM0Seg[j].x, m0Seg[j].x, shsM1Seg[j].x, m1Seg[j].x),
-					makeVariance(shsM0Seg[j].y, m0Seg[j].y, shsM1Seg[j].y, m1Seg[j].y),
+					makeVariance(m0Seg[j].x, m1Seg[j].x),
+					makeVariance(m0Seg[j].y, m1Seg[j].y),
+					// makeVariance(shsM0Seg[j].x, m0Seg[j].x, shsM1Seg[j].x, m1Seg[j].x),
+					// makeVariance(shsM0Seg[j].y, m0Seg[j].y, shsM1Seg[j].y, m1Seg[j].y),
 					kind[j]
 				));
 			}
 			prev = cur;
 		}
+		
+		// if (name == "uni4FE0") console.log(contour, result);
 		// adjust result, let it begin with end point
 		if (result[0].kind != Ot.Glyph.PointType.Corner)
 			// if not end point, it must be second control point
@@ -499,12 +534,18 @@ function roundFont(font) {
 
 	let count = 0;
 	for (const glyph of font.glyphs.items) {
-		if (!glyph.geometry || !glyph.geometry.contours)
+		const name = glyph.name;
+		// console.log(name);
+		// if (glyph.name == "uni4FE0") console.log(JSON.stringify(glyph));
+		// if (glyph.name == "uni4FE0") console.log(JSON.stringify(glyph.geometry.contours));
+		// if (glyph.name == "uni4FE0") console.log(glyph.geometry.contours.length);
+		// if (count > 2774 && count < 2779) console.log(JSON.stringify(glyph));
+		if (!glyph.geometry || !glyph.geometry.contours || skipGlyphs.includes(name))
 			continue;
 		const oldContours = glyph.geometry.contours;
 		glyph.geometry.contours = [];
 		for (const contour of oldContours) {
-			glyph.geometry.contours.push(transformContour(contour));
+			glyph.geometry.contours.push(transformContour(contour, name));
 		}
 		count++;
 		if (count % 1000 == 0)

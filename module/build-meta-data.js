@@ -55,10 +55,11 @@ function buildVFMetaData(font, param) {
 	// fvar: axis
 	const axis = font.fvar.axes;
 	axis[0].axisNameID = pushNameEntry('Weight');
-	axis[1].axisNameID = pushNameEntry('Roundness');
+	// axis[1].axisNameID = pushNameEntry('Roundness');
 	const dimWght = axis[0].dim;
-	dimWght.min = dimWght.default = 200;
-	const dimRond = axis[1].dim;
+	dimWght.min = 200;
+	dimWght.default = 200;
+	// const dimRond = axis[1].dim;
 
 	// fvar: instance
 	const instance = [];
@@ -66,32 +67,34 @@ function buildVFMetaData(font, param) {
 	font.fvar.instances = instance;
 	for (const wghtValue of config.weight.instance) {
 		const wghtName = config.weight.nameMap[wghtValue];
-		for (const rondValue of config.roundness.instance) {
-			const rondName = config.roundness.nameMap[rondValue];
+		// for (const rondValue of config.roundness.instance) {
+			// const rondName = config.roundness.nameMap[rondValue];
 			const subfamilyList = [];
 			wghtName && subfamilyList.push(wghtName);
-			rondName && subfamilyList.push(rondName);
+			// rondName && subfamilyList.push(rondName);
 			subfamilyList.length || subfamilyList.push('Regular');
-			const subfamilyId = pushNameEntry(subfamilyList.join(' '));
+			const subfamilyId = pushNameEntry(subfamilyList.join(''));
 			const psId = pushNameEntry(`${psFamily}-${subfamilyList.join('')}`);
 			instance.push(new Ot.Fvar.Instance(
 				subfamilyId,
 				0,
-				new Map([[dimWght, wghtValue], [dimRond, rondValue]]),
+				// new Map([[dimWght, wghtValue], [dimRond, rondValue]]),
+				new Map([[dimWght, wghtValue]]),
 				psId,
 			));
-		}
+		// }
 	}
 
 	// avar
 	const segmentMap = font.avar.segmentMaps;
 	segmentMap.set(dimWght, config.weight.avar);
-	segmentMap.set(dimRond, config.roundness.avar);
+	// segmentMap.set(dimRond, config.roundness.avar);
 
 	// STAT
 	const statAxisWght = new Ot.Stat.Axis('wght', axis[0].axisNameID, 0);
-	const statAxisRond = new Ot.Stat.Axis('ROND', axis[1].axisNameID, 1);
-	font.stat.designAxes = [statAxisWght, statAxisRond];
+	// const statAxisRond = new Ot.Stat.Axis('ROND', axis[1].axisNameID, 1);
+	font.stat.designAxes = [statAxisWght];
+	// font.stat.designAxes = [statAxisWght, statAxisRond];
 	font.stat.elidedFallbackNameID = pushNameEntry('Regular');
 	font.stat.assignments = [];
 	for (const [min, nominal, max, name, flag] of config.weight.stat)
@@ -99,11 +102,11 @@ function buildVFMetaData(font, param) {
 			new Ot.Stat.AxisValue.Variable(statAxisWght, min, nominal, max),
 			new Ot.Stat.NameAssignment(flag | 0, pushNameEntry(name)),
 		]);
-	for (const [min, nominal, max, name, flag] of config.roundness.stat)
-		font.stat.assignments.push([
-			new Ot.Stat.AxisValue.Variable(statAxisRond, min, nominal, max),
-			new Ot.Stat.NameAssignment(flag | 0, pushNameEntry(name)),
-		]);
+	// for (const [min, nominal, max, name, flag] of config.roundness.stat)
+	// 	font.stat.assignments.push([
+	// 		new Ot.Stat.AxisValue.Variable(statAxisRond, min, nominal, max),
+	// 		new Ot.Stat.NameAssignment(flag | 0, pushNameEntry(name)),
+	// 	]);
 }
 
 function buildPVFMetaData(font, param) {

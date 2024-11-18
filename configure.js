@@ -26,20 +26,28 @@ const config = {
 	},
 	orthography: {
 		subfamily: [
-			'J', 'K', 'SC', 'TC', 'HC',
-			'JP', 'KR', 'CN', 'TW', 'HK',
+			// 'J',
+			// 'K',
+			// 'SC',
+			// 'TC',
+			// 'HC',
+			// 'JP',
+			'KR',
+			// 'CN',
+			// 'TW',
+			// 'HK',
 		],
 		shsMap: {
-			'J': 'SourceHanSans',
-			'K': 'SourceHanSansK',
-			'SC': 'SourceHanSansSC',
-			'TC': 'SourceHanSansTC',
-			'HC': 'SourceHanSansHC',
-			'JP': 'SourceHanSansJP',
+			// 'J': 'SourceHanSans',
+			// 'K': 'SourceHanSansK',
+			// 'SC': 'SourceHanSansSC',
+			// 'TC': 'SourceHanSansTC',
+			// 'HC': 'SourceHanSansHC',
+			// 'JP': 'SourceHanSansJP',
 			'KR': 'SourceHanSansKR',
-			'CN': 'SourceHanSansCN',
-			'TW': 'SourceHanSansTW',
-			'HK': 'SourceHanSansHK',
+			// 'CN': 'SourceHanSansCN',
+			// 'TW': 'SourceHanSansTW',
+			// 'HK': 'SourceHanSansHK',
 		},
 		ttc: ['J', 'K', 'SC', 'TC', 'HC'],
 	},
@@ -48,19 +56,14 @@ const config = {
 			// follow shs values: same name, same weight
 			[-1, -1],
 			[0, 0],
-			[1 / 7, 0.16],
-			[2 / 7, 0.39],
-			[3 / 7, 0.56],
 			[1, 1],
 		],
-		instance: [200, 300, 350, 370, 400, 450, 500, 600, 700, 800, 900],
+		instance: [200, 300, 400, 500, 600, 700, 800, 900],
+		// instance: [200, 300, 350, 370, 400, 450, 500, 600, 700, 800, 900],
 		nameMap: {
 			200: 'ExtraLight',
 			300: 'Light',
-			350: 'SemiLight',
-			370: 'Normal',
 			400: null,
-			450: 'Book',
 			500: 'Medium',
 			600: 'SemiBold',
 			700: 'Bold',
@@ -69,12 +72,9 @@ const config = {
 		},
 		stat: [
 			[200, 200, 250, 'ExtraLight'],
-			[250, 300, 325, 'Light'],
-			[325, 350, 360, 'SemiLight'],
-			[360, 370, 385, 'Normal'],
-			[385, 400, 425, 'Regular', 2],
-			[425, 450, 475, 'Book'],
-			[475, 500, 550, 'Medium'],
+			[250, 300, 350, 'Light'],
+			[350, 400, 450, 'Regular', 2],
+			[450, 500, 550, 'Medium'],
 			[550, 600, 650, 'SemiBold'],
 			[650, 700, 750, 'Bold'],
 			[750, 800, 850, 'ExtraBold'],
@@ -88,15 +88,15 @@ const config = {
 			[0, 0],
 			[1, 1],
 		],
-		instance: [20, 60, 100],
+		instance: [100],
 		nameMap: {
-			20: 'SlightlyRounded',
-			60: 'SemiRounded',
+			// 20: 'SlightlyRounded',
+			// 60: 'SemiRounded',
 			100: null,
 		},
 		stat: [
-			[0, 20, 40, 'SlightlyRounded'],
-			[40, 60, 80, 'SemiRounded'],
+			// [0, 20, 40, 'SlightlyRounded'],
+			// [40, 60, 80, 'SemiRounded'],
 			[80, 100, 100, 'FullyRounded', 2],
 		],
 	},
@@ -106,8 +106,8 @@ const config = {
 		const legacySubfamily = [];
 		const roundnessName = config.roundness.nameMap[roundness];
 		if (roundnessName) {
-			typoSubfamily.push(roundnessName);
-			legacyFamily.push(roundnessName);
+			// typoSubfamily.push(roundnessName);
+			// legacyFamily.push(roundnessName);
 		}
 		const weightName = config.weight.nameMap[weight];
 		if (weightName) {
@@ -115,9 +115,9 @@ const config = {
 			weight == 700 ? legacySubfamily.push(weightName) : legacyFamily.push(weightName);
 		}
 		return {
-			typo: typoSubfamily.length ? typoSubfamily.join(' ') : 'Regular',
+			typo: typoSubfamily.length ? typoSubfamily.join('') : 'Regular',
 			postscript: typoSubfamily.length ? typoSubfamily.join('') : 'Regular',
-			legacy: [legacyFamily.length ? legacyFamily.join(' ') : null, legacySubfamily.length ? legacyFamily.join(' ') : 'Regular'],
+			legacy: [legacyFamily.length ? legacyFamily.join('') : null, legacySubfamily.length ? legacyFamily.join('') : 'Regular'],
 			wws: [roundnessName ? roundnessName : null, weightName ? weightName : 'Regular'],
 		}
 	},

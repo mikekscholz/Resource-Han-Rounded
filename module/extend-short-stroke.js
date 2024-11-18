@@ -1,13 +1,14 @@
 "use strict";
 
 const { Ot } = require("ot-builder");
+const { extendSkip } = require("./exceptions");
 
 // based on measurement of SHS
 const params = {
 	strokeWidth: { light: 29, heavy: 155 },
 };
 
-function circularAt(arr, idx) {
+function circularArray(arr, idx) {
 	const quotient = Math.floor(idx / arr.length);
 	const remainder = idx - quotient * arr.length;
 	return arr[remainder];
@@ -33,7 +34,7 @@ function extendShortStroke(font) {
 	masterSet.getOrPush(masterWghtMax);
 	const valueFactory = new Ot.Var.ValueFactory(masterSet);
 
-	function approxEq(a, b, threshold = 1) {
+	function approxEq(a, b, threshold = 5) {
 		if (typeof a == 'number' && typeof b == 'number')
 			return abs(a - b) <= threshold;
 		return abs(Ot.Var.Ops.originOf(a) - Ot.Var.Ops.originOf(b)) <= threshold &&
@@ -42,22 +43,22 @@ function extendShortStroke(font) {
 
 	function canBeRightEnd(bottomRight, topRight) {
 		return bottomRight.kind == 0 && topRight.kind == 0 &&
-			approxEq(bottomRight.x, topRight.x) &&
+			approxEq(bottomRight.x, topRight.x, 20) &&
 			approxEq(
 				Ot.Var.Ops.originOf(topRight.y) - Ot.Var.Ops.originOf(bottomRight.y),
 				params.strokeWidth.light,
-				3,
+				8,
 			) &&
 			Ot.Var.Ops.evaluate(topRight.y, instanceShsWghtMax) - Ot.Var.Ops.evaluate(bottomRight.y, instanceShsWghtMax) <= params.strokeWidth.heavy;
 	}
 
 	function canBeTopEnd(topRight, topLeft) {
 		return topRight.kind == 0 && topLeft.kind == 0 &&
-			approxEq(topRight.y, topLeft.y) &&
+			approxEq(topRight.y, topLeft.y, 20) &&
 			approxEq(
 				Ot.Var.Ops.originOf(topRight.x) - Ot.Var.Ops.originOf(topLeft.x),
 				params.strokeWidth.light,
-				3,
+				20,
 			) &&
 			Ot.Var.Ops.evaluate(topRight.x, instanceShsWghtMax) - Ot.Var.Ops.evaluate(topLeft.x, instanceShsWghtMax) <= params.strokeWidth.heavy;
 	}
@@ -91,15 +92,15 @@ function extendShortStroke(font) {
 			for (let idx = 0; idx < contour.length; idx++) {
 				if (
 					// is right end
-					canBeRightEnd(contour[idx], circularAt(contour, idx + 1)) &&
-					approxEq(contour[idx].y, circularAt(contour, idx - 1).y) &&
-					approxEq(circularAt(contour, idx + 1).y, circularAt(contour, idx + 2).y)
+					canBeRightEnd(contour[idx], circularArray(contour, idx + 1)) &&
+					approxEq(contour[idx].y, circularArray(contour, idx - 1).y) &&
+					approxEq(circularArray(contour, idx + 1).y, circularArray(contour, idx + 2).y)
 				) {
 
 					const bottomRightIdx = idx;
 					const topRightIdx = (idx + 1) % contour.length;
 					const bottomRight = contour[idx];
-					const topRight = circularAt(contour, idx + 1);
+					const topRight = circularArray(contour, idx + 1);
 
 					for (const ctr of oldContours) {
 						// find possible 竖s
@@ -109,12 +110,12 @@ function extendShortStroke(font) {
 						for (let ctrIdx = 0; ctrIdx < ctr.length; ctrIdx++) {
 							if (
 								// is top end
-								canBeTopEnd(ctr[ctrIdx], circularAt(ctr, ctrIdx + 1)) &&
-								approxEq(ctr[ctrIdx].x, circularAt(ctr, ctrIdx - 1).x) &&
-								approxEq(circularAt(ctr, ctrIdx + 1).x, circularAt(ctr, ctrIdx + 2).x) &&
+								// canBeTopEnd(ctr[ctrIdx], circularAt(ctr, ctrIdx + 1)) &&
+								approxEq(ctr[ctrIdx].x, circularArray(ctr, ctrIdx - 1).x) &&
+								approxEq(circularArray(ctr, ctrIdx + 1).x, circularArray(ctr, ctrIdx + 2).x) &&
 								// and 横's right end inside 竖
 								approxEq(ctr[ctrIdx].y, topRight.y) &&
-								isBetween(circularAt(ctr, ctrIdx + 1).x, topRight.x, ctr[ctrIdx].x)
+								isBetween(circularArray(ctr, ctrIdx + 1).x, topRight.x, ctr[ctrIdx].x)
 							) {
 								newContour[bottomRightIdx] = {
 									x: makeVariance(
@@ -148,6 +149,8 @@ function extendShortStroke(font) {
 
 	let count = 0;
 	for (const glyph of font.glyphs.items) {
+		const name = glyph.name;
+		if (extendSkip.includes(name)) continue;
 		checkSingleGlyph(glyph)
 		count++;
 		if (count % 1000 == 0)
