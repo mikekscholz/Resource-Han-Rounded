@@ -53,6 +53,7 @@ function extendShortStroke(font) {
 	}
 
 	function canBeTopEnd(topRight, topLeft) {
+		// console.log(Ot.Var.Ops.originOf(topRight.x) - Ot.Var.Ops.originOf(topLeft.x));
 		return topRight.kind == 0 && topLeft.kind == 0 &&
 			approxEq(topRight.y, topLeft.y, 20) &&
 			approxEq(
@@ -62,12 +63,35 @@ function extendShortStroke(font) {
 			) &&
 			Ot.Var.Ops.evaluate(topRight.x, instanceShsWghtMax) - Ot.Var.Ops.evaluate(topLeft.x, instanceShsWghtMax) <= params.strokeWidth.heavy;
 	}
+	
+	// 
+	function canBeLeftFalling(topRight, topPeak, topLeft, flatLeft, downLeft) {
+		// console.log(Ot.Var.Ops.originOf(topRight.x),Ot.Var.Ops.originOf(topPeak.x),Ot.Var.Ops.originOf(topLeft.x),Ot.Var.Ops.originOf(flatLeft.x),Ot.Var.Ops.originOf(downLeft.x));
+		// console.log(Ot.Var.Ops.originOf(topRight.y),Ot.Var.Ops.originOf(topPeak.y),Ot.Var.Ops.originOf(topLeft.y),Ot.Var.Ops.originOf(flatLeft.y),Ot.Var.Ops.originOf(downLeft.y));
+		if (
+		topRight.kind == 0 && topPeak.kind == 0 && topLeft.kind == 0 && flatLeft.kind == 0 && downLeft.kind == 0 &&
+		Ot.Var.Ops.originOf(topRight.x) - Ot.Var.Ops.originOf(topPeak.x) > 0 &&
+		Ot.Var.Ops.originOf(topPeak.x) - Ot.Var.Ops.originOf(topLeft.x) > 0 &&
+		Ot.Var.Ops.originOf(topLeft.x) - Ot.Var.Ops.originOf(flatLeft.x) > 0 &&
+		Ot.Var.Ops.originOf(flatLeft.x) - Ot.Var.Ops.originOf(downLeft.x) == 0 &&
+		Ot.Var.Ops.originOf(topRight.y) - Ot.Var.Ops.originOf(topPeak.y) < 0 &&
+		Ot.Var.Ops.originOf(topPeak.y) - Ot.Var.Ops.originOf(topLeft.y) > 0 &&
+		Ot.Var.Ops.originOf(topLeft.y) - Ot.Var.Ops.originOf(flatLeft.y) == 0 &&
+		Ot.Var.Ops.originOf(flatLeft.y) - Ot.Var.Ops.originOf(downLeft.y) > 0
+		) {
+			// console.log(topRight.kind, topPeak.kind, topLeft.kind, flatLeft.kind, downLeft.kind);
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
 
 	function isBetween(a, x, b) {
-		return Ot.Var.Ops.originOf(a) < Ot.Var.Ops.originOf(x) &&
-			Ot.Var.Ops.originOf(x) < Ot.Var.Ops.originOf(b) &&
-			Ot.Var.Ops.evaluate(a, instanceShsWghtMax) < Ot.Var.Ops.evaluate(x, instanceShsWghtMax) &&
-			Ot.Var.Ops.evaluate(x, instanceShsWghtMax) < Ot.Var.Ops.evaluate(b, instanceShsWghtMax);
+		return Ot.Var.Ops.originOf(a) <= Ot.Var.Ops.originOf(x) &&
+			Ot.Var.Ops.originOf(x) <= Ot.Var.Ops.originOf(b) &&
+			Ot.Var.Ops.evaluate(a, instanceShsWghtMax) <= Ot.Var.Ops.evaluate(x, instanceShsWghtMax) &&
+			Ot.Var.Ops.evaluate(x, instanceShsWghtMax) <= Ot.Var.Ops.evaluate(b, instanceShsWghtMax) + 2;
 	}
 
 	function makeVariance(valueDefault, valueWghtMax) {
@@ -81,7 +105,7 @@ function extendShortStroke(font) {
 		glyph.geometry.contours = [];
 
 		for (const contour of oldContours) {
-			// find possible 横s
+			// find possible 横s (horizontals)
 			if (contour.length < 4) {
 				glyph.geometry.contours.push(contour);
 				continue;
@@ -99,48 +123,108 @@ function extendShortStroke(font) {
 
 					const bottomRightIdx = idx;
 					const topRightIdx = (idx + 1) % contour.length;
-					const bottomRight = contour[idx];
-					const topRight = circularArray(contour, idx + 1);
+					const horizontalBottomRight = contour[idx];
+					const horizontalTopRight = circularArray(contour, idx + 1);
 
 					for (const ctr of oldContours) {
-						// find possible 竖s
+						// find possible 竖s (verticals)
 						if (ctr == contour || ctr.length < 4)
 							continue;
 						let extended = false;
 						for (let ctrIdx = 0; ctrIdx < ctr.length; ctrIdx++) {
 							if (
 								// is top end
-								// canBeTopEnd(ctr[ctrIdx], circularAt(ctr, ctrIdx + 1)) &&
+								canBeTopEnd(ctr[ctrIdx], circularArray(ctr, ctrIdx + 1)) &&
 								approxEq(ctr[ctrIdx].x, circularArray(ctr, ctrIdx - 1).x) &&
-								approxEq(circularArray(ctr, ctrIdx + 1).x, circularArray(ctr, ctrIdx + 2).x) &&
-								// and 横's right end inside 竖
-								approxEq(ctr[ctrIdx].y, topRight.y) &&
-								isBetween(circularArray(ctr, ctrIdx + 1).x, topRight.x, ctr[ctrIdx].x)
+								approxEq(circularArray(ctr, ctrIdx + 1).x, circularArray(ctr, ctrIdx + 2).x)
 							) {
-								newContour[bottomRightIdx] = {
-									x: makeVariance(
-										Ot.Var.Ops.originOf(ctr[ctrIdx].x),
-										Ot.Var.Ops.evaluate(ctr[ctrIdx].x, instanceShsWghtMax)
-									),
-									y: bottomRight.y,
-									kind: 0,
-								};
-								newContour[topRightIdx] = {
-									x: makeVariance(
-										Ot.Var.Ops.originOf(ctr[ctrIdx].x),
-										Ot.Var.Ops.evaluate(ctr[ctrIdx].x, instanceShsWghtMax)
-									),
-									y: topRight.y,
-									kind: 0,
-								};
-								extended = true;
-								break;
+								const verticalTopRight = ctr[ctrIdx];
+								const verticalTopLeft = circularArray(ctr, ctrIdx + 1);
+								const verticalBottomLeft = circularArray(ctr, ctrIdx + 2);
+								const verticalBottomRight = circularArray(ctr, ctrIdx - 1);
+								if (
+									// and 横's (horizontal's) right end inside 竖 (vertical)
+									// approxEq(verticalTopRight.y, horizontalTopRight.y) &&
+									isBetween(verticalTopLeft.x, horizontalTopRight.x, verticalTopRight.x)&&
+									isBetween(verticalBottomLeft.y, horizontalTopRight.y, verticalTopLeft.y)
+								) {
+									newContour[bottomRightIdx] = {
+										x: makeVariance(
+											Ot.Var.Ops.originOf(ctr[ctrIdx].x),
+											Ot.Var.Ops.evaluate(ctr[ctrIdx].x, instanceShsWghtMax)
+										),
+										y: horizontalBottomRight.y,
+										kind: 0,
+									};
+									newContour[topRightIdx] = {
+										x: makeVariance(
+											Ot.Var.Ops.originOf(ctr[ctrIdx].x),
+											Ot.Var.Ops.evaluate(ctr[ctrIdx].x, instanceShsWghtMax)
+										),
+										y: horizontalTopRight.y,
+										kind: 0,
+									};
+									extended = true;
+									break;
+								}
 							}
+							// find ㇇'s (horizontal + left-falling)
+							if (
+								ctr.length > 4 &&
+								canBeLeftFalling(ctr[ctrIdx], circularArray(ctr, ctrIdx + 1), circularArray(ctr, ctrIdx + 2), circularArray(ctr, ctrIdx + 3), circularArray(ctr, ctrIdx + 4)) &&
+								abs(Ot.Var.Ops.originOf(horizontalTopRight.y) - Ot.Var.Ops.originOf(circularArray(ctr, ctrIdx + 2).y)) <=1 &&
+								Ot.Var.Ops.originOf(horizontalTopRight.x) - Ot.Var.Ops.originOf(circularArray(ctr, ctrIdx + 3).x) >= 0
+								) {
+									newContour[bottomRightIdx] = {
+										x: makeVariance(
+											Ot.Var.Ops.originOf(ctr[ctrIdx].x) - 5,
+											Ot.Var.Ops.evaluate(ctr[ctrIdx].x, instanceShsWghtMax) - 13
+										),
+										y: horizontalBottomRight.y,
+										kind: 0,
+									};
+									newContour[topRightIdx] = {
+										x: makeVariance(
+											Ot.Var.Ops.originOf(ctr[ctrIdx].x) - 5,
+											Ot.Var.Ops.evaluate(ctr[ctrIdx].x, instanceShsWghtMax) - 13
+										),
+										y: horizontalTopRight.y,
+										kind: 0,
+									};
+									// newContour[bottomRightIdx] = {
+									// 	x: makeVariance(
+									// 		(Ot.Var.Ops.originOf(ctr[ctrIdx].x) + Ot.Var.Ops.originOf(ctr[ctrIdx + 1].x)) / 2,
+									// 		(Ot.Var.Ops.evaluate(ctr[ctrIdx].x, instanceShsWghtMax) + Ot.Var.Ops.evaluate(ctr[ctrIdx + 1].x, instanceShsWghtMax)) /2
+									// 	),
+									// 	y: horizontalBottomRight.y,
+									// 	kind: 0,
+									// };
+									// newContour[topRightIdx] = {
+									// 	x: makeVariance(
+									// 		(Ot.Var.Ops.originOf(ctr[ctrIdx].x) + Ot.Var.Ops.originOf(ctr[ctrIdx + 1].x)) / 2,
+									// 		(Ot.Var.Ops.evaluate(ctr[ctrIdx].x, instanceShsWghtMax) + Ot.Var.Ops.evaluate(ctr[ctrIdx + 1].x, instanceShsWghtMax)) /2
+									// 	),
+									// 	y: horizontalTopRight.y,
+									// 	kind: 0,
+									// };
+									extended = true;
+									break;
+								}
 						}
 						if (extended)
 							break;
 					}
 				}
+				if (
+					contour.length > 4 &&
+					canBeLeftFalling(contour[idx], circularArray(contour, idx + 1), circularArray(contour, idx + 2), circularArray(contour, idx + 3), circularArray(contour, idx + 4))
+					) {
+						newContour[idx + 1] = {
+							x: newContour[idx + 1].x,
+							y: newContour[idx + 2].y,
+							kind: 0,
+						};
+					}
 			}
 
 			glyph.geometry.contours.push(newContour);
