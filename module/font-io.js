@@ -1,7 +1,17 @@
 "use strict";
 
 const fs = require("fs");
+const fsp = require("fs/promises")
+const path = require("path");
 const { FontIo, Ot } = require("ot-builder");
+
+const writeFile = async(filename, data, increment = 1) => {
+	const name = `${path.dirname(filename)}/${path.basename(filename, path.extname(filename))}${"(" + increment + ")" || ""}${path.extname(filename)}`;
+	return await fsp.writeFile(name, data, { encoding: 'utf8', flag: 'wx' }).catch(async ex => {
+		if (ex.code === "EEXIST") return await writeFile(filename, data, increment += 1)
+		throw ex
+	}) || name
+};
 
 module.exports = {
 	readOtf: function (filename) {
@@ -14,6 +24,8 @@ module.exports = {
 	writeOtf: function (font, filename, optimise = true) {
 		const sfnt = FontIo.writeFont(font);
 		const otfBuf = FontIo.writeSfntOtf(sfnt, { cff: { doLocalOptimization: optimise, doGlobalOptimization: optimise } });
-		fs.writeFileSync(filename, otfBuf);
+		const file = writeFile(filename, otfBuf);
+		// fs.writeFileSync(filename, otfBuf);
 	},
+	
 };

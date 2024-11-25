@@ -4,7 +4,7 @@ const negativeGlyphs = ["uni24EB", "uni24EC", "uni24ED", "uni24EE", "uni24EF", "
 "uni1F160", "uni1F161", "uni1F162", "uni1F163", "uni1F164", "uni1F165", "uni1F166", "uni1F167", "uni1F168", "uni1F169", "uni1F170", "uni1F171", "uni1F172", 
 "uni1F173", "uni1F174", "uni1F175", "uni1F176", "uni1F177", "uni1F178", "uni1F179", "uni1F17A", "uni1F17B", "uni1F17C", "uni1F17D", "uni1F17E", "uni1F17F", 
 "uni1F180", "uni1F181", "uni1F182", "uni1F183", "uni1F184", "uni1F185", "uni1F186", "uni1F187", "uni1F188", "uni1F189", "uni1F18B", "uni1F18C", 
-"uni1F18D", "uni1F18E", "uni1F18F", "registered", "caron", "uni02CA", "uni02CB", "gravecomb", "acutecomb", "uni030C", "uni3025", "uni311F", "uni31DD"];
+"uni1F18D", "uni1F18E", "uni1F18F", "caron", "uni02CA", "uni02CB", "gravecomb", "acutecomb", "uni030C", "uni3025", "uni311F", "uni31DD"];
 
 const skipGlyphs = ["uni23BE", "uni23BF", "uni23C0", "uni23C1", "uni23C2", "uni23C3", "uni23C4", "uni23C5", "uni23C6", "uni23C7", "uni23C8", "uni23C9", "uni23CA", "uni23CB", "uni23CC", "uni2500", "uni2501", "uni2502", "uni2503", "uni2504", "uni2505", "uni2506", "uni2507", "uni2508", "uni2509", "uni250A", "uni250B", 
 "uni250C", "uni250D", "uni250E", "uni250F", "uni2510", "uni2511", "uni2512", "uni2513", "uni2514", "uni2515", "uni2516", "uni2517", "uni2518", "uni2519", 
@@ -54,6 +54,7 @@ const modifyGlyphs = ["uni322B", "uni4F7D", "uni4FE0", "uni5013", "uni5439", "un
 
 const partialSwap = ["uni32C0", "uni3359", "uni33E0"];
 
+// Use radius.max in place of radius.inner. Select by "glyph.name" and specific contours by [segment.length]
 const invertRadius = {
 	"uni32C0": [11],
 	"uni3359": [11],
@@ -61,7 +62,26 @@ const invertRadius = {
 	"uni1F18A": [7, 5]
 }
 
-const extendSkip = ["uni2702"];
+// Use radius.min in place of radius.max. Select by "glyph.name" and specific contours by [segment.length]
+const minRadius = {
+	"registered": [10],
+	"uni2B1A": [4, 6],
+	"uni2FF0": [4, 6],
+	"uni2FF1": [4, 6],
+	"uni2FF2": [4, 6],
+	"uni2FF3": [4, 6],
+	"uni2FF4": [4, 6],
+	"uni2FF5": [4, 6],
+	"uni2FF6": [4, 6],
+	"uni2FF7": [4, 6],
+	"uni2FF8": [4, 6],
+	"uni2FF9": [4, 6],
+	"uni2FFA": [4, 6],
+	"uni2FFB": [4, 6],
+}
+
+const extendSkip = [...skipGlyphs, "numbersign", "uni2702", "notequal", "uni2262", "uni228A", "uni228B", "uni2FF0", "uni2FF1", "uni2FF2", "uni2FF3", "uni2FF4", "uni2FF5", "uni2FF6", "uni2FF7", "uni2FF8", "uni2FF9", "uni2FFA", "uni2FFB", "uni303E"];
+
 module.exports = {
-	modifyGlyphs, negativeGlyphs, partialSwap, invertRadius, skipGlyphs, extendSkip
+	modifyGlyphs, negativeGlyphs, partialSwap, invertRadius, minRadius, skipGlyphs, extendSkip
 };

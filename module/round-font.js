@@ -2,7 +2,7 @@
 
 const { Ot } = require("ot-builder");
 const { roundTo } = require("./util");
-const { invertRadius, negativeGlyphs, skipGlyphs, modifyGlyphs } = require("./exceptions");
+const { invertRadius, minRadius, negativeGlyphs, skipGlyphs, modifyGlyphs } = require("./exceptions");
 
 function roundFont(font) {
 
@@ -64,7 +64,7 @@ function roundFont(font) {
 	// transform
 	//
 
-	const radius = { min: 18, max: 70, inner: 6 };
+	const radius = { min: 18, max: 65, inner: 8 };
 
 	// extract values of 2 masters.
 	const instanceShsWghtMax = new Map([[dimWght, 1]]);
@@ -273,8 +273,10 @@ function roundFont(font) {
 	}
 
 	function calculateRadius(prev, cur, next, name, spec = false) {
-		let swapRadii = negativeGlyphs.includes(name) || spec == "swapRadii";
-		// if (spec == "swapRadii") swapRadii = true;
+		let swapRadii = false;
+		let minRadii = false;
+		if (spec == "swapRadii" || negativeGlyphs.includes(name)) swapRadii = true;
+		if (spec == "minRadii") minRadii = true;
 		// estimate radius based on the corner angle
 		const m0Arg1 = arg(prev.m0.t2, cur.m0.t1);
 		let m0Radius1 = 0;
@@ -309,11 +311,19 @@ function roundFont(font) {
 		let m1Radius1 = 0;
 		if (-0.1 <= m1Arg1 && m1Arg1 <= 0.1)
 			;
-		else if (m1Arg1 < 0)
-			m1Radius1 = swapRadii ? radius.max : radius.inner;
-		else {
+		else if (m1Arg1 < 0) {
+			if (swapRadii) {
+				m1Radius1 = radius.max;
+			} else if (minRadii) {
+				m1Radius1 = radius.min;
+			} else {
+				m1Radius1 = radius.inner;
+			}
+		} else {
 			if (swapRadii) {
 				m1Radius1 = Math.min(radius.max * (1 - Math.cos(m1Arg1)), radius.inner);
+			} else if (minRadii) {
+				m1Radius1 = Math.max(radius.min * (1 - Math.cos(m1Arg1)), radius.inner);
 			} else {
 				m1Radius1 = Math.max(radius.max * (1 - Math.cos(m1Arg1)), radius.inner);
 			}
@@ -323,10 +333,18 @@ function roundFont(font) {
 		if (-0.1 <= m1Arg2 && m1Arg2 <= 0.1)
 			;
 		else if (m1Arg2 < 0)
-			m1Radius2 = swapRadii ? radius.max : radius.inner;
+			if (swapRadii) {
+				m1Radius2 = radius.max;
+			} else if (minRadii) {
+				m1Radius2 = radius.min;
+			} else {
+				m1Radius2 = radius.inner;
+			}
 		else {
 			if (swapRadii) {
 				m1Radius2 = Math.min(radius.max * (1 - Math.cos(m1Arg2)), radius.inner);
+			} else if (minRadii) {
+				m1Radius2 = Math.max(radius.min * (1 - Math.cos(m1Arg2)), radius.inner);
 			} else {
 				m1Radius2 = Math.max(radius.max * (1 - Math.cos(m1Arg2)), radius.inner);
 			}
@@ -372,18 +390,24 @@ function roundFont(font) {
 	function transformContour(contour, name) {
 		const segments = splitContour(contour);
 		let spec = false;
-		if (modifyGlyphs.includes(name)) {
-			if (segments.length == 10) {
-				const firstSeg = segments.shift();
-				const lastSegment = segments[segments.length -1];
-				lastSegment.m0.p2 = firstSeg.m0.p2;
-				lastSegment.m1.p2 = firstSeg.m1.p2;
-			}
-		}
+		// if (modifyGlyphs.includes(name)) {
+		// 	if (segments.length == 10) {
+		// 		const firstSeg = segments.shift();
+		// 		const lastSegment = segments[segments.length -1];
+		// 		lastSegment.m0.p2 = firstSeg.m0.p2;
+		// 		lastSegment.m1.p2 = firstSeg.m1.p2;
+		// 	}
+		// }
 		if (name in invertRadius) {
 			const invertedContours = invertRadius[name];
 			if (invertedContours.includes(segments.length)) {
 				spec = "swapRadii";
+			}
+		}
+		if (name in minRadius) {
+			const minContours = minRadius[name];
+			if (minContours.includes(segments.length)) {
+				spec = "minRadii";
 			}
 		}
 		const length = segments.length;
@@ -515,31 +539,22 @@ function roundFont(font) {
 				result.push(Ot.Glyph.Point.create(
 					makeVariance(m0Seg[j].x, m1Seg[j].x),
 					makeVariance(m0Seg[j].y, m1Seg[j].y),
-					// makeVariance(shsM0Seg[j].x, m0Seg[j].x, shsM1Seg[j].x, m1Seg[j].x),
-					// makeVariance(shsM0Seg[j].y, m0Seg[j].y, shsM1Seg[j].y, m1Seg[j].y),
 					kind[j]
 				));
 			}
 			prev = cur;
 		}
-		
-		// if (name == "uni4FE0") console.log(contour, result);
+
 		// adjust result, let it begin with end point
 		if (result[0].kind != Ot.Glyph.PointType.Corner)
 			// if not end point, it must be second control point
 			result.push(result.shift());
-		// console.log(contour, result);
 		return result;
 	}
 
 	let count = 0;
 	for (const glyph of font.glyphs.items) {
 		const name = glyph.name;
-		// console.log(name);
-		// if (glyph.name == "uni4FE0") console.log(JSON.stringify(glyph));
-		// if (glyph.name == "uni4FE0") console.log(JSON.stringify(glyph.geometry.contours));
-		// if (glyph.name == "uni4FE0") console.log(glyph.geometry.contours.length);
-		// if (count > 2774 && count < 2779) console.log(JSON.stringify(glyph));
 		if (!glyph.geometry || !glyph.geometry.contours || skipGlyphs.includes(name))
 			continue;
 		const oldContours = glyph.geometry.contours;
