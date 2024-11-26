@@ -202,7 +202,7 @@ function extendShortStroke(font) {
 									newContour[bottomRightIdx] = {
 										x: makeVariance(
 											Ot.Var.Ops.originOf(ctr[ctrIdx].x),
-											Ot.Var.Ops.evaluate(ctr[ctrIdx].x, instanceShsWghtMax)
+											Ot.Var.Ops.evaluate(ctr[ctrIdx].x, instanceShsWghtMax) - 3
 										),
 										y: horizontalBottomRight.y,
 										kind: 0,
@@ -210,7 +210,7 @@ function extendShortStroke(font) {
 									newContour[topRightIdx] = {
 										x: makeVariance(
 											Ot.Var.Ops.originOf(ctr[ctrIdx].x),
-											Ot.Var.Ops.evaluate(ctr[ctrIdx].x, instanceShsWghtMax)
+											Ot.Var.Ops.evaluate(ctr[ctrIdx].x, instanceShsWghtMax) - 3
 										),
 										y: horizontalTopRight.y,
 										kind: 0,
@@ -286,7 +286,7 @@ function extendShortStroke(font) {
 									newContour[bottomRightIdx] = {
 										x: makeVariance(
 											Ot.Var.Ops.originOf(ctr[ctrIdx].x) - 5,
-											Ot.Var.Ops.evaluate(ctr[ctrIdx].x, instanceShsWghtMax) - 14
+											Ot.Var.Ops.evaluate(ctr[ctrIdx].x, instanceShsWghtMax) - 19
 										),
 										y: horizontalBottomRight.y,
 										kind: 0,
@@ -294,7 +294,7 @@ function extendShortStroke(font) {
 									newContour[topRightIdx] = {
 										x: makeVariance(
 											Ot.Var.Ops.originOf(ctr[ctrIdx].x) - 5,
-											Ot.Var.Ops.evaluate(ctr[ctrIdx].x, instanceShsWghtMax) - 14
+											Ot.Var.Ops.evaluate(ctr[ctrIdx].x, instanceShsWghtMax) - 19
 										),
 										y: horizontalTopRight.y,
 										kind: 0,
@@ -396,6 +396,33 @@ function extendShortStroke(font) {
 					const verticalTopLeft = circularArray(contour, idx + 1);
 					const verticalBottomLeft = circularArray(contour, idx + 2);
 					const verticalBottomRight = circularArray(contour, idx - 1);
+					
+					if (
+						Ot.Var.Ops.originOf(verticalTopLeft.x) == Ot.Var.Ops.originOf(verticalBottomLeft.x) &&
+						Ot.Var.Ops.originOf(verticalTopLeft.y) - Ot.Var.Ops.originOf(verticalBottomLeft.y) < 30
+					) {
+						newContour[bottomLeftIdx] = {
+							x: verticalBottomLeft.x,
+							y: makeVariance(
+								Ot.Var.Ops.originOf(verticalTopLeft.y) - 30,
+								Ot.Var.Ops.evaluate(verticalTopLeft.y, instanceShsWghtMax) - 80
+							),
+							kind: verticalBottomLeft.kind,
+						};
+					}
+					if (
+						Ot.Var.Ops.originOf(verticalTopRight.x) == Ot.Var.Ops.originOf(verticalBottomRight.x) &&
+						Ot.Var.Ops.originOf(verticalTopRight.y) - Ot.Var.Ops.originOf(verticalBottomRight.y) < 30
+					) {
+						newContour[bottomRightIdx] = {
+							x: verticalBottomRight.x,
+							y: makeVariance(
+								Ot.Var.Ops.originOf(verticalTopRight.y) - 30,
+								Ot.Var.Ops.evaluate(verticalTopRight.y, instanceShsWghtMax) - 80
+							),
+							kind: verticalBottomRight.kind,
+						};
+					}
 
 					for (const ctr of oldContours) {
 						// find possible 横s (horizontals)
