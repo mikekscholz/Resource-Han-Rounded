@@ -54,7 +54,7 @@ const modifyGlyphs = ["uni322B", "uni4F7D", "uni4FE0", "uni5013", "uni5439", "un
 
 const partialSwap = ["uni32C0", "uni3359", "uni33E0"];
 
-// Use radius.max in place of radius.inner. Select by "glyph.name" and specific contours by [segment.length]
+// Use radius.max in place of radius.inner. Select by "glyph.name" and specific contours by [segment.length] (points.length - controlPoints)
 const invertRadius = {
 	"uni32C0": [11],
 	"uni3359": [11],
@@ -62,9 +62,10 @@ const invertRadius = {
 	"uni1F18A": [7, 5]
 }
 
-// Use radius.min in place of radius.max. Select by "glyph.name" and specific contours by [segment.length]
+// Use radius.min in place of radius.max. Select by "glyph.name" and specific contours by [segment.length] (points.length - controlPoints)
 const minRadius = {
 	"registered": [10],
+	// "uni00B3": [15],
 	"uni2B1A": [4, 6],
 	"uni2FF0": [4, 6],
 	"uni2FF1": [4, 6],
@@ -80,7 +81,7 @@ const minRadius = {
 	"uni2FFB": [4, 6],
 }
 
-const extendSkip = [...skipGlyphs, "numbersign", "uni2702", "notequal", "uni2262", "uni228A", "uni228B", "uni2FF0", "uni2FF1", "uni2FF2", "uni2FF3", "uni2FF4", "uni2FF5", "uni2FF6", "uni2FF7", "uni2FF8", "uni2FF9", "uni2FFA", "uni2FFB", "uni303E"];
+const extendSkip = [...skipGlyphs, "numbersign", "registered", "uni2702", "notequal", "uni2262", "uni228A", "uni228B", "uni2FF0", "uni2FF1", "uni2FF2", "uni2FF3", "uni2FF4", "uni2FF5", "uni2FF6", "uni2FF7", "uni2FF8", "uni2FF9", "uni2FFA", "uni2FFB", "uni303E", "uniFF03", "u1F150","u1F151","u1F152","u1F153","u1F154","u1F155","u1F156","u1F157","u1F158","u1F159","u1F15A","u1F15B","u1F15C","u1F15D","u1F15E","u1F15F","u1F160","u1F161","u1F162","u1F163","u1F164","u1F165","u1F166","u1F167","u1F168","u1F169","u1F16A","u1F16B","u1F170","u1F171","u1F172","u1F173","u1F174","u1F175","u1F176","u1F177","u1F178","u1F179","u1F17A","u1F17B","u1F17C","u1F17D","u1F17E","u1F17F","u1F180","u1F181","u1F182","u1F183","u1F184","u1F185","u1F186","u1F187","u1F188","u1F189","u1F18A","u1F18B","u1F18C","u1F18D","u1F18E","u1F18F"];
 
 module.exports = {
 	modifyGlyphs, negativeGlyphs, partialSwap, invertRadius, minRadius, skipGlyphs, extendSkip

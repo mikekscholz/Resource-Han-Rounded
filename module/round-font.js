@@ -64,7 +64,7 @@ function roundFont(font) {
 	// transform
 	//
 
-	const radius = { min: 18, max: 71, inner: 8 };
+	const radius = { min: 15, max: 68, inner: 12 };
 
 	// extract values of 2 masters.
 	const instanceShsWghtMax = new Map([[dimWght, 1]]);
@@ -390,14 +390,6 @@ function roundFont(font) {
 	function transformContour(contour, name) {
 		const segments = splitContour(contour);
 		let spec = false;
-		// if (modifyGlyphs.includes(name)) {
-		// 	if (segments.length == 10) {
-		// 		const firstSeg = segments.shift();
-		// 		const lastSegment = segments[segments.length -1];
-		// 		lastSegment.m0.p2 = firstSeg.m0.p2;
-		// 		lastSegment.m1.p2 = firstSeg.m1.p2;
-		// 	}
-		// }
 		if (name in invertRadius) {
 			const invertedContours = invertRadius[name];
 			if (invertedContours.includes(segments.length)) {
@@ -457,16 +449,16 @@ function roundFont(font) {
 				const m1NewT1Direction = normalize(derivativeAt(m1Coeff, m1T1));
 
 				m0Seg.push({ // control point
-					x: m0NewP1.x - 0.6 * m0NewT1Direction.x * m0Radius,
-					y: m0NewP1.y - 0.6 * m0NewT1Direction.y * m0Radius,
+					x: m0NewP1.x - 0.5 * m0NewT1Direction.x * m0Radius,
+					y: m0NewP1.y - 0.5 * m0NewT1Direction.y * m0Radius,
 				});
 				m0Seg.push({ // end point
 					x: m0NewP1.x,
 					y: m0NewP1.y
 				});
 				m1Seg.push({ // control point
-					x: m1NewP1.x - 0.6 * m1NewT1Direction.x * m1Radius,
-					y: m1NewP1.y - 0.6 * m1NewT1Direction.y * m1Radius,
+					x: m1NewP1.x - 0.5 * m1NewT1Direction.x * m1Radius,
+					y: m1NewP1.y - 0.5 * m1NewT1Direction.y * m1Radius,
 				});
 				m1Seg.push({ // end point
 					x: m1NewP1.x,
@@ -517,16 +509,16 @@ function roundFont(font) {
 					y: m0NewP2.y
 				});
 				m0Seg.push({ // control point
-					x: m0NewP2.x + 0.6 * m0NewT2Direction.x * m0Radius,
-					y: m0NewP2.y + 0.6 * m0NewT2Direction.y * m0Radius
+					x: m0NewP2.x + 0.5 * m0NewT2Direction.x * m0Radius,
+					y: m0NewP2.y + 0.5 * m0NewT2Direction.y * m0Radius
 				});
 				m1Seg.push({ // end point
 					x: m1NewP2.x,
 					y: m1NewP2.y
 				});
 				m1Seg.push({ // control point
-					x: m1NewP2.x + 0.6 * m1NewT2Direction.x * m1Radius,
-					y: m1NewP2.y + 0.6 * m1NewT2Direction.y * m1Radius
+					x: m1NewP2.x + 0.5 * m1NewT2Direction.x * m1Radius,
+					y: m1NewP2.y + 0.5 * m1NewT2Direction.y * m1Radius
 				});
 				shsM0Seg.push(cur.m0.p2);
 				shsM0Seg.push(cur.m0.p2);

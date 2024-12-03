@@ -5,8 +5,9 @@ const fsp = require("fs/promises")
 const path = require("path");
 const { FontIo, Ot } = require("ot-builder");
 
-const writeFile = async(filename, data, increment = 1) => {
-	const name = `${path.dirname(filename)}/${path.basename(filename, path.extname(filename))}${"(" + increment + ")" || ""}${path.extname(filename)}`;
+const writeFile = async(filename, data, increment = 0) => {
+	const name = `/mnt/c/Users/Michael/${path.basename(filename, path.extname(filename))}${ increment ? "(" + increment + ")" : ""}${path.extname(filename)}`;
+	// const name = `${path.dirname(filename)}/${path.basename(filename, path.extname(filename))}${ increment ? "(" + increment + ")" : ""}${path.extname(filename)}`;
 	return await fsp.writeFile(name, data, { encoding: 'utf8', flag: 'wx' }).catch(async ex => {
 		if (ex.code === "EEXIST") return await writeFile(filename, data, increment += 1)
 		throw ex
@@ -14,6 +15,7 @@ const writeFile = async(filename, data, increment = 1) => {
 };
 
 module.exports = {
+	writeFile,
 	readOtf: function (filename) {
 		const otfBuf = fs.readFileSync(filename);
 		const sfnt = FontIo.readSfntOtf(otfBuf);
@@ -21,10 +23,11 @@ module.exports = {
 		return font;
 	},
 
-	writeOtf: function (font, filename, optimise = true) {
+	writeOtf: async function (font, filename, optimise = true) {
 		const sfnt = FontIo.writeFont(font);
 		const otfBuf = FontIo.writeSfntOtf(sfnt, { cff: { doLocalOptimization: optimise, doGlobalOptimization: optimise } });
-		const file = writeFile(filename, otfBuf);
+		const file = await writeFile(filename, otfBuf);
+		console.log(file);
 		// fs.writeFileSync(filename, otfBuf);
 	},
 	
