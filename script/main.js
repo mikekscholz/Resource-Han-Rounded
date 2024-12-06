@@ -16,7 +16,7 @@ const font = readOtf(filename.shs(param.subfamily));
 preExtension(font);
 extendShortStroke(font, references);
 correctGlyphs(font);
-roundFont(font);
+// roundFont(font);
 buildVFMetaData(font, param);
 // console.log(JSON.stringify(references, null, '\t'));
 writeOtf(font, filename.cff2Vf(param.subfamily), false);

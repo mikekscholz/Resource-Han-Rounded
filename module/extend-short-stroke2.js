@@ -142,7 +142,7 @@ function extendShortStroke(font, references) {
 		// 	oldContours[1].splice(7,1);
 		// 	oldContours[3].splice(1,1);
 		// 	oldContours[3].splice(7,1);
-			console.log(oldContours);
+			// console.log(oldContours);
 		}
 		glyph.geometry.contours = [];
 		

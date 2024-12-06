@@ -5,7 +5,7 @@ const { roundTo } = require("./util");
 const { invertRadius, minRadius, negativeGlyphs, skipGlyphs, modifyGlyphs } = require("./exceptions");
 
 function roundFont(font) {
-
+let curGlyph = "";
 	//
 	// font variation metadata
 	//
@@ -69,6 +69,7 @@ function roundFont(font) {
 	// extract values of 2 masters.
 	const instanceShsWghtMax = new Map([[dimWght, 1]]);
 	function extractPoint(point) {
+		// if (count > 2000 && count < 3000) console.log(curGlyph);
 		const xShsOrigin = Ot.Var.Ops.originOf(point.x);
 		const xShsWghtMax = Ot.Var.Ops.evaluate(point.x, instanceShsWghtMax);
 		const yShsOrigin = Ot.Var.Ops.originOf(point.y);
@@ -547,6 +548,7 @@ function roundFont(font) {
 	let count = 0;
 	for (const glyph of font.glyphs.items) {
 		const name = glyph.name;
+		curGlyph = name;
 		if (!glyph.geometry || !glyph.geometry.contours || skipGlyphs.includes(name))
 			continue;
 		const oldContours = glyph.geometry.contours;
