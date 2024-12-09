@@ -1,10 +1,12 @@
 "use strict";
 
 const { Ot } = require("ot-builder");
+// const {Bezier} = require("./bezier.js");
 const { extendSkip } = require("./exceptions");
 const { hangulSios } = require("./correctionsUnicode");
 const fs = require("node:fs");
 const path = require("node:path");
+const { abs, ceil, floor, round, trunc } = Math;
 
 // const replacementsDir = fs.readdirSync(__dirname + "/../replacements");
 // let replacements = [];
@@ -19,21 +21,31 @@ const params = {
 
 function circularArray(array, index) {
 	var length = array && array.length;
-	var idx = Math.abs(length + index % length) % length;
+	var idx = abs(length + index % length) % length;
 	return array[isNaN(idx) ? index : idx];
 }
 
 function circularIndex(array, index) {
 	var length = array && array.length;
-	var idx = Math.abs(length + index % length) % length;
+	var idx = abs(length + index % length) % length;
 	return isNaN(idx) ? index : idx;
 }
 
-function abs(num) {
-	return num >= 0 ? num : -num;
+function slope(line) {
+	let { p1, p2 } = line;
+	return (p2.y - p1.y) / (p2.x - p1.x);
 }
 
-function correctGlyphs(font) {
+function extendLineRight(line, distance) {
+	// let slope = slope(line);
+	let x1 = line.p1.x;
+	let y1 = line.p1.y;
+	let x2 = line.p2.x + distance;
+	let y2 = line.p2.y + round(distance * slope(line));
+	return { p1: { x: x1, y: y1 }, p2: { x: x2, y: y2 }};
+}
+
+function correctGlyphs(font, references) {
 	const dimWght = font.fvar.axes[0].dim;
 	const instanceShsWghtMax = new Map([[dimWght, 1]]);
 	const masterDimWghtMax = { dim: dimWght, min: 0, peak: 1, max: 1 };
@@ -53,20 +65,20 @@ function correctGlyphs(font) {
 	function isBreve(contour) {
 		if (contour.length < 15) return false;
 		const c = contour;
-		const cy0 = Ot.Var.Ops.originOf(c[0].y);
-		const cy1 = Ot.Var.Ops.originOf(c[1].y);
-		const cy13 = Ot.Var.Ops.originOf(c[13].y);
-		const cy14 = Ot.Var.Ops.originOf(c[14].y);
+		const cy0 = originLight(c[0].y);
+		const cy1 = originLight(c[1].y);
+		const cy13 = originLight(c[13].y);
+		const cy14 = originLight(c[14].y);
 		return c[0].kind == 0 && c[1].kind == 1 && c[2].kind == 2 && c[3].kind == 0 && c[4].kind == 0 && c[5].kind == 1 && c[6].kind == 2 && c[7].kind == 0 && c[8].kind == 1 && c[9].kind == 2 && c[10].kind == 0 && c[11].kind == 0 && c[12].kind == 1 && c[13].kind == 2 && c[14].kind == 0 && [627,631,783].includes(cy0) && cy0 == cy1 && cy1 == cy13 && cy13 == cy14;
 	}
 	
 	function isTilde(contour) {
 		if (contour.length != 21) return false;
 		const c = contour;
-		const cy0 = Ot.Var.Ops.originOf(c[0].y);
-		const cy1 = Ot.Var.Ops.originOf(c[1].y);
-		const cy19 = Ot.Var.Ops.originOf(c[19].y);
-		const cy20 = Ot.Var.Ops.originOf(c[20].y);
+		const cy0 = originLight(c[0].y);
+		const cy1 = originLight(c[1].y);
+		const cy19 = originLight(c[19].y);
+		const cy20 = originLight(c[20].y);
 		return c[0].kind == 0 && c[1].kind == 1 && c[2].kind == 2 && c[3].kind == 0 && c[4].kind == 0 && c[5].kind == 1 && c[6].kind == 2 && c[7].kind == 0 && c[8].kind == 1 && c[9].kind == 2 && c[10].kind == 0 && c[11].kind == 1 && c[12].kind == 2 && c[13].kind == 0 && c[14].kind == 0 && c[15].kind == 1 && c[16].kind == 2 && c[17].kind == 0 && c[18].kind == 1 && c[19].kind == 2 && c[20].kind == 0 && [638, 778, 794, 925].includes(cy0) && cy0 == cy1 && cy1 == cy19 && cy19 == cy20;
 	}
 	
@@ -128,64 +140,64 @@ function correctGlyphs(font) {
 	function approxEq(a, b, threshold = 5) {
 		if (typeof a == 'number' && typeof b == 'number')
 			return abs(a - b) <= threshold;
-		return abs(Ot.Var.Ops.originOf(a) - Ot.Var.Ops.originOf(b)) <= threshold &&
-			abs(Ot.Var.Ops.evaluate(a, instanceShsWghtMax) - Ot.Var.Ops.evaluate(b, instanceShsWghtMax)) <= threshold;
+		return abs(originLight(a) - originLight(b)) <= threshold &&
+			abs(originHeavy(a) - originHeavy(b)) <= threshold;
 	}
 
 	function canBeBottomEnd(bottomLeft, bottomRight) {
 		return bottomLeft.kind == 0 && bottomRight.kind == 0 &&
 			approxEq(bottomLeft.y, bottomRight.y, 20) &&
 			approxEq(
-				Ot.Var.Ops.originOf(bottomRight.x) - Ot.Var.Ops.originOf(bottomLeft.x),
+				originLight(bottomRight.x) - originLight(bottomLeft.x),
 				params.strokeWidth.light,
 				20,
 			) &&
-			Ot.Var.Ops.evaluate(bottomRight.x, instanceShsWghtMax) - Ot.Var.Ops.evaluate(bottomLeft.x, instanceShsWghtMax) <= params.strokeWidth.heavy;
+			originHeavy(bottomRight.x) - originHeavy(bottomLeft.x) <= params.strokeWidth.heavy;
 	}
 	
 	function canBeLeftEnd(topLeft, bottomLeft) {
 		return topLeft.kind == 0 && bottomLeft.kind == 0 &&
 			approxEq(topLeft.x, bottomLeft.x, 20) &&
 			approxEq(
-				Ot.Var.Ops.originOf(topLeft.y) - Ot.Var.Ops.originOf(bottomLeft.y),
+				originLight(topLeft.y) - originLight(bottomLeft.y),
 				params.strokeWidth.light,
 				20,
 			) &&
-			Ot.Var.Ops.evaluate(topLeft.y, instanceShsWghtMax) - Ot.Var.Ops.evaluate(bottomLeft.y, instanceShsWghtMax) <= params.strokeWidth.heavy;
+			originHeavy(topLeft.y) - originHeavy(bottomLeft.y) <= params.strokeWidth.heavy;
 	}
 
 	function canBeRightEnd(bottomRight, topRight) {
 		return bottomRight.kind == 0 && topRight.kind == 0 &&
 			approxEq(bottomRight.x, topRight.x, 20) &&
 			approxEq(
-				Ot.Var.Ops.originOf(topRight.y) - Ot.Var.Ops.originOf(bottomRight.y),
+				originLight(topRight.y) - originLight(bottomRight.y),
 				params.strokeWidth.light,
 				20,
 			) &&
-			Ot.Var.Ops.evaluate(topRight.y, instanceShsWghtMax) - Ot.Var.Ops.evaluate(bottomRight.y, instanceShsWghtMax) <= params.strokeWidth.heavy;
+			originHeavy(topRight.y) - originHeavy(bottomRight.y) <= params.strokeWidth.heavy;
 	}
 
 	function canBeTopEnd(topRight, topLeft) {
 		return topRight.kind == 0 && topLeft.kind == 0 &&
 			approxEq(topRight.y, topLeft.y, 20) &&
 			approxEq(
-				Ot.Var.Ops.originOf(topRight.x) - Ot.Var.Ops.originOf(topLeft.x),
+				originLight(topRight.x) - originLight(topLeft.x),
 				params.strokeWidth.light,
 				20,
 			) &&
-			Ot.Var.Ops.evaluate(topRight.x, instanceShsWghtMax) - Ot.Var.Ops.evaluate(topLeft.x, instanceShsWghtMax) <= params.strokeWidth.heavy;
+			originHeavy(topRight.x) - originHeavy(topLeft.x) <= params.strokeWidth.heavy;
 	}
 
 	function canBeLeftFalling(topRight, topPeak, topLeft, flatLeft, downLeft) {
 		return topRight.kind == 0 && topPeak.kind == 0 && topLeft.kind == 0 && flatLeft.kind == 0 && downLeft.kind == 0 &&
-		Ot.Var.Ops.originOf(topRight.x) - Ot.Var.Ops.originOf(topPeak.x) > 0 &&
-		Ot.Var.Ops.originOf(topPeak.x) - Ot.Var.Ops.originOf(topLeft.x) > 0 &&
-		Ot.Var.Ops.originOf(topLeft.x) - Ot.Var.Ops.originOf(flatLeft.x) > 0 &&
-		Ot.Var.Ops.originOf(flatLeft.x) - Ot.Var.Ops.originOf(downLeft.x) == 0 &&
-		Ot.Var.Ops.originOf(topRight.y) - Ot.Var.Ops.originOf(topPeak.y) <= 0 &&
-		Ot.Var.Ops.originOf(topPeak.y) - Ot.Var.Ops.originOf(topLeft.y) > 0 &&
-		Ot.Var.Ops.originOf(topLeft.y) - Ot.Var.Ops.originOf(flatLeft.y) == 0 &&
-		Ot.Var.Ops.originOf(flatLeft.y) - Ot.Var.Ops.originOf(downLeft.y) > 0;
+		originLight(topRight.x) - originLight(topPeak.x) > 0 &&
+		originLight(topPeak.x) - originLight(topLeft.x) > 0 &&
+		originLight(topLeft.x) - originLight(flatLeft.x) > 0 &&
+		originLight(flatLeft.x) - originLight(downLeft.x) == 0 &&
+		originLight(topRight.y) - originLight(topPeak.y) <= 0 &&
+		originLight(topPeak.y) - originLight(topLeft.y) > 0 &&
+		originLight(topLeft.y) - originLight(flatLeft.y) == 0 &&
+		originLight(flatLeft.y) - originLight(downLeft.y) > 0;
 	}
 
 	function canBeLeftFalling2(right, topRight, topPeak, farLeft, topLeft) {
@@ -201,10 +213,10 @@ function correctGlyphs(font) {
 	}
 
 	function isBetween(a, x, b) {
-		return Ot.Var.Ops.originOf(a) <= Ot.Var.Ops.originOf(x) &&
-			Ot.Var.Ops.originOf(x) <= Ot.Var.Ops.originOf(b) + 2 &&
-			Ot.Var.Ops.evaluate(a, instanceShsWghtMax) <= Ot.Var.Ops.evaluate(x, instanceShsWghtMax) &&
-			Ot.Var.Ops.evaluate(x, instanceShsWghtMax) <= Ot.Var.Ops.evaluate(b, instanceShsWghtMax) + 2;
+		return originLight(a) <= originLight(x) &&
+			originLight(x) <= originLight(b) + 2 &&
+			originHeavy(a) <= originHeavy(x) &&
+			originHeavy(x) <= originHeavy(b) + 2;
 	}
 
 	function makeVariance(valueDefault, valueWghtMax) {
@@ -214,12 +226,14 @@ function correctGlyphs(font) {
 	function checkSingleGlyph(glyph) {
 		if (!glyph.geometry || !glyph.geometry.contours)
 			return;
-
+		const name = glyph.name;
 		let oldContours = glyph.geometry.contours;
 		
 
 			
 		glyph.geometry.contours = [];
+		
+
 		
 		if (hangulSios.includes(glyph.name)) {
 			for (let i = 0; i < oldContours.length - 1; i++) {
@@ -307,6 +321,157 @@ function correctGlyphs(font) {
 			}
 		}
 		
+		if (name in references.horizontalLeftFalling) {
+			let refs = references.horizontalLeftFalling[name];
+			// console.log(refs);
+			for (const ref of refs) {
+				// console.log(ref);
+				let idxC1 = ref.horizontal;
+				let idxP1 = ref.horizontalBottomRight;
+				let idxC2 = ref.leftFalling;
+				let idxP2 = ref.leftFallingTopRight;
+				let contour = oldContours[idxC1];
+				let contour2 = oldContours[idxC2];
+				if (circularIndex(contour2, -3) !== idxP2) {
+					console.log(name, idxP2, circularIndex(contour2, idxP2 + 3));
+					let offset = circularIndex(contour2, idxP2 + 3);
+					for (let i = 0; i < offset; i++) {
+						oldContours[idxC2].push(oldContours[idxC2].shift());
+					}
+					console.log(oldContours[idxC2]);
+				}
+			}
+		}
+		// if (name in references.horizontalLeftFalling) {
+		// 	let refs = references.horizontalLeftFalling[name];
+		// 	// console.log(refs);
+		// 	for (const ref of refs) {
+		// 		// console.log(ref);
+		// 		let idxC1 = ref.horizontal;
+		// 		let idxP1 = ref.horizontalBottomRight;
+		// 		let idxC2 = ref.leftFalling;
+		// 		let idxP2 = ref.leftFallingTopRight;
+		// 		let contour = oldContours[idxC1];
+		// 		let contour2 = oldContours[idxC2];
+		// 		let horizontalBottomLeft = circularArray(contour, idxP1 - 1);
+		// 		let horizontalBottomRight = contour[idxP1];
+		// 		let horizontalTopRight = circularArray(contour, idxP1 + 1);
+		// 		let horizontalHeightLight = (originLight(horizontalTopRight.y) - originLight(horizontalBottomRight.y)) / 2;
+		// 		let horizontalHeightHeavy = (originHeavy(horizontalTopRight.y) - originHeavy(horizontalBottomRight.y)) / 2;
+		// 		let tP = circularArray(contour2, idxP2 + 1);
+		// 		let tL = circularArray(contour2, idxP2 + 2);
+		// 		let fL = circularArray(contour2, idxP2 + 3);
+		// 		let tPI = circularIndex(contour2, idxP2 + 1);
+		// 		let tLI = circularIndex(contour2, idxP2 + 2);
+		// 		let fLI = circularIndex(contour2, idxP2 + 3);
+		// 		let bottomLight = { p1: {x:originLight(horizontalBottomLeft.x), y:originLight(horizontalBottomLeft.y)}, p2: {x:originLight(horizontalBottomRight.x), y:originLight(horizontalBottomRight.y)} };
+		// 		let bottomHeavy = { p1: {x:originHeavy(horizontalBottomLeft.x), y:originHeavy(horizontalBottomLeft.y)}, p2: {x:originHeavy(horizontalBottomRight.x), y:originHeavy(horizontalBottomRight.y)} };
+		// 		let extensionLight = (originLight(contour2[idxP2].x) - originLight(contour[idxP1].x)) + 10;
+		// 		let extensionHeavy = (originHeavy(contour2[idxP2].x) - originHeavy(contour[idxP1].x)) + 10;
+		// 		let bottomLightExt = extendLineRight(bottomLight, extensionLight);
+		// 		let bottomHeavyExt = extendLineRight(bottomHeavy, extensionHeavy);
+		// 		let r1 = circularArray(contour2, idxP2 - 3);
+		// 		let r2 = circularArray(contour2, idxP2 - 2);
+		// 		let r3 = circularArray(contour2, idxP2 - 1);
+		// 		let r4 = circularArray(contour2, idxP2);
+		// 		let l1 = circularArray(contour2, idxP2 + 4);
+		// 		let l2 = circularArray(contour2, idxP2 + 5);
+		// 		let l3 = circularArray(contour2, idxP2 + 6);
+		// 		let l4 = circularArray(contour2, idxP2 + 7);
+		// 		let r1I = circularIndex(contour2, idxP2 - 3);
+		// 		let r2I = circularIndex(contour2, idxP2 - 2);
+		// 		let r3I = circularIndex(contour2, idxP2 - 1);
+		// 		let r4I = circularIndex(contour2, idxP2);
+		// 		let l1I = circularIndex(contour2, idxP2 + 4);
+		// 		let l2I = circularIndex(contour2, idxP2 + 5);
+		// 		let l3I = circularIndex(contour2, idxP2 + 6);
+		// 		let l4I = circularIndex(contour2, idxP2 + 7);
+		// 		let oldRightLight = new Bezier(originLight(r1.x),originLight(r1.y),originLight(r2.x),originLight(r2.y),originLight(r3.x),originLight(r3.y),originLight(r4.x),originLight(r4.y));
+		// 		let oldRightHeavy = new Bezier(originHeavy(r1.x),originHeavy(r1.y),originHeavy(r2.x),originHeavy(r2.y),originHeavy(r3.x),originHeavy(r3.y),originHeavy(r4.x),originHeavy(r4.y));
+		// 		let oldLeftLight = new Bezier(originLight(l1.x),originLight(l1.y),originLight(l2.x),originLight(l2.y),originLight(l3.x),originLight(l3.y),originLight(l4.x),originLight(l4.y));
+		// 		let oldLeftHeavy = new Bezier(originHeavy(l1.x),originHeavy(l1.y),originHeavy(l2.x),originHeavy(l2.y),originHeavy(l3.x),originHeavy(l3.y),originHeavy(l4.x),originHeavy(l4.y));
+		// 		let intersectRL = oldRightLight.intersects(bottomLightExt);
+		// 		let intersectRH = oldRightHeavy.intersects(bottomHeavyExt);
+		// 		let intersectLL = oldLeftLight.intersects(bottomLightExt);
+		// 		let intersectLH = oldLeftHeavy.intersects(bottomHeavyExt);
+		// 		let splitRL = oldRightLight.split(intersectRL[0]);
+		// 		let splitRH = oldRightHeavy.split(intersectRH[0]);
+		// 		let splitLL = oldLeftLight.split(intersectLL[0]);
+		// 		let splitLH = oldLeftHeavy.split(intersectLH[0]);
+		// 		let rightLight = splitRL.left.points;
+		// 		let rightHeavy = splitRH.left.points;
+		// 		let leftLight = splitLL.right.points;
+		// 		let leftHeavy = splitLH.right.points;
+		// 		let rightC2LineLight = { p1: {x:rightLight[2].x, y:rightLight[2].y}, p2: {x:rightLight[3].x, y:rightLight[3].y} };
+		// 		let rightC2LineHeavy = { p1: {x:rightLight[2].x, y:rightLight[2].y}, p2: {x:rightLight[3].x, y:rightLight[3].y} };
+		// 		oldContours[idxC2][tPI] = {
+		// 			x: makeVariance(rightLight[3].x + (horizontalHeightLight / slope(rightC2LineLight)), rightHeavy[3].x + (horizontalHeightHeavy / slope(rightC2LineHeavy))),
+		// 			y: makeVariance(originLight(horizontalBottomRight.y) + horizontalHeightLight, originHeavy(horizontalBottomRight.y) + horizontalHeightHeavy),
+		// 			kind: tP.kind,
+		// 		};
+		// 		oldContours[idxC2][tLI] = {
+		// 			x: makeVariance(rightLight[3].x - (horizontalHeightLight / 2 / slope(rightC2LineLight)), rightHeavy[3].x - (horizontalHeightHeavy / 2 / slope(rightC2LineHeavy))),
+		// 			y: makeVariance(originLight(horizontalTopRight.y), originHeavy(horizontalTopRight.y)),
+		// 			kind: tL.kind,
+		// 		};
+		// 		oldContours[idxC2][fLI] = {
+		// 			x: makeVariance(leftLight[0].x, leftHeavy[0].x),
+		// 			y: makeVariance(originLight(horizontalTopRight.y), originHeavy(horizontalTopRight.y)),
+		// 			kind: fL.kind,
+		// 		};
+		// 		oldContours[idxC2][r1I] = {
+		// 			x: makeVariance(rightLight[0].x, rightHeavy[0].x),
+		// 			y: makeVariance(rightLight[0].y, rightHeavy[0].y),
+		// 			kind: r1.kind,
+		// 		};
+		// 		oldContours[idxC2][l1I] = {
+		// 			x: makeVariance(leftLight[0].x, leftHeavy[0].x),
+		// 			y: makeVariance(originLight(horizontalBottomRight.y), originHeavy(horizontalBottomRight.y)),
+		// 			kind: l1.kind,
+		// 		};
+		// 		oldContours[idxC2][r2I] = {
+		// 			x: makeVariance(rightLight[1].x, rightHeavy[1].x),
+		// 			y: makeVariance(rightLight[1].y, rightHeavy[1].y),
+		// 			kind: r2.kind,
+		// 		};
+		// 		oldContours[idxC2][l2I] = {
+		// 			x: makeVariance(leftLight[1].x, leftHeavy[1].x),
+		// 			y: makeVariance(leftLight[1].y, leftHeavy[1].y),
+		// 			kind: l2.kind,
+		// 		};
+		// 		oldContours[idxC2][r3I] = {
+		// 			x: makeVariance(rightLight[2].x, rightHeavy[2].x),
+		// 			y: makeVariance(rightLight[2].y, rightHeavy[2].y),
+		// 			kind: r3.kind,
+		// 		};
+		// 		oldContours[idxC2][l3I] = {
+		// 			x: makeVariance(leftLight[2].x, leftHeavy[2].x),
+		// 			y: makeVariance(leftLight[2].y, leftHeavy[2].y),
+		// 			kind: l3.kind,
+		// 		};
+		// 		oldContours[idxC2][r4I] = {
+		// 			x: makeVariance(rightLight[3].x, rightHeavy[3].x),
+		// 			y: makeVariance(originLight(horizontalBottomRight.y), originHeavy(horizontalBottomRight.y)),
+		// 			kind: r4.kind,
+		// 		};
+		// 		oldContours[idxC2][l4I] = {
+		// 			x: makeVariance(leftLight[3].x, leftHeavy[3].x),
+		// 			y: makeVariance(leftLight[3].y, leftHeavy[3].y),
+		// 			kind: l4.kind,
+		// 		};
+		// 		oldContours[idxC1][idxP1 + 1] = {
+		// 			x: makeVariance(rightLight[3].x, rightHeavy[3].x),
+		// 			y: makeVariance(originLight(horizontalTopRight.y), originHeavy(horizontalTopRight.y)),
+		// 			kind: tL.kind,
+		// 		};
+		// 		oldContours[idxC1][idxP1] = {
+		// 			x: makeVariance(rightLight[3].x, rightHeavy[3].x),
+		// 			y: makeVariance(originLight(horizontalBottomRight.y), originHeavy(horizontalBottomRight.y)),
+		// 			kind: fL.kind,
+		// 		};
+		// 	}
+		// }
+		
 		for (const contour of oldContours) {
 			if (contour.length < 4) {
 				glyph.geometry.contours.push(contour);
@@ -314,12 +479,12 @@ function correctGlyphs(font) {
 			}
 			// fix all 人's starting on midpoint of horizontal line and start on corner
 			if (contour.length === 22) {
-				const tlefty = Ot.Var.Ops.originOf(contour[1].y);
-				const tcentery = Ot.Var.Ops.originOf(contour[0].y);
-				const trighty = Ot.Var.Ops.originOf(contour[21].y);
-				const tleftx = Ot.Var.Ops.originOf(contour[1].x);
-				const tcenterx = Ot.Var.Ops.originOf(contour[0].x);
-				const trightx = Ot.Var.Ops.originOf(contour[21].x);
+				const tlefty = originLight(contour[1].y);
+				const tcentery = originLight(contour[0].y);
+				const trighty = originLight(contour[21].y);
+				const tleftx = originLight(contour[1].x);
+				const tcenterx = originLight(contour[0].x);
+				const trightx = originLight(contour[21].x);
 				if (
 					tlefty === tcentery && 
 					tcentery === trighty && 
@@ -340,67 +505,67 @@ function correctGlyphs(font) {
 			if (glyph.name == "caron" || glyph.name == "uni030C") {
 				newContour[0] = {
 					x: makeVariance(
-						Ot.Var.Ops.originOf(contour[0].x) - 3,
-						Ot.Var.Ops.evaluate(contour[0].x, instanceShsWghtMax) - 55
+						originLight(contour[0].x) - 3,
+						originHeavy(contour[0].x) - 55
 					),
 					y: makeVariance(
-						Ot.Var.Ops.originOf(contour[0].y) - 12,
-						Ot.Var.Ops.evaluate(contour[0].y, instanceShsWghtMax) - 34
+						originLight(contour[0].y) - 12,
+						originHeavy(contour[0].y) - 34
 					),
 					kind: contour[0].kind,
 				};
 				newContour[1] = {
 					x: makeVariance(
-						Ot.Var.Ops.originOf(contour[1].x) + 1,
-						Ot.Var.Ops.evaluate(contour[1].x, instanceShsWghtMax) - 1
+						originLight(contour[1].x) + 1,
+						originHeavy(contour[1].x) - 1
 					),
 					y: makeVariance(
-						Ot.Var.Ops.originOf(contour[1].y),
-						Ot.Var.Ops.evaluate(contour[1].y, instanceShsWghtMax) + 10
+						originLight(contour[1].y),
+						originHeavy(contour[1].y) + 10
 					),
 					kind: contour[1].kind,
 				};
 				newContour[2] = {
 					x: makeVariance(
-						Ot.Var.Ops.originOf(contour[2].x) + 7,
-						Ot.Var.Ops.evaluate(contour[2].x, instanceShsWghtMax) + 54
+						originLight(contour[2].x) + 7,
+						originHeavy(contour[2].x) + 54
 					),
 					y: makeVariance(
-						Ot.Var.Ops.originOf(contour[2].y) - 12,
-						Ot.Var.Ops.evaluate(contour[2].y, instanceShsWghtMax) - 35
+						originLight(contour[2].y) - 12,
+						originHeavy(contour[2].y) - 35
 					),
 					kind: contour[2].kind,
 				};
 				newContour[3] = {
 					x: makeVariance(
-						Ot.Var.Ops.originOf(contour[3].x) + 4,
-						Ot.Var.Ops.evaluate(contour[3].x, instanceShsWghtMax) + 4
+						originLight(contour[3].x) + 4,
+						originHeavy(contour[3].x) + 4
 					),
 					y: makeVariance(
-						Ot.Var.Ops.originOf(contour[3].y) + 4,
-						Ot.Var.Ops.evaluate(contour[3].y, instanceShsWghtMax) + 45
+						originLight(contour[3].y) + 4,
+						originHeavy(contour[3].y) + 45
 					),
 					kind: contour[3].kind,
 				};
 				newContour[4] = {
 					x: makeVariance(
-						Ot.Var.Ops.originOf(contour[4].x),
-						Ot.Var.Ops.evaluate(contour[4].x, instanceShsWghtMax)
+						originLight(contour[4].x),
+						originHeavy(contour[4].x)
 					),
 					y: makeVariance(
-						Ot.Var.Ops.originOf(contour[4].y) + 1,
-						Ot.Var.Ops.evaluate(contour[4].y, instanceShsWghtMax) + 45
+						originLight(contour[4].y) + 1,
+						originHeavy(contour[4].y) + 45
 					),
 					kind: contour[4].kind,
 				};
 				newContour[5] = {
 					x: makeVariance(
-						Ot.Var.Ops.originOf(contour[5].x) + 2,
-						Ot.Var.Ops.evaluate(contour[5].x, instanceShsWghtMax) + 4
+						originLight(contour[5].x) + 2,
+						originHeavy(contour[5].x) + 4
 					),
 					y: makeVariance(
-						Ot.Var.Ops.originOf(contour[5].y) + 4,
-						Ot.Var.Ops.evaluate(contour[5].y, instanceShsWghtMax) + 45
+						originLight(contour[5].y) + 4,
+						originHeavy(contour[5].y) + 45
 					),
 					kind: contour[5].kind,
 				};
@@ -435,6 +600,7 @@ function correctGlyphs(font) {
 					y: makeVariance(originLight(contour[7].y), originHeavy(contour[7].y) - 21),
 					kind: 0,
 				};
+				contour.splice(1, 1);
 				newContour.splice(1, 1);
 				// continue;
 			}
@@ -495,6 +661,7 @@ function correctGlyphs(font) {
 						y: makeVariance(originLight(contour[7].y), originHeavy(contour[7].y)),
 						kind: 0,
 					};
+					contour.splice(6, 1);
 					newContour.splice(6, 1);
 				}
 				// continue;
@@ -628,54 +795,54 @@ function correctGlyphs(font) {
 			// 	console.log(glyph.name);
 			// 	newContour[2] = {
 			// 		x: makeVariance(
-			// 			Ot.Var.Ops.originOf(contour[2].x),
-			// 			Ot.Var.Ops.evaluate(contour[2].x, instanceShsWghtMax) + 21
+			// 			originLight(contour[2].x),
+			// 			originHeavy(contour[2].x) + 21
 			// 		),
 			// 		y: contour[2].y,
 			// 		kind: contour[2].kind,
 			// 	};
 			// 	newContour[3] = {
 			// 		x: makeVariance(
-			// 			Ot.Var.Ops.originOf(contour[3].x),
-			// 			Ot.Var.Ops.evaluate(contour[3].x, instanceShsWghtMax) + 11
+			// 			originLight(contour[3].x),
+			// 			originHeavy(contour[3].x) + 11
 			// 		),
 			// 		y: makeVariance(
-			// 			Ot.Var.Ops.originOf(contour[3].y),
-			// 			Ot.Var.Ops.evaluate(contour[3].y, instanceShsWghtMax) + 17
+			// 			originLight(contour[3].y),
+			// 			originHeavy(contour[3].y) + 17
 			// 		),
 			// 		kind: contour[3].kind,
 			// 	};
 			// 	newContour[5] = {
 			// 		x: makeVariance(
-			// 			Ot.Var.Ops.originOf(contour[5].x),
-			// 			Ot.Var.Ops.evaluate(contour[5].x, instanceShsWghtMax) + 10
+			// 			originLight(contour[5].x),
+			// 			originHeavy(contour[5].x) + 10
 			// 		),
 			// 		y: contour[5].y,
 			// 		kind: contour[5].kind,
 			// 	};
 			// 	newContour[9] = {
 			// 		x: makeVariance(
-			// 			Ot.Var.Ops.originOf(contour[9].x),
-			// 			Ot.Var.Ops.evaluate(contour[9].x, instanceShsWghtMax) - 10
+			// 			originLight(contour[9].x),
+			// 			originHeavy(contour[9].x) - 10
 			// 		),
 			// 		y: contour[9].y,
 			// 		kind: contour[9].kind,
 			// 	};
 			// 	newContour[11] = {
 			// 		x: makeVariance(
-			// 			Ot.Var.Ops.originOf(contour[11].x),
-			// 			Ot.Var.Ops.evaluate(contour[11].x, instanceShsWghtMax) - 10
+			// 			originLight(contour[11].x),
+			// 			originHeavy(contour[11].x) - 10
 			// 		),
 			// 		y: makeVariance(
-			// 			Ot.Var.Ops.originOf(contour[11].y),
-			// 			Ot.Var.Ops.evaluate(contour[11].y, instanceShsWghtMax) + 17
+			// 			originLight(contour[11].y),
+			// 			originHeavy(contour[11].y) + 17
 			// 		),
 			// 		kind: contour[11].kind,
 			// 	};
 			// 	newContour[12] = {
 			// 		x: makeVariance(
-			// 			Ot.Var.Ops.originOf(contour[12].x),
-			// 			Ot.Var.Ops.evaluate(contour[12].x, instanceShsWghtMax) - 22
+			// 			originLight(contour[12].x),
+			// 			originHeavy(contour[12].x) - 22
 			// 		),
 			// 		y: contour[12].y,
 			// 		kind: contour[12].kind,
@@ -687,8 +854,8 @@ function correctGlyphs(font) {
 				newContour[11] = {
 					x: contour[11].x,
 					y: makeVariance(
-						Ot.Var.Ops.originOf(contour[11].y) - 10,
-						Ot.Var.Ops.evaluate(contour[11].y, instanceShsWghtMax) - 50
+						originLight(contour[11].y) - 10,
+						originHeavy(contour[11].y) - 50
 					),
 					kind: contour[11].kind,
 				};
@@ -699,45 +866,45 @@ function correctGlyphs(font) {
 			if (glyph.name == "uni0416" || glyph.name == "uni0436") {
 				newContour[17] = {
 					x: makeVariance(
-						Ot.Var.Ops.originOf(contour[17].x) + 20,
-						Ot.Var.Ops.evaluate(contour[17].x, instanceShsWghtMax) + 40
+						originLight(contour[17].x) + 20,
+						originHeavy(contour[17].x) + 40
 					),
 					y: makeVariance(
-						Ot.Var.Ops.originOf(contour[17].y),
-						Ot.Var.Ops.evaluate(contour[17].y, instanceShsWghtMax) + 3
+						originLight(contour[17].y),
+						originHeavy(contour[17].y) + 3
 					),
 					kind: contour[17].kind,
 				};
 				newContour[18] = {
 					x: makeVariance(
-						Ot.Var.Ops.originOf(contour[18].x) + 20,
-						Ot.Var.Ops.evaluate(contour[18].x, instanceShsWghtMax) + 40
+						originLight(contour[18].x) + 20,
+						originHeavy(contour[18].x) + 40
 					),
 					y: makeVariance(
-						Ot.Var.Ops.originOf(contour[18].y) + 2,
-						Ot.Var.Ops.evaluate(contour[18].y, instanceShsWghtMax) + 3
+						originLight(contour[18].y) + 2,
+						originHeavy(contour[18].y) + 3
 					),
 					kind: contour[18].kind,
 				};
 				newContour[37] = {
 					x: makeVariance(
-						Ot.Var.Ops.originOf(contour[37].x) - 20,
-						Ot.Var.Ops.evaluate(contour[37].x, instanceShsWghtMax) - 40
+						originLight(contour[37].x) - 20,
+						originHeavy(contour[37].x) - 40
 					),
 					y: makeVariance(
-						Ot.Var.Ops.originOf(contour[37].y) + 2,
-						Ot.Var.Ops.evaluate(contour[37].y, instanceShsWghtMax) + 3
+						originLight(contour[37].y) + 2,
+						originHeavy(contour[37].y) + 3
 					),
 					kind: contour[37].kind,
 				};
 				newContour[38] = {
 					x: makeVariance(
-						Ot.Var.Ops.originOf(contour[38].x) - 20,
-						Ot.Var.Ops.evaluate(contour[38].x, instanceShsWghtMax) - 40
+						originLight(contour[38].x) - 20,
+						originHeavy(contour[38].x) - 40
 					),
 					y: makeVariance(
-						Ot.Var.Ops.originOf(contour[38].y),
-						Ot.Var.Ops.evaluate(contour[38].y, instanceShsWghtMax) + 3
+						originLight(contour[38].y),
+						originHeavy(contour[38].y) + 3
 					),
 					kind: contour[38].kind,
 				};
@@ -750,155 +917,154 @@ function correctGlyphs(font) {
 					newContour[0] = {
 						x: contour[0].x,
 						y: makeVariance(
-							Ot.Var.Ops.originOf(contour[0].y),
-							Ot.Var.Ops.evaluate(contour[0].y, instanceShsWghtMax) + 50
+							originLight(contour[0].y),
+							originHeavy(contour[0].y) + 50
 						),
 						kind: contour[0].kind,
 					};
 					newContour[1] = {
 						x: contour[1].x,
 						y: makeVariance(
-							Ot.Var.Ops.originOf(contour[1].y),
-							Ot.Var.Ops.evaluate(contour[1].y, instanceShsWghtMax) - 30
+							originLight(contour[1].y),
+							originHeavy(contour[1].y) - 30
 						),
 						kind: contour[1].kind,
 					};
 					newContour[10] = {
 						x: contour[10].x,
 						y: makeVariance(
-							Ot.Var.Ops.originOf(contour[10].y),
-							Ot.Var.Ops.evaluate(contour[10].y, instanceShsWghtMax) - 30
+							originLight(contour[10].y),
+							originHeavy(contour[10].y) - 30
 						),
 						kind: contour[10].kind,
 					};
 					newContour[11] = {
 						x: contour[11].x,
 						y: makeVariance(
-							Ot.Var.Ops.originOf(contour[11].y),
-							Ot.Var.Ops.evaluate(contour[11].y, instanceShsWghtMax) + 50
+							originLight(contour[11].y),
+							originHeavy(contour[11].y) + 50
 						),
 						kind: contour[11].kind,
 					};
 					// continue;
 				}
 			}
-			// optimize ㇒ in ㇇'s (horizontal + left-falling) for rounding
-			if (contour.length > 10) {
-				let matched = false;
-				for (let idx = 0; idx < contour.length; idx++) {
-					const l = contour.length;
-					const tRI = idx;						//topRight
-					const tPI = circularIndex(contour, idx + 1);	//topPeak
-					const tLI = circularIndex(contour, idx + 2);	//topLeft
-					const fLI = circularIndex(contour, idx + 3);	//flatLeft
-					const dLI = circularIndex(contour, idx + 4);	//downLeft
-					if (
-						canBeLeftFalling(contour[tRI], contour[tPI], contour[tLI], contour[fLI], contour[dLI]) &&
-						originLight(contour[idx].x) - originLight(circularArray(contour, idx - 2).x) > 50 &&
-						originLight(contour[idx].y) > originLight(circularArray(contour, idx - 2).y)
-					) {
-						// newContour[tRI - 1] = {
-						// 	x: newContour[tRI - 1].x,
-						// 	y: makeVariance(
-						// 		Ot.Var.Ops.originOf(contour[tRI - 1].y) - 10,
-						// 		Ot.Var.Ops.evaluate(contour[tRI - 1].y, instanceShsWghtMax) - 30
-						// 	),
-						// 	kind: newContour[tRI - 1].kind,
-						// };
-						// newContour[tRI] = {
-						// 	x: newContour[tRI].x,
-						// 	y: makeVariance(
-						// 		Ot.Var.Ops.originOf(contour[tLI].y) - 25,
-						// 		Ot.Var.Ops.evaluate(contour[tLI].y, instanceShsWghtMax) - 90
-						// 	),
-						// 	kind: 0,
-						// };
-						// newContour[tPI] = {
-						// 	x: makeVariance(
-						// 		Ot.Var.Ops.originOf(contour[tRI].x),
-						// 		Ot.Var.Ops.evaluate(contour[tRI].x, instanceShsWghtMax)
-						// 	),
-						// 	y: makeVariance(
-						// 		Ot.Var.Ops.originOf(contour[tLI].y),
-						// 		Ot.Var.Ops.evaluate(contour[tLI].y, instanceShsWghtMax)
-						// 	),
-						// 	kind: 0,
-						// };
-						// newContour[dLI] = {
-						// 	x: contour[dLI].x,
-						// 	y: makeVariance(
-						// 		Ot.Var.Ops.originOf(contour[dLI].y) - 5,
-						// 		Ot.Var.Ops.evaluate(contour[dLI].y, instanceShsWghtMax) - 25
-						// 	),
-						// 	kind: 0,
-						// };
-						// newContour.splice(tLI, 1);
-						newContour.splice(tPI, 1);
-						newContour.splice(fLI, 1);
-						contour.splice(tPI, 1);
-						contour.splice(fLI, 1);
-						matched = true;
-					}
-					if (matched) break;
-				}
-			}
+			// // optimize ㇒ in ㇇'s (horizontal + left-falling) for rounding
+			// if (contour.length > 10) {
+			// 	let matched = false;
+			// 	for (let idx = 0; idx < contour.length; idx++) {
+			// 		const tRI = idx;						//topRight
+			// 		const tPI = circularIndex(contour, idx + 1);	//topPeak
+			// 		const tLI = circularIndex(contour, idx + 2);	//topLeft
+			// 		const fLI = circularIndex(contour, idx + 3);	//flatLeft
+			// 		const dLI = circularIndex(contour, idx + 4);	//downLeft
+			// 		if (
+			// 			canBeLeftFalling(contour[tRI], contour[tPI], contour[tLI], contour[fLI], contour[dLI]) &&
+			// 			originLight(contour[idx].x) - originLight(circularArray(contour, idx - 2).x) > 50 &&
+			// 			originLight(contour[idx].y) > originLight(circularArray(contour, idx - 2).y)
+			// 		) {
+			// 			// newContour[tRI - 1] = {
+			// 			// 	x: newContour[tRI - 1].x,
+			// 			// 	y: makeVariance(
+			// 			// 		originLight(contour[tRI - 1].y) - 10,
+			// 			// 		originHeavy(contour[tRI - 1].y) - 30
+			// 			// 	),
+			// 			// 	kind: newContour[tRI - 1].kind,
+			// 			// };
+			// 			// newContour[tRI] = {
+			// 			// 	x: newContour[tRI].x,
+			// 			// 	y: makeVariance(
+			// 			// 		originLight(contour[tLI].y) - 25,
+			// 			// 		originHeavy(contour[tLI].y) - 90
+			// 			// 	),
+			// 			// 	kind: 0,
+			// 			// };
+			// 			// newContour[tPI] = {
+			// 			// 	x: makeVariance(
+			// 			// 		originLight(contour[tRI].x),
+			// 			// 		originHeavy(contour[tRI].x)
+			// 			// 	),
+			// 			// 	y: makeVariance(
+			// 			// 		originLight(contour[tLI].y),
+			// 			// 		originHeavy(contour[tLI].y)
+			// 			// 	),
+			// 			// 	kind: 0,
+			// 			// };
+			// 			// newContour[dLI] = {
+			// 			// 	x: contour[dLI].x,
+			// 			// 	y: makeVariance(
+			// 			// 		originLight(contour[dLI].y) - 5,
+			// 			// 		originHeavy(contour[dLI].y) - 25
+			// 			// 	),
+			// 			// 	kind: 0,
+			// 			// };
+			// 			// newContour.splice(tLI, 1);
+			// 			newContour.splice(tPI, 1);
+			// 			newContour.splice(fLI, 1);
+			// 			contour.splice(tPI, 1);
+			// 			contour.splice(fLI, 1);
+			// 			matched = true;
+			// 		}
+			// 		if (matched) break;
+			// 	}
+			// }
 
-			if (contour.length > 10) {
-				let matched = false;
-				for (let idx = 0; idx < contour.length; idx++) {
-					const rI = idx;						//right
-					const tRI = circularIndex(contour, idx + 1);						//topRight
-					const tPI = circularIndex(contour, idx + 2);	//topPeak
-					const fLI = circularIndex(contour, idx + 3);	//farLeft
-					const tLI = circularIndex(contour, idx + 4);	//topLeft
-					if (
-						canBeLeftFalling2(contour[rI], contour[tRI], contour[tPI], contour[fLI], contour[tLI]) &&
-						originLight(contour[idx].x) - originLight(circularArray(contour, idx - 2).x) > 50 &&
-						originLight(contour[idx].y) > originLight(circularArray(contour, idx - 2).y)
-					) {
-						// newContour[tRI - 1] = {
-						// 	x: newContour[tRI - 1].x,
-						// 	y: makeVariance(
-						// 		Ot.Var.Ops.originOf(contour[tRI - 1].y) - 10,
-						// 		Ot.Var.Ops.evaluate(contour[tRI - 1].y, instanceShsWghtMax) - 30
-						// 	),
-						// 	kind: newContour[tRI - 1].kind,
-						// };
-						// newContour[tRI] = {
-						// 	x: newContour[tRI].x,
-						// 	y: makeVariance(
-						// 		Ot.Var.Ops.originOf(contour[tLI].y) - 25,
-						// 		Ot.Var.Ops.evaluate(contour[tLI].y, instanceShsWghtMax) - 90
-						// 	),
-						// 	kind: 0,
-						// };
-						// newContour[tPI] = {
-						// 	x: makeVariance(
-						// 		Ot.Var.Ops.originOf(contour[tRI].x),
-						// 		Ot.Var.Ops.evaluate(contour[tRI].x, instanceShsWghtMax)
-						// 	),
-						// 	y: makeVariance(
-						// 		Ot.Var.Ops.originOf(contour[tLI].y),
-						// 		Ot.Var.Ops.evaluate(contour[tLI].y, instanceShsWghtMax)
-						// 	),
-						// 	kind: 0,
-						// };
-						// newContour[dLI] = {
-						// 	x: contour[dLI].x,
-						// 	y: makeVariance(
-						// 		Ot.Var.Ops.originOf(contour[dLI].y) - 5,
-						// 		Ot.Var.Ops.evaluate(contour[dLI].y, instanceShsWghtMax) - 25
-						// 	),
-						// 	kind: 0,
-						// };
-						// newContour.splice(tLI, 1);
-						newContour.splice(tPI, 1);
-						newContour.splice(fLI, 1);
-						matched = true;
-					}
-					if (matched) break;
-				}
-			}
+			// if (contour.length > 10) {
+			// 	let matched = false;
+			// 	for (let idx = 0; idx < contour.length; idx++) {
+			// 		const rI = idx;						//right
+			// 		const tRI = circularIndex(contour, idx + 1);						//topRight
+			// 		const tPI = circularIndex(contour, idx + 2);	//topPeak
+			// 		const fLI = circularIndex(contour, idx + 3);	//farLeft
+			// 		const tLI = circularIndex(contour, idx + 4);	//topLeft
+			// 		if (
+			// 			canBeLeftFalling2(contour[rI], contour[tRI], contour[tPI], contour[fLI], contour[tLI]) &&
+			// 			originLight(contour[idx].x) - originLight(circularArray(contour, idx - 2).x) > 50 &&
+			// 			originLight(contour[idx].y) > originLight(circularArray(contour, idx - 2).y)
+			// 		) {
+			// 			// newContour[tRI - 1] = {
+			// 			// 	x: newContour[tRI - 1].x,
+			// 			// 	y: makeVariance(
+			// 			// 		originLight(contour[tRI - 1].y) - 10,
+			// 			// 		originHeavy(contour[tRI - 1].y) - 30
+			// 			// 	),
+			// 			// 	kind: newContour[tRI - 1].kind,
+			// 			// };
+			// 			// newContour[tRI] = {
+			// 			// 	x: newContour[tRI].x,
+			// 			// 	y: makeVariance(
+			// 			// 		originLight(contour[tLI].y) - 25,
+			// 			// 		originHeavy(contour[tLI].y) - 90
+			// 			// 	),
+			// 			// 	kind: 0,
+			// 			// };
+			// 			// newContour[tPI] = {
+			// 			// 	x: makeVariance(
+			// 			// 		originLight(contour[tRI].x),
+			// 			// 		originHeavy(contour[tRI].x)
+			// 			// 	),
+			// 			// 	y: makeVariance(
+			// 			// 		originLight(contour[tLI].y),
+			// 			// 		originHeavy(contour[tLI].y)
+			// 			// 	),
+			// 			// 	kind: 0,
+			// 			// };
+			// 			// newContour[dLI] = {
+			// 			// 	x: contour[dLI].x,
+			// 			// 	y: makeVariance(
+			// 			// 		originLight(contour[dLI].y) - 5,
+			// 			// 		originHeavy(contour[dLI].y) - 25
+			// 			// 	),
+			// 			// 	kind: 0,
+			// 			// };
+			// 			// newContour.splice(tLI, 1);
+			// 			newContour.splice(tPI, 1);
+			// 			newContour.splice(fLI, 1);
+			// 			matched = true;
+			// 		}
+			// 		if (matched) break;
+			// 	}
+			// }
 			
 			for (let idx = 0; idx < contour.length; idx++) {
 				let matched = false;
@@ -910,14 +1076,13 @@ function correctGlyphs(font) {
 				) {
 					const verticalTopRight = contour[idx];
 					const verticalTopLeft = circularArray(contour, idx + 1);
-					// const verticalBottomLeftIdx = circularIndex(contour, idx + 2);
-					const verticalBottomLeftIdx = 
-												circularArray(contour, idx + 2).kind === 0 ? circularIndex(contour, idx + 2) :
-												circularArray(contour, idx + 3).kind === 0 ? circularIndex(contour, idx + 3) : circularIndex(contour, idx + 4);
+					const verticalBottomLeftIdx = circularIndex(contour, idx + 2);
+					// const verticalBottomLeftIdx = 
+					// 							circularArray(contour, idx + 2).kind === 0 ? circularIndex(contour, idx + 2) :
+					// 							circularArray(contour, idx + 3).kind === 0 ? circularIndex(contour, idx + 3) : circularIndex(contour, idx + 4);
 												// circularIndex(contour, idx + 5);
 					const verticalBottomLeft = circularArray(contour, verticalBottomLeftIdx);
-					const verticalBottomRightIdx = 
-												circularArray(contour, idx - 1).kind === 0 ? circularIndex(contour, idx - 1) :
+					const verticalBottomRightIdx = circularArray(contour, idx - 1).kind === 0 ? circularIndex(contour, idx - 1) :
 												circularArray(contour, idx - 2).kind === 0 ? circularIndex(contour, idx - 2) :
 												circularArray(contour, idx - 3).kind === 0 ? circularIndex(contour, idx - 3) : 
 												circularIndex(contour, idx - 4);
@@ -926,14 +1091,14 @@ function correctGlyphs(font) {
 					// fix tops with extra points too close to right corner preventing rounding
 					if (
 						abs(originLight(verticalTopRight.x) - originLight(verticalBottomRight.x)) <= 5 &&
-						abs(originLight(verticalTopRight.y) - originLight(verticalBottomRight.y)) < 30
+						abs(originLight(verticalTopRight.y) - originLight(verticalBottomRight.y)) < 15
 						// abs(originLight(verticalTopRight.y) - originLight(circularArray(contour, idxP1 - 2).y)) > 30 &&
 						// abs(originLight(verticalBottomRight.x) - originLight(circularArray(contour, idxP1 - 2).x)) < 10
 					) {
 						const deltaM0 = originLight(verticalTopRight.y) - originLight(verticalBottomRight.y);
 						const deltaM1 = originHeavy(verticalTopRight.y) - originHeavy(verticalBottomRight.y);
-						const diffM0 = deltaM0 < 30 ? 30 - deltaM0 : 0;
-						const diffM1 = deltaM1 < 80 ? 80 - deltaM1 : 0;
+						const diffM0 = deltaM0 < 15 ? 15 - deltaM0 : 0;
+						const diffM1 = deltaM1 < 50 ? 50 - deltaM1 : 0;
 						// console.log("extend points too close right: " + glyph.name);
 						newContour[verticalBottomRightIdx] = {
 							// x: verticalBottomRight.x,
@@ -952,16 +1117,16 @@ function correctGlyphs(font) {
 					// fix tops with extra points too close to left corner preventing rounding
 					if (
 						abs(originLight(verticalTopLeft.x) - originLight(verticalBottomLeft.x)) < 3 &&
-						abs(originLight(verticalTopLeft.y) - originLight(verticalBottomLeft.y)) < 30
-						// Ot.Var.Ops.originOf(verticalTopLeft.x) == Ot.Var.Ops.originOf(verticalBottomLeft.x) &&
-						// abs(Ot.Var.Ops.originOf(verticalTopLeft.y) - Ot.Var.Ops.originOf(verticalBottomLeft.y)) < 30 &&
-						// abs(Ot.Var.Ops.originOf(verticalTopLeft.y) - Ot.Var.Ops.originOf(circularArray(contour, idxP1 + 3).y)) > 30 &&
-						// abs(Ot.Var.Ops.originOf(verticalBottomLeft.x) - Ot.Var.Ops.originOf(circularArray(contour, idxP1 + 3).x)) < 10
+						abs(originLight(verticalTopLeft.y) - originLight(verticalBottomLeft.y)) < 15
+						// originLight(verticalTopLeft.x) == originLight(verticalBottomLeft.x) &&
+						// abs(originLight(verticalTopLeft.y) - originLight(verticalBottomLeft.y)) < 30 &&
+						// abs(originLight(verticalTopLeft.y) - originLight(circularArray(contour, idxP1 + 3).y)) > 30 &&
+						// abs(originLight(verticalBottomLeft.x) - originLight(circularArray(contour, idxP1 + 3).x)) < 10
 					) {
 						const deltaM0 = originLight(verticalTopLeft.y) - originLight(verticalBottomLeft.y);
 						const deltaM1 = originHeavy(verticalTopLeft.y) - originHeavy(verticalBottomLeft.y);
-						const diffM0 = deltaM0 < 30 ? 30 - deltaM0 : 0;
-						const diffM1 = deltaM1 < 80 ? 80 - deltaM1 : 0;
+						const diffM0 = deltaM0 < 15 ? 15 - deltaM0 : 0;
+						const diffM1 = deltaM1 < 50 ? 50 - deltaM1 : 0;
 						// console.log("extend points too close left: " + glyph.name);
 						newContour[verticalBottomLeftIdx] = {
 							x: makeVariance(
@@ -982,9 +1147,10 @@ function correctGlyphs(font) {
 
 			if (glyph.name == "uni36C4"){
 				// const logcontours = glyph.geometry.contours;
-				console.log(contour);
-				console.log(newContour);
+				// console.log(contour);
+				// console.log(newContour);
 			}
+			
 			glyph.geometry.contours.push(newContour);
 		}
 	}

@@ -2,7 +2,7 @@
 
 const { Ot } = require("ot-builder");
 const { extendSkip } = require("./exceptions");
-
+const { abs, ceil, floor, round, trunc } = Math;
 // based on measurement of SHS
 const params = {
 	strokeWidth: { light: 33, heavy: 165 },
@@ -14,19 +14,15 @@ const params = {
 // 	return arr[remainder];
 // }
 function circularArray(array, index) {
-	var length = array && array.length;
-	var idxP1 = Math.abs(length + index % length) % length;
-	return array[isNaN(idxP1) ? index : idxP1];
+	let length = array && array.length;
+	var idx = Math.abs(length + index % length) % length;
+	return array[isNaN(idx) ? index : idx];
 }
 
 function circularIndex(array, index) {
 	var length = array && array.length;
-	var idxP1 = Math.abs(length + index % length) % length;
-	return isNaN(idxP1) ? index : idxP1;
-}
-
-function abs(num) {
-	return num >= 0 ? num : -num;
+	var idx = Math.abs(length + index % length) % length;
+	return isNaN(idx) ? index : idx;
 }
 
 // some 横s of 横折s in SHS is shorter than expected.
@@ -56,73 +52,133 @@ function extendShortStroke(font, references) {
 	function approxEq(a, b, threshold = 5) {
 		if (typeof a == 'number' && typeof b == 'number')
 			return abs(a - b) <= threshold;
-		return abs(Ot.Var.Ops.originOf(a) - Ot.Var.Ops.originOf(b)) <= threshold &&
-			abs(Ot.Var.Ops.evaluate(a, instanceShsWghtMax) - Ot.Var.Ops.evaluate(b, instanceShsWghtMax)) <= threshold;
+		return abs(originLight(a) - originLight(b)) <= threshold &&
+			abs(originHeavy(a) - originHeavy(b)) <= threshold;
 	}
 
 	function canBeBottomEnd(bottomLeft, bottomRight) {
-		// console.log(Ot.Var.Ops.originOf(topRight.x) - Ot.Var.Ops.originOf(topLeft.x));
+		// console.log(originLight(topRight.x) - originLight(topLeft.x));
 		return bottomLeft.kind == 0 && bottomRight.kind == 0 &&
 			approxEq(bottomLeft.y, bottomRight.y, 20) &&
 			approxEq(
-				Ot.Var.Ops.originOf(bottomRight.x) - Ot.Var.Ops.originOf(bottomLeft.x),
+				originLight(bottomRight.x) - originLight(bottomLeft.x),
 				params.strokeWidth.light,
 				20,
 			) &&
-			Ot.Var.Ops.evaluate(bottomRight.x, instanceShsWghtMax) - Ot.Var.Ops.evaluate(bottomLeft.x, instanceShsWghtMax) <= params.strokeWidth.heavy;
+			originHeavy(bottomRight.x) - originHeavy(bottomLeft.x) <= params.strokeWidth.heavy;
 	}
 	
 	function canBeLeftEnd(topLeft, bottomLeft) {
 		return topLeft.kind == 0 && bottomLeft.kind == 0 &&
 			approxEq(topLeft.x, bottomLeft.x, 20) &&
 			approxEq(
-				Ot.Var.Ops.originOf(topLeft.y) - Ot.Var.Ops.originOf(bottomLeft.y),
+				originLight(topLeft.y) - originLight(bottomLeft.y),
 				params.strokeWidth.light,
 				20,
 			) &&
-			Ot.Var.Ops.evaluate(topLeft.y, instanceShsWghtMax) - Ot.Var.Ops.evaluate(bottomLeft.y, instanceShsWghtMax) <= params.strokeWidth.heavy;
+			originHeavy(topLeft.y) - originHeavy(bottomLeft.y) <= params.strokeWidth.heavy;
 	}
 
 	function canBeRightEnd(bottomRight, topRight) {
 		return bottomRight.kind == 0 && topRight.kind == 0 &&
 			approxEq(bottomRight.x, topRight.x, 20) &&
 			approxEq(
-				Ot.Var.Ops.originOf(topRight.y) - Ot.Var.Ops.originOf(bottomRight.y),
+				originLight(topRight.y) - originLight(bottomRight.y),
 				params.strokeWidth.light,
 				20,
 			) &&
-			Ot.Var.Ops.evaluate(topRight.y, instanceShsWghtMax) - Ot.Var.Ops.evaluate(bottomRight.y, instanceShsWghtMax) <= params.strokeWidth.heavy;
+			originHeavy(topRight.y) - originHeavy(bottomRight.y) <= params.strokeWidth.heavy;
 	}
 
 	function canBeTopEnd(topRight, topLeft) {
-		// console.log(Ot.Var.Ops.originOf(topRight.x) - Ot.Var.Ops.originOf(topLeft.x));
+		// console.log(originLight(topRight.x) - originLight(topLeft.x));
 		return topRight.kind == 0 && topLeft.kind == 0 &&
 			approxEq(topRight.y, topLeft.y, 20) &&
 			approxEq(
-				Ot.Var.Ops.originOf(topRight.x) - Ot.Var.Ops.originOf(topLeft.x),
+				originLight(topRight.x) - originLight(topLeft.x),
 				params.strokeWidth.light,
 				20,
 			) &&
-			Ot.Var.Ops.evaluate(topRight.x, instanceShsWghtMax) - Ot.Var.Ops.evaluate(topLeft.x, instanceShsWghtMax) <= params.strokeWidth.heavy;
+			originHeavy(topRight.x) - originHeavy(topLeft.x) <= params.strokeWidth.heavy;
 	}
-
-	function canBeLeftFalling(topRight, topPeak, topLeft, flatLeft, downLeft) {
+	
+	//             1            
+	//             ●            
+	//           .    .         
+	// 3     2 .         .      
+	// ●  .  ●              .  0
+	// 4                       ●
+	// ●                        
+	function canBeLeftFalling(topRight, topPeak, topLeft, flatLeft, downLeft, leftC1, leftC2, bottomLeft, bottomRight, rightC1, rightC2) {
 		return topRight.kind == 0 && topPeak.kind == 0 && topLeft.kind == 0 && flatLeft.kind == 0 && downLeft.kind == 0 &&
-		Ot.Var.Ops.originOf(topRight.x) - Ot.Var.Ops.originOf(topPeak.x) > 0 &&
-		Ot.Var.Ops.originOf(topPeak.x) - Ot.Var.Ops.originOf(topLeft.x) > 0 &&
-		Ot.Var.Ops.originOf(topLeft.x) - Ot.Var.Ops.originOf(flatLeft.x) > 0 &&
-		Ot.Var.Ops.originOf(flatLeft.x) - Ot.Var.Ops.originOf(downLeft.x) == 0 &&
-		Ot.Var.Ops.originOf(topRight.y) - Ot.Var.Ops.originOf(topPeak.y) <= 0 &&
-		Ot.Var.Ops.originOf(topPeak.y) - Ot.Var.Ops.originOf(topLeft.y) > 0 &&
-		Ot.Var.Ops.originOf(topLeft.y) - Ot.Var.Ops.originOf(flatLeft.y) == 0 &&
-		Ot.Var.Ops.originOf(flatLeft.y) - Ot.Var.Ops.originOf(downLeft.y) > 0;
+		leftC1.kind == 1 && leftC2.kind == 2 && bottomLeft.kind == 0 && bottomRight.kind == 0 && rightC1.kind == 1 && rightC2.kind == 2 &&
+		originLight(topRight.x) - originLight(topPeak.x) > 0 &&
+		originLight(topPeak.x) - originLight(topLeft.x) > 0 &&
+		originLight(topLeft.x) - originLight(flatLeft.x) > 0 &&
+		originLight(flatLeft.x) - originLight(downLeft.x) == 0 &&
+		originLight(topRight.y) - originLight(topPeak.y) <= 0 &&
+		originLight(topPeak.y) - originLight(topLeft.y) > 0 &&
+		originLight(topLeft.y) - originLight(flatLeft.y) == 0 &&
+		originLight(flatLeft.y) - originLight(downLeft.y) > 0 &&
+		originLight(topRight.y) > originLight(bottomRight.y) &&
+		originLight(topRight.x) > originLight(bottomRight.x) &&
+		originLight(downLeft.y) > originLight(bottomLeft.y) &&
+		originLight(downLeft.x) > originLight(bottomLeft.x);
+	}
+	
+	//            2              
+	//            ●              
+	//         .     .           
+	//      .            .       
+	// 3 .   4               .  1
+	// ●  .  ●                  ●
+	//                         0 
+	//                         ● 
+	function canBeLeftFalling2(topRight, farRight, topPeak, farLeft, topLeft, leftC1, leftC2, bottomLeft, bottomRight, rightC1, rightC2) {
+		return topRight.kind == 0 && farRight.kind == 0 && topPeak.kind == 0 && farLeft.kind == 0 && topLeft.kind == 0 &&
+		leftC1.kind == 1 && leftC2.kind == 2 && bottomLeft.kind == 0 && bottomRight.kind == 0 && rightC1.kind == 1 && rightC2.kind == 2 &&
+		originLight(topRight.x) - originLight(farRight.x) < 0 &&
+		originLight(farRight.x) - originLight(topPeak.x) > 0 &&
+		originLight(topPeak.x) - originLight(farLeft.x) > 0 &&
+		originLight(farLeft.x) - originLight(topLeft.x) < 0 &&
+		originLight(topRight.y) - originLight(farRight.y) < 0 &&
+		originLight(farRight.y) - originLight(topPeak.y) < 0 &&
+		originLight(topPeak.y) - originLight(farLeft.y) > 0 &&
+		abs(originLight(farLeft.y) - originLight(topLeft.y)) <= 2 &&
+		originLight(topRight.y) > originLight(bottomRight.y) &&
+		originLight(topRight.x) > originLight(bottomRight.x) &&
+		originLight(topLeft.y) > originLight(bottomLeft.y) &&
+		originLight(topLeft.x) > originLight(bottomLeft.x);
+	}
+	
+	//            1              
+	//            ●              
+	//         .     .           
+	//      .            .       
+	// 2 .                   .  0
+	// ●                        ●
+	// ●                         
+	// 3                         
+	function canBeLeftFalling3(topRight, topPeak, topLeft, downLeft, leftC1, leftC2, bottomLeft, bottomRight, rightC1, rightC2) {
+		return topRight.kind == 0 && topPeak.kind == 0 && topLeft.kind == 0 && downLeft.kind == 0 &&
+		leftC1.kind == 1 && leftC2.kind == 2 && bottomLeft.kind == 0 && bottomRight.kind == 0 && rightC1.kind == 1 && rightC2.kind == 2 &&
+		originLight(topRight.x) - originLight(topPeak.x) > 0 &&
+		originLight(topPeak.x) - originLight(topLeft.x) > 0 &&
+		originLight(topLeft.x) - originLight(downLeft.x) === 0 &&
+		originLight(topRight.y) - originLight(topPeak.y) < 0 &&
+		originLight(topPeak.y) - originLight(topLeft.y) > 0 &&
+		originLight(topLeft.y) - originLight(downLeft.y) > 0 &&
+		originLight(topRight.y) > originLight(bottomRight.y) &&
+		originLight(topRight.x) > originLight(bottomRight.x) &&
+		originLight(downLeft.y) > originLight(bottomLeft.y) &&
+		originLight(downLeft.x) > originLight(bottomLeft.x);
 	}
 
 	function isBetween(a, x, b) {
-		return Ot.Var.Ops.originOf(a) <= Ot.Var.Ops.originOf(x) &&
-			Ot.Var.Ops.originOf(x) <= Ot.Var.Ops.originOf(b) + 2 &&
-			Ot.Var.Ops.evaluate(a, instanceShsWghtMax) <= Ot.Var.Ops.evaluate(x, instanceShsWghtMax) &&
-			Ot.Var.Ops.evaluate(x, instanceShsWghtMax) <= Ot.Var.Ops.evaluate(b, instanceShsWghtMax) + 2;
+		return originLight(a) <= originLight(x) &&
+			originLight(x) <= originLight(b) + 2 &&
+			originHeavy(a) <= originHeavy(x) &&
+			originHeavy(x) <= originHeavy(b) + 2;
 	}
 
 	function makeVariance(valueDefault, valueWghtMax) {
@@ -188,11 +244,11 @@ function extendShortStroke(font, references) {
 								const verticalTopRight = contour2[idxP2];
 								const verticalTopLeft = circularArray(contour2, idxP2 + 1);
 								const verticalBottomLeft = circularArray(contour2, idxP2 + 2);
-								// const verticalBottomRight = circularArray(contour2, idxP2 - 1);
-								const verticalBottomRight = circularArray(contour2, idxP2 - 1).kind === 0 ? circularArray(contour2, idxP2 - 1) :
-															circularArray(contour2, idxP2 - 2).kind === 0 ? circularArray(contour2, idxP2 - 2) :
-															circularArray(contour2, idxP2 - 3).kind === 0 ? circularArray(contour2, idxP2 - 3) : 
-															circularArray(contour2, idxP2 - 4);
+								const verticalBottomRight = circularArray(contour2, idxP2 - 1);
+								// const verticalBottomRight = circularArray(contour2, idxP2 - 1).kind === 0 ? circularArray(contour2, idxP2 - 1) :
+								// 							circularArray(contour2, idxP2 - 2).kind === 0 ? circularArray(contour2, idxP2 - 2) :
+								// 							circularArray(contour2, idxP2 - 3).kind === 0 ? circularArray(contour2, idxP2 - 3) : 
+								// 							circularArray(contour2, idxP2 - 4);
 								if (
 									// and 横's (horizontal's) right end inside 竖 (vertical)
 									// ───┬──┬──┐
@@ -204,16 +260,16 @@ function extendShortStroke(font, references) {
 								) {
 									newContour[bottomRightIdx] = {
 										x: makeVariance(
-											Ot.Var.Ops.originOf(contour2[idxP2].x),
-											Ot.Var.Ops.evaluate(contour2[idxP2].x, instanceShsWghtMax)
+											originLight(contour2[idxP2].x),
+											originHeavy(contour2[idxP2].x)
 										),
 										y: horizontalBottomRight.y,
 										kind: 0,
 									};
 									newContour[topRightIdx] = {
 										x: makeVariance(
-											Ot.Var.Ops.originOf(contour2[idxP2].x),
-											Ot.Var.Ops.evaluate(contour2[idxP2].x, instanceShsWghtMax)
+											originLight(contour2[idxP2].x),
+											originHeavy(contour2[idxP2].x)
 										),
 										y: horizontalTopRight.y,
 										kind: 0,
@@ -230,16 +286,16 @@ function extendShortStroke(font, references) {
 								) {
 									newContour[bottomLeftIdx] = {
 										x: makeVariance(
-											Ot.Var.Ops.originOf(verticalTopLeft.x),
-											Ot.Var.Ops.evaluate(verticalTopLeft.x, instanceShsWghtMax)
+											originLight(verticalTopLeft.x),
+											originHeavy(verticalTopLeft.x)
 										),
 										y: horizontalBottomLeft.y,
 										kind: 0,
 									};
 									newContour[topLeftIdx] = {
 										x: makeVariance(
-											Ot.Var.Ops.originOf(verticalTopLeft.x),
-											Ot.Var.Ops.evaluate(verticalTopLeft.x, instanceShsWghtMax)
+											originLight(verticalTopLeft.x),
+											originHeavy(verticalTopLeft.x)
 										),
 										y: horizontalTopLeft.y,
 										kind: 0,
@@ -265,16 +321,16 @@ function extendShortStroke(font, references) {
 								) {
 									newContour[topRightIdx] = {
 										x: makeVariance(
-											Ot.Var.Ops.originOf(verticalBottomRight.x),
-											Ot.Var.Ops.evaluate(verticalBottomRight.x, instanceShsWghtMax)
+											originLight(verticalBottomRight.x),
+											originHeavy(verticalBottomRight.x)
 										),
 										y: horizontalTopRight.y,
 										kind: 0,
 									};
 									newContour[bottomRightIdx] = {
 										x: makeVariance(
-											Ot.Var.Ops.originOf(verticalBottomRight.x),
-											Ot.Var.Ops.evaluate(verticalBottomRight.x, instanceShsWghtMax)
+											originLight(verticalBottomRight.x),
+											originHeavy(verticalBottomRight.x)
 										),
 										y: horizontalBottomRight.y,
 										kind: 0,
@@ -284,34 +340,44 @@ function extendShortStroke(font, references) {
 							// find 横's (horizontal's) right end inside ㇇'s (horizontal + left-falling)
 							if (
 								contour2.length > 10 &&
-								canBeLeftFalling(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4)) &&
-								abs(Ot.Var.Ops.originOf(horizontalTopRight.y) - Ot.Var.Ops.originOf(circularArray(contour2, idxP2 + 2).y)) <=1 &&
-								Ot.Var.Ops.originOf(horizontalTopRight.x) - Ot.Var.Ops.originOf(circularArray(contour2, idxP2 + 3).x) >= 0
+								canBeLeftFalling(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5), circularArray(contour2, idxP2 + 6), circularArray(contour2, idxP2 + 7), circularArray(contour2, idxP2 - 3), circularArray(contour2, idxP2 - 2), circularArray(contour2, idxP2 - 1)) &&
+								abs(originLight(horizontalTopRight.y) - originLight(circularArray(contour2, idxP2 + 2).y)) <=1 &&
+								originLight(horizontalTopRight.x) > originLight(circularArray(contour2, idxP2 + 3).x) &&
+								originLight(horizontalTopRight.x) < originLight(circularArray(contour2, idxP2).x)
 							) {
 								if (name in references.horizontalLeftFalling === false) {
 									references.horizontalLeftFalling[name] = [];
 								}
-								
 								let refs = references.horizontalLeftFalling[name];
-								refs.push({ "horizontal": idxC1, "leftFalling": idxC2 });
-								
-								
-								newContour[bottomRightIdx] = {
-									x: makeVariance(
-										Ot.Var.Ops.originOf(contour2[idxP2].x),
-										Ot.Var.Ops.evaluate(contour2[idxP2].x, instanceShsWghtMax) - 1
-									),
-									y: horizontalBottomRight.y,
-									kind: 0,
-								};
-								newContour[topRightIdx] = {
-									x: makeVariance(
-										Ot.Var.Ops.originOf(contour2[idxP2].x),
-										Ot.Var.Ops.evaluate(contour2[idxP2].x, instanceShsWghtMax) - 1
-									),
-									y: horizontalTopRight.y,
-									kind: 0,
-								};
+								refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
+							}
+
+							if (
+								contour2.length > 10 &&
+								canBeLeftFalling2(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5), circularArray(contour2, idxP2 + 6), circularArray(contour2, idxP2 + 7), circularArray(contour2, idxP2 - 3), circularArray(contour2, idxP2 - 2), circularArray(contour2, idxP2 - 1)) &&
+								abs(originLight(horizontalTopRight.y) - originLight(circularArray(contour2, idxP2 + 2).y)) <=15 &&
+								originLight(horizontalTopRight.x) - originLight(circularArray(contour2, idxP2 + 4).x) > 0 &&
+								originLight(contour2[idxP2].x) > originLight(horizontalTopRight.x)
+							) {
+								if (name in references.horizontalLeftFalling2 === false) {
+									references.horizontalLeftFalling2[name] = [];
+								}
+								let refs = references.horizontalLeftFalling2[name];
+								refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
+							}
+
+							if (
+								contour2.length > 10 &&
+								canBeLeftFalling3(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5), circularArray(contour2, idxP2 + 6), circularArray(contour2, idxP2 - 3), circularArray(contour2, idxP2 - 2), circularArray(contour2, idxP2 - 1)) &&
+								abs(originLight(horizontalTopRight.y) - originLight(circularArray(contour2, idxP2 + 1).y)) <=15 &&
+								originLight(horizontalTopRight.x) - originLight(circularArray(contour2, idxP2 + 2).x) > 0 &&
+								originLight(contour2[idxP2].x) > originLight(horizontalTopRight.x)
+							) {
+								if (name in references.horizontalLeftFalling3 === false) {
+									references.horizontalLeftFalling3[name] = [];
+								}
+								let refs = references.horizontalLeftFalling3[name];
+								refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
 							}
 						}
 						if (extended)
@@ -351,29 +417,29 @@ function extendShortStroke(font, references) {
 								const horizontalTopRight = circularArray(contour2, idxP2 - 1);
 								if (
 									// and 竖's (vertical's) bottom inside 横's (horizontal's) left end
-									Ot.Var.Ops.originOf(horizontalTopLeft.x) <= Ot.Var.Ops.originOf(verticalBottomRight.x) &&
+									originLight(horizontalTopLeft.x) <= originLight(verticalBottomRight.x) &&
 									// isBetween(horizontalTopLeft.x, verticalBottomRight.x, horizontalTopRight.x) &&
 									isBetween(horizontalBottomLeft.y, verticalBottomLeft.y, horizontalTopLeft.y)
 								) {
 									newContour[bottomLeftIdx] = {
 										x: makeVariance(
-											Ot.Var.Ops.originOf(verticalBottomLeft.x),
-											Ot.Var.Ops.evaluate(verticalBottomLeft.x, instanceShsWghtMax)
+											originLight(verticalBottomLeft.x),
+											originHeavy(verticalBottomLeft.x)
 										),
 										y: makeVariance(
-											Ot.Var.Ops.originOf(horizontalBottomLeft.y),
-											Ot.Var.Ops.evaluate(horizontalBottomLeft.y, instanceShsWghtMax)
+											originLight(horizontalBottomLeft.y),
+											originHeavy(horizontalBottomLeft.y)
 										),
 										kind: 0,
 									};
 									newContour[bottomRightIdx] = {
 										x: makeVariance(
-											Ot.Var.Ops.originOf(verticalBottomRight.x),
-											Ot.Var.Ops.evaluate(verticalBottomRight.x, instanceShsWghtMax)
+											originLight(verticalBottomRight.x),
+											originHeavy(verticalBottomRight.x)
 										),
 										y: makeVariance(
-											Ot.Var.Ops.originOf(horizontalBottomLeft.y),
-											Ot.Var.Ops.evaluate(horizontalBottomLeft.y, instanceShsWghtMax)
+											originLight(horizontalBottomLeft.y),
+											originHeavy(horizontalBottomLeft.y)
 										),
 										kind: 0,
 									};
@@ -382,7 +448,7 @@ function extendShortStroke(font, references) {
 								}
 								// if (
 								// 	// and 竖's (vertical's) top inside 横's (horizontal's) left end
-								// 	// Ot.Var.Ops.originOf(horizontalBottomLeft.x) <= Ot.Var.Ops.originOf(verticalTopLeft.x) &&
+								// 	// originLight(horizontalBottomLeft.x) <= originLight(verticalTopLeft.x) &&
 								// 	isBetween(horizontalTopLeft.x, verticalBottomRight.x, horizontalTopRight.x) &&
 								// 	isBetween(horizontalBottomLeft.y, verticalTopLeft.y, horizontalTopRight.y)
 								// ) {
@@ -446,16 +512,16 @@ function extendShortStroke(font, references) {
 									newContour[topRightIdx] = {
 										x: verticalTopRight.x,
 										y: makeVariance(
-											Ot.Var.Ops.originOf(horizontalTopRight.y),
-											Ot.Var.Ops.evaluate(horizontalTopRight.y, instanceShsWghtMax)
+											originLight(horizontalTopRight.y),
+											originHeavy(horizontalTopRight.y)
 										),
 										kind: 0,
 									};
 									newContour[topLeftIdx] = {
 										x: verticalTopLeft.x,
 										y: makeVariance(
-											Ot.Var.Ops.originOf(horizontalTopLeft.y),
-											Ot.Var.Ops.evaluate(horizontalTopLeft.y, instanceShsWghtMax)
+											originLight(horizontalTopLeft.y),
+											originHeavy(horizontalTopLeft.y)
 										),
 										kind: 0,
 									};
@@ -502,16 +568,16 @@ function extendShortStroke(font, references) {
 								) {
 									newContour[topLeftIdx] = {
 										x: makeVariance(
-											Ot.Var.Ops.originOf(verticalTopLeft.x),
-											Ot.Var.Ops.evaluate(verticalTopLeft.x, instanceShsWghtMax)
+											originLight(verticalTopLeft.x),
+											originHeavy(verticalTopLeft.x)
 										),
 										y: horizontalTopLeft.y,
 										kind: 0,
 									};
 									newContour[bottomLeftIdx] = {
 										x: makeVariance(
-											Ot.Var.Ops.originOf(verticalTopLeft.x),
-											Ot.Var.Ops.evaluate(verticalTopLeft.x, instanceShsWghtMax)
+											originLight(verticalTopLeft.x),
+											originHeavy(verticalTopLeft.x)
 										),
 										y: horizontalBottomLeft.y,
 										kind: 0,
@@ -535,16 +601,16 @@ function extendShortStroke(font, references) {
 								) {
 									newContour[topLeftIdx] = {
 										x: makeVariance(
-											Ot.Var.Ops.originOf(verticalBottomLeft.x),
-											Ot.Var.Ops.evaluate(verticalBottomLeft.x, instanceShsWghtMax)
+											originLight(verticalBottomLeft.x),
+											originHeavy(verticalBottomLeft.x)
 										),
 										y: horizontalTopLeft.y,
 										kind: 0,
 									};
 									newContour[bottomLeftIdx] = {
 										x: makeVariance(
-											Ot.Var.Ops.originOf(verticalBottomLeft.x),
-											Ot.Var.Ops.evaluate(verticalBottomLeft.x, instanceShsWghtMax)
+											originLight(verticalBottomLeft.x),
+											originHeavy(verticalBottomLeft.x)
 										),
 										y: horizontalBottomLeft.y,
 										kind: 0,
@@ -568,7 +634,7 @@ function extendShortStroke(font, references) {
 		checkSingleGlyph(glyph)
 		count++;
 		if (count % 1000 == 0)
-			console.log("extendShortStroke:", count, "glyphs processed.");
+			console.log("extendShortStroke: ", count, " glyphs processed.");
 	}
 }
 

@@ -53,15 +53,15 @@ function preExtension(font) {
 	function approxEq(a, b, threshold = 5) {
 		if (typeof a == 'number' && typeof b == 'number')
 			return abs(a - b) <= threshold;
-		return abs(Ot.Var.Ops.originOf(a) - Ot.Var.Ops.originOf(b)) <= threshold &&
-			abs(Ot.Var.Ops.evaluate(a, instanceShsWghtMax) - Ot.Var.Ops.evaluate(b, instanceShsWghtMax)) <= threshold;
+		return abs(originLight(a) - originLight(b)) <= threshold &&
+			abs(originHeavy(a) - originHeavy(b)) <= threshold;
 	}
 
 	function isBetween(a, x, b) {
-		return Ot.Var.Ops.originOf(a) <= Ot.Var.Ops.originOf(x) &&
-			Ot.Var.Ops.originOf(x) <= Ot.Var.Ops.originOf(b) + 2 &&
-			Ot.Var.Ops.evaluate(a, instanceShsWghtMax) <= Ot.Var.Ops.evaluate(x, instanceShsWghtMax) &&
-			Ot.Var.Ops.evaluate(x, instanceShsWghtMax) <= Ot.Var.Ops.evaluate(b, instanceShsWghtMax) + 2;
+		return originLight(a) <= originLight(x) &&
+			originLight(x) <= originLight(b) + 2 &&
+			originHeavy(a) <= originHeavy(x) &&
+			originHeavy(x) <= originHeavy(b) + 2;
 	}
 
 	function makeVariance(valueDefault, valueWghtMax) {

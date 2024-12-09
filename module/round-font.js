@@ -4,7 +4,7 @@ const { Ot } = require("ot-builder");
 const { roundTo } = require("./util");
 const { invertRadius, minRadius, negativeGlyphs, skipGlyphs, modifyGlyphs } = require("./exceptions");
 
-function roundFont(font) {
+function roundFont(font, references) {
 let curGlyph = "";
 	//
 	// font variation metadata
@@ -64,7 +64,7 @@ let curGlyph = "";
 	// transform
 	//
 
-	const radius = { min: 15, max: 68, inner: 12 };
+	const radius = { min: 15, max: 71, inner: 10 };
 
 	// extract values of 2 masters.
 	const instanceShsWghtMax = new Map([[dimWght, 1]]);
@@ -388,7 +388,7 @@ let curGlyph = "";
 		return sub;
 	}
 
-	function transformContour(contour, name) {
+	function transformContour(contour, name, idxC) {
 		const segments = splitContour(contour);
 		let spec = false;
 		if (name in invertRadius) {
@@ -401,6 +401,13 @@ let curGlyph = "";
 			const minContours = minRadius[name];
 			if (minContours.includes(segments.length)) {
 				spec = "minRadii";
+			}
+		}
+		if (name in references.horizontalLeftFalling) {
+			let refs = references.horizontalLeftFalling[name];
+			for (const ref of refs) {
+				let idxLF = ref.leftFalling;
+				if (idxLF === idxC) spec = "leftFalling";
 			}
 		}
 		const length = segments.length;
@@ -418,6 +425,36 @@ let curGlyph = "";
 			const shsM1Seg = [];
 			const kind = [];
 
+			if (spec === "leftFalling" && i > length - 4) {
+				m0Seg.push(cur.m0.p1);
+				m1Seg.push(cur.m1.p1);
+				shsM0Seg.push(cur.m0.p1);
+				shsM1Seg.push(cur.m1.p1);
+				kind.push(Ot.Glyph.PointType.Corner);
+				if (cur.type == "curve") {
+					m0Seg.push(cur.m0.c1);
+					m1Seg.push(cur.m1.c1);
+					shsM0Seg.push(cur.m0.c1);
+					shsM1Seg.push(cur.m1.c1);
+					kind.push(Ot.Glyph.PointType.Lead);
+				}
+				if (cur.type == "curve") {
+					m0Seg.push(cur.m0.c2);
+					m1Seg.push(cur.m1.c2);
+					shsM0Seg.push(cur.m0.c2);
+					shsM1Seg.push(cur.m1.c2);
+					kind.push(Ot.Glyph.PointType.Follow);
+				}
+				for (let j = 0; j < m0Seg.length; j++) {
+					result.push(Ot.Glyph.Point.create(
+						makeVariance(m0Seg[j].x, m1Seg[j].x),
+						makeVariance(m0Seg[j].y, m1Seg[j].y),
+						kind[j]
+					));
+				}
+				prev = cur;
+				continue;
+			}
 			const [m0T1, m0T2, m1T1, m1T2] = calculateRadius(prev, cur, next, name, spec);
 			const m0Coeff = coefficientForm(cur.m0, cur.type);
 			const m1Coeff = coefficientForm(cur.m1, cur.type);
@@ -458,8 +495,8 @@ let curGlyph = "";
 					y: m0NewP1.y
 				});
 				m1Seg.push({ // control point
-					x: m1NewP1.x - 0.5 * m1NewT1Direction.x * m1Radius,
-					y: m1NewP1.y - 0.5 * m1NewT1Direction.y * m1Radius,
+					x: m1NewP1.x - 0.6 * m1NewT1Direction.x * m1Radius,
+					y: m1NewP1.y - 0.6 * m1NewT1Direction.y * m1Radius,
 				});
 				m1Seg.push({ // end point
 					x: m1NewP1.x,
@@ -479,7 +516,29 @@ let curGlyph = "";
 					kind.push(Ot.Glyph.PointType.Lead);
 				}
 			}
-
+			if (spec === "leftFalling" && i === length - 4) {
+				if (cur.type == "curve") {
+					m0Seg.push(cur.m0.c2);
+					m1Seg.push(cur.m1.c2);
+					shsM0Seg.push(cur.m0.c2);
+					shsM1Seg.push(cur.m1.c2);
+					kind.push(Ot.Glyph.PointType.Follow);
+				}
+				// m0Seg.push(cur.m0.p2);
+				// m1Seg.push(cur.m1.p2);
+				// shsM0Seg.push(cur.m0.p2);
+				// shsM1Seg.push(cur.m1.p2);
+				// kind.push(Ot.Glyph.PointType.Corner);
+				for (let j = 0; j < m0Seg.length; j++) {
+					result.push(Ot.Glyph.Point.create(
+						makeVariance(m0Seg[j].x, m1Seg[j].x),
+						makeVariance(m0Seg[j].y, m1Seg[j].y),
+						kind[j]
+					));
+				}
+				prev = cur;
+				continue;
+			}
 			// handle the second control point and end point
 			if (m0T2 == 0 && m1T2 == 0) { // almost linear, keep this end point and control point
 				if (cur.type == "curve") {
@@ -518,8 +577,8 @@ let curGlyph = "";
 					y: m1NewP2.y
 				});
 				m1Seg.push({ // control point
-					x: m1NewP2.x + 0.5 * m1NewT2Direction.x * m1Radius,
-					y: m1NewP2.y + 0.5 * m1NewT2Direction.y * m1Radius
+					x: m1NewP2.x + 0.6 * m1NewT2Direction.x * m1Radius,
+					y: m1NewP2.y + 0.6 * m1NewT2Direction.y * m1Radius
 				});
 				shsM0Seg.push(cur.m0.p2);
 				shsM0Seg.push(cur.m0.p2);
@@ -548,17 +607,18 @@ let curGlyph = "";
 	let count = 0;
 	for (const glyph of font.glyphs.items) {
 		const name = glyph.name;
-		curGlyph = name;
+		// curGlyph = name;
+		// console.log(name);
 		if (!glyph.geometry || !glyph.geometry.contours || skipGlyphs.includes(name))
 			continue;
 		const oldContours = glyph.geometry.contours;
 		glyph.geometry.contours = [];
-		for (const contour of oldContours) {
-			glyph.geometry.contours.push(transformContour(contour, name));
+		for (const [idxC, contour] of oldContours.entries()) {
+			glyph.geometry.contours.push(transformContour(contour, name, idxC));
 		}
 		count++;
 		if (count % 1000 == 0)
-			console.log("roundFont:", count, "glyphs processed.");
+			console.log("roundFont: ", count, " glyphs processed.");
 	}
 }
 
