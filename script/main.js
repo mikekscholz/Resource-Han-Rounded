@@ -21,6 +21,6 @@ extendShortStroke(font, references);
 correctGlyphs(font, references);
 // console.log(JSON.stringify(references));
 roundFont(font, references);
-postProcess(font, references);
+// postProcess(font, references);
 buildVFMetaData(font, param);
 writeOtf(font, filename.cff2Vf(param.subfamily), false);
