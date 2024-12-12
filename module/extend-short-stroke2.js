@@ -462,9 +462,9 @@ function extendShortStroke(font, references) {
 							) {
 								const horizontalTopLeft = contour2[idxP2];
 								const horizontalBottomLeft = circularArray(contour2, idxP2 + 1);
-								// const horizontalBottomRight = circularArray(contour2, idxP2 + 2);
-								const horizontalBottomRight = circularArray(contour2, idxP2 + 2).kind === 0 ? circularArray(contour2, idxP2 + 2) :
-								circularArray(contour2, idxP2 + 3).kind === 0 ? circularArray(contour2, idxP2 + 3) : circularArray(contour2, idxP2 + 4);
+								const horizontalBottomRight = circularArray(contour2, idxP2 + 2);
+								// const horizontalBottomRight = circularArray(contour2, idxP2 + 2).kind === 0 ? circularArray(contour2, idxP2 + 2) :
+								// circularArray(contour2, idxP2 + 3).kind === 0 ? circularArray(contour2, idxP2 + 3) : circularArray(contour2, idxP2 + 4);
 								const horizontalTopRight = circularArray(contour2, idxP2 - 1);
 								if (
 									// and 竖's (vertical's) bottom inside 横's (horizontal's) left end
@@ -472,23 +472,23 @@ function extendShortStroke(font, references) {
 									// isBetween(horizontalTopLeft.x, verticalBottomRight.x, horizontalTopRight.x) &&
 									isBetween(horizontalBottomLeft.y, verticalBottomLeft.y, horizontalTopLeft.y)
 								) {
-									let yOffsetL = 2;
-									let yOffsetH = 10;
+									let yOffsetL = 14;
+									let yOffsetH = 28;
 									if (approxEq(horizontalBottomLeft.x, verticalBottomLeft.x) || approxEq(horizontalBottomRight.x, verticalBottomRight.x)) {
 										yOffsetL = 0;
 										yOffsetH = 0;
 									}
-									let leftDistance = abs(originLight(verticalBottomRight.x) - originLight(horizontalBottomRight.x));
-									let rightDistance = abs(originLight(verticalBottomLeft.x) - originLight(horizontalBottomLeft.x));
-									let side = rightDistance < leftDistance ? horizontalBottomRight : horizontalBottomLeft;
+									// let leftDistance = abs(originLight(verticalBottomRight.x) - originLight(horizontalBottomRight.x));
+									// let rightDistance = abs(originLight(verticalBottomLeft.x) - originLight(horizontalBottomLeft.x));
+									// let side = rightDistance < leftDistance ? horizontalBottomRight : horizontalBottomLeft;
 									newContour[bottomLeftIdx] = {
 										x: makeVariance(
 											originLight(verticalBottomLeft.x),
 											originHeavy(verticalBottomLeft.x)
 										),
 										y: makeVariance(
-											originLight(side.y) + yOffsetL,
-											originHeavy(side.y) + yOffsetH
+											originLight(horizontalBottomLeft.y) + yOffsetL,
+											originHeavy(horizontalBottomLeft.y) + yOffsetH
 										),
 										kind: 0,
 									};
@@ -498,8 +498,8 @@ function extendShortStroke(font, references) {
 											originHeavy(verticalBottomRight.x)
 										),
 										y: makeVariance(
-											originLight(side.y) + yOffsetL,
-											originHeavy(side.y) + yOffsetH
+											originLight(horizontalBottomLeft.y) + yOffsetL,
+											originHeavy(horizontalBottomLeft.y) + yOffsetH
 										),
 										kind: 0,
 									};
