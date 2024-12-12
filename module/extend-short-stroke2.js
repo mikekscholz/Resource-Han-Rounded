@@ -15,13 +15,13 @@ const params = {
 // }
 function circularArray(array, index) {
 	let length = array && array.length;
-	var idx = Math.abs(length + index % length) % length;
+	var idx = abs(length + index % length) % length;
 	return array[isNaN(idx) ? index : idx];
 }
 
 function circularIndex(array, index) {
 	var length = array && array.length;
-	var idx = Math.abs(length + index % length) % length;
+	var idx = abs(length + index % length) % length;
 	return isNaN(idx) ? index : idx;
 }
 
@@ -193,13 +193,13 @@ function extendShortStroke(font, references) {
 		let oldContours = glyph.geometry.contours;
 		
 		// console.log(glyph.name);
-		if (glyph.name == "uni2EE6"){
+		// if (glyph.name == "uni2EE6"){
 		// 	oldContours[1].splice(1,1);
 		// 	oldContours[1].splice(7,1);
 		// 	oldContours[3].splice(1,1);
 		// 	oldContours[3].splice(7,1);
 			// console.log(oldContours);
-		}
+		// }
 		glyph.geometry.contours = [];
 		
 		for (const [idxC1, contour] of oldContours.entries()) {
@@ -244,11 +244,11 @@ function extendShortStroke(font, references) {
 								const verticalTopRight = contour2[idxP2];
 								const verticalTopLeft = circularArray(contour2, idxP2 + 1);
 								const verticalBottomLeft = circularArray(contour2, idxP2 + 2);
-								const verticalBottomRight = circularArray(contour2, idxP2 - 1);
-								// const verticalBottomRight = circularArray(contour2, idxP2 - 1).kind === 0 ? circularArray(contour2, idxP2 - 1) :
-								// 							circularArray(contour2, idxP2 - 2).kind === 0 ? circularArray(contour2, idxP2 - 2) :
-								// 							circularArray(contour2, idxP2 - 3).kind === 0 ? circularArray(contour2, idxP2 - 3) : 
-								// 							circularArray(contour2, idxP2 - 4);
+								// const verticalBottomRight = circularArray(contour2, idxP2 - 1);
+								const verticalBottomRight = circularArray(contour2, idxP2 - 1).kind === 0 ? circularArray(contour2, idxP2 - 1) :
+															circularArray(contour2, idxP2 - 2).kind === 0 ? circularArray(contour2, idxP2 - 2) :
+															circularArray(contour2, idxP2 - 3).kind === 0 ? circularArray(contour2, idxP2 - 3) : 
+															circularArray(contour2, idxP2 - 4);
 								if (
 									// and 横's (horizontal's) right end inside 竖 (vertical)
 									// ───┬──┬──┐
@@ -393,7 +393,7 @@ function extendShortStroke(font, references) {
 											) {
 												ref = { "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2, "vertical": idxC2 + 1, "verticalTopRight": idxP3 };
 											}
-											break;
+											// break;
 										}
 									}
 									
@@ -439,11 +439,15 @@ function extendShortStroke(font, references) {
 					approxEq(contour[idxP1].x, circularArray(contour, idxP1 - 1).x, 450) &&
 					approxEq(circularArray(contour, idxP1 + 1).x, circularArray(contour, idxP1 + 2).x, 450)
 				) {
-					const bottomLeftIdx = idxP1;
+					if (name === "uni1104") {
+						console.log(name, "idxC", idxC1, "idxP", idxP1);
+						console.log(oldContours);
+					}
+					const bottomLeftIdx = circularIndex(contour, idxP1);
 					const bottomRightIdx = circularIndex(contour, idxP1 + 1);
 					const topRightIdx = circularIndex(contour, idxP1 + 2);
 					const topLeftIdx = circularIndex(contour, idxP1 - 1);
-					const verticalBottomLeft = contour[idxP1];
+					const verticalBottomLeft = circularArray(contour, idxP1);
 					const verticalBottomRight = circularArray(contour, idxP1 + 1);
 					const verticalTopRight = circularArray(contour, idxP1 + 2);
 					const verticalTopLeft = circularArray(contour, idxP1 - 1);
@@ -457,38 +461,47 @@ function extendShortStroke(font, references) {
 							if (
 								// is left end
 								canBeLeftEnd(contour2[idxP2], circularArray(contour2, idxP2 + 1)) &&
-								approxEq(contour2[idxP2].y, circularArray(contour2, idxP2 - 1).y, 20) &&
-								approxEq(circularArray(contour2, idxP2 + 1).y, circularArray(contour2, idxP2 + 2).y, 20)
+								approxEq(contour2[idxP2].y, circularArray(contour2, idxP2 - 1).y) &&
+								approxEq(circularArray(contour2, idxP2 + 1).y, circularArray(contour2, idxP2 + 2).y)
 							) {
-								const horizontalTopLeft = contour2[idxP2];
+								const horizontalTopLeft = circularArray(contour2, idxP2);
 								const horizontalBottomLeft = circularArray(contour2, idxP2 + 1);
-								const horizontalBottomRight = circularArray(contour2, idxP2 + 2);
-								// const horizontalBottomRight = circularArray(contour2, idxP2 + 2).kind === 0 ? circularArray(contour2, idxP2 + 2) :
-								// circularArray(contour2, idxP2 + 3).kind === 0 ? circularArray(contour2, idxP2 + 3) : circularArray(contour2, idxP2 + 4);
+								// const horizontalBottomRight = circularArray(contour2, idxP2 + 2);
+								const horizontalBottomRight = (circularArray(contour2, idxP2 + 2).kind === 0 && originHeavy(circularArray(contour2, idxP2 + 2).x) - originHeavy(horizontalBottomLeft.x) >= params.strokeWidth.heavy) ? circularArray(contour2, idxP2 + 2) :
+								circularArray(contour2, idxP2 + 3).kind === 0 ? circularArray(contour2, idxP2 + 3) : 
+								circularArray(contour2, idxP2 + 4).kind === 0 ? circularArray(contour2, idxP2 + 4) : circularArray(contour2, idxP2 + 5);
 								const horizontalTopRight = circularArray(contour2, idxP2 - 1);
 								if (
 									// and 竖's (vertical's) bottom inside 横's (horizontal's) left end
-									originLight(horizontalTopLeft.x) <= originLight(verticalBottomRight.x) &&
+									originLight(horizontalTopLeft.x) <= originLight(verticalBottomLeft.x) &&
 									// isBetween(horizontalTopLeft.x, verticalBottomRight.x, horizontalTopRight.x) &&
 									isBetween(horizontalBottomLeft.y, verticalBottomLeft.y, horizontalTopLeft.y)
 								) {
-									let yOffsetL = 14;
-									let yOffsetH = 28;
-									if (approxEq(horizontalBottomLeft.x, verticalBottomLeft.x) || approxEq(horizontalBottomRight.x, verticalBottomRight.x)) {
-										yOffsetL = 0;
-										yOffsetH = 0;
+									if (name === "uni1104") {
+										console.log(name, "idxC2", idxC2, "idxP2", idxP2);
+										console.log(name, "cornerL", abs(originLight(horizontalBottomLeft.x) - originLight(verticalBottomLeft.x)) < 5);
+										console.log(name, "cornerR", abs(originLight(horizontalBottomRight.x) - originLight(verticalBottomRight.x)) < 5);
 									}
-									// let leftDistance = abs(originLight(verticalBottomRight.x) - originLight(horizontalBottomRight.x));
-									// let rightDistance = abs(originLight(verticalBottomLeft.x) - originLight(horizontalBottomLeft.x));
-									// let side = rightDistance < leftDistance ? horizontalBottomRight : horizontalBottomLeft;
+									let isCorner = (abs(originLight(horizontalBottomLeft.x) - originLight(verticalBottomLeft.x)) < 5) || (abs(originLight(horizontalBottomRight.x) - originLight(verticalBottomRight.x)) < 5);
+									let yOffsetL = isCorner ? 0 : 14;
+									let yOffsetH = isCorner ? 0 : 28;
+									// if (abs(originLight(horizontalBottomLeft.x) - originLight(verticalBottomLeft.x)) < 5 || abs(originLight(horizontalBottomRight.x) - originLight(verticalBottomRight.x)) < 5) {
+									// 	yOffsetL = 0;
+									// 	yOffsetH = 0;
+									// }
+									let rightDistance = abs(originLight(verticalBottomRight.x) - originLight(horizontalBottomRight.x));
+									let leftDistance = abs(originLight(verticalBottomLeft.x) - originLight(horizontalBottomLeft.x));
+									let side = rightDistance < leftDistance ? horizontalBottomRight : horizontalBottomLeft;
 									newContour[bottomLeftIdx] = {
 										x: makeVariance(
 											originLight(verticalBottomLeft.x),
 											originHeavy(verticalBottomLeft.x)
 										),
 										y: makeVariance(
-											originLight(horizontalBottomLeft.y) + yOffsetL,
-											originHeavy(horizontalBottomLeft.y) + yOffsetH
+											originLight(side.y) + yOffsetL,
+											originHeavy(side.y) + yOffsetH
+											// originLight(horizontalBottomLeft.y) + yOffsetL,
+											// originHeavy(horizontalBottomLeft.y) + yOffsetH
 										),
 										kind: 0,
 									};
@@ -498,13 +511,15 @@ function extendShortStroke(font, references) {
 											originHeavy(verticalBottomRight.x)
 										),
 										y: makeVariance(
-											originLight(horizontalBottomLeft.y) + yOffsetL,
-											originHeavy(horizontalBottomLeft.y) + yOffsetH
+											originLight(side.y) + yOffsetL,
+											originHeavy(side.y) + yOffsetH
+											// originLight(horizontalBottomLeft.y) + yOffsetL,
+											// originHeavy(horizontalBottomLeft.y) + yOffsetH
 										),
 										kind: 0,
 									};
-									// extended = true;
-									// break;
+									extended = true;
+									break;
 								}
 								// if (
 								// 	// and 竖's (vertical's) top inside 横's (horizontal's) left end
@@ -527,6 +542,8 @@ function extendShortStroke(font, references) {
 								// }
 							}
 						}
+						if (extended)
+						break;
 					}
 				}
 				if (
