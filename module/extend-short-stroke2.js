@@ -2,7 +2,7 @@
 
 const { Ot } = require("ot-builder");
 const { extendSkip } = require("./exceptions");
-const { abs, ceil, floor, round, trunc } = Math;
+const { abs, ceil, floor, pow, round, sqrt, trunc } = Math;
 // based on measurement of SHS
 const params = {
 	strokeWidth: { light: 33, heavy: 165 },
@@ -23,6 +23,22 @@ function circularIndex(array, index) {
 	var length = array && array.length;
 	var idx = abs(length + index % length) % length;
 	return isNaN(idx) ? index : idx;
+}
+
+function distance(p1, p2) {
+	let x1l = originLight(p1.x);
+	let x2l = originLight(p2.x);
+	let y1l = originLight(p1.y);
+	let y2l = originLight(p2.y);
+	let x1h = originHeavy(p1.x);
+	let x2h = originHeavy(p2.x);
+	let y1h = originHeavy(p1.y);
+	let y2h = originHeavy(p2.y);
+	let xdl = x2l - x1l;
+	let ydl = y2l - y1l;
+	let xdh = x2h - x1h;
+	let ydh = y2h - y1h;
+	return { distLight: sqrt(pow(xdl, 2) + pow(ydl, 2)), distHeavy: sqrt(pow(xdh, 2) + pow(ydh, 2)) };
 }
 
 // some 横s of 横折s in SHS is shorter than expected.
@@ -466,6 +482,7 @@ function extendShortStroke(font, references) {
 							) {
 								const horizontalTopLeft = circularArray(contour2, idxP2);
 								const horizontalBottomLeft = circularArray(contour2, idxP2 + 1);
+								const { distLight, distHeavy } = distance(horizontalTopLeft, horizontalBottomLeft);
 								// const horizontalBottomRight = circularArray(contour2, idxP2 + 2);
 								const horizontalBottomRight = (circularArray(contour2, idxP2 + 2).kind === 0 && originHeavy(circularArray(contour2, idxP2 + 2).x) - originHeavy(horizontalBottomLeft.x) >= params.strokeWidth.heavy) ? circularArray(contour2, idxP2 + 2) :
 								circularArray(contour2, idxP2 + 3).kind === 0 ? circularArray(contour2, idxP2 + 3) : 
