@@ -14,6 +14,7 @@ const references = {
 	horizontalLeftFalling: {},
 	horizontalLeftFalling2: {},
 	horizontalLeftFalling3: {},
+	horizontalLeftFalling4: {},
 }
 const font = readOtf(filename.shs(param.subfamily));
 preExtension(font);
@@ -22,5 +23,6 @@ correctGlyphs(font, references);
 // console.log(JSON.stringify(references));
 roundFont(font, references);
 // postProcess(font, references);
+console.log('\u001b[38;5;82mCompiling OpenType font file.\u001b[0m This may take several minutes.');
 buildVFMetaData(font, param);
 writeOtf(font, filename.cff2Vf(param.subfamily), false);

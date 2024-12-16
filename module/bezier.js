@@ -1008,4 +1008,4 @@ class Bezier {
   }
 }
 
-module.exports = { Bezier };
+module.exports = Bezier;

@@ -1,9 +1,10 @@
 "use strict";
 
 const { Ot } = require("ot-builder");
-// const {Bezier} = require("./bezier.js");
+const Bezier = require("./bezier.js");
 const { extendSkip } = require("./exceptions");
 const { hangulSios } = require("./correctionsUnicode");
+const ProgressBar = require('./node-progress');
 const fs = require("node:fs");
 const path = require("node:path");
 const { abs, ceil, floor, round, trunc } = Math;
@@ -246,13 +247,13 @@ function correctGlyphs(font, references) {
 					const m0x1 = (originLight(oldContours[i + 1][0].x) + originLight(oldContours[i][0].x)) /2;
 					const m0x2 = (originLight(circularArray(oldContours[i + 1], -1).x) + originLight(circularArray(oldContours[i], -1).x)) /2;
 					const m0w = abs(m0x1 - m0x2);
-					const m0h = m0w / 2;
+					const m0h = m0w / 3;
 					const m0y = originLight(oldContours[i][0].y) - originLight(oldContours[i][1].y);
 					const m0v = m0y < m0h ? m0h - m0y : 0;
 					const m1x1 = (originHeavy(oldContours[i + 1][0].x) + originHeavy(oldContours[i][0].x)) /2;
 					const m1x2 = (originHeavy(circularArray(oldContours[i + 1], -1).x) + originHeavy(circularArray(oldContours[i], -1).x)) /2;
 					const m1w = abs(m1x1 - m1x2);
-					const m1h = m1w / 2;
+					const m1h = m1w / 3;
 					const m1y = originHeavy(oldContours[i][0].y) - originHeavy(oldContours[i][1].y);
 					const m1v = m1y < m1h ? m1h - m1y : 0;
 					
@@ -333,12 +334,111 @@ function correctGlyphs(font, references) {
 				let contour = oldContours[idxC1];
 				let contour2 = oldContours[idxC2];
 				if (circularIndex(contour2, -3) !== idxP2) {
-					console.log(name, idxP2, circularIndex(contour2, idxP2 + 3));
+					// console.log(name, idxP2, circularIndex(contour2, idxP2 + 3));
 					let offset = circularIndex(contour2, idxP2 + 3);
 					for (let i = 0; i < offset; i++) {
 						oldContours[idxC2].push(oldContours[idxC2].shift());
 					}
-					console.log(oldContours[idxC2]);
+					// console.log(oldContours[idxC2]);
+				}
+				if ("vertical" in ref) {
+					let idxC3 = ref.vertical;
+					let idxP2 = 10;
+					let idxP3 = ref.verticalTopRight;
+					let contour2 = oldContours[idxC2];
+					let contour3 = oldContours[idxC3];
+					let verticalTopRight = contour3[idxP3];
+					let verticalTopLeft = circularArray(contour3, idxP3 + 1);
+					let verticalBottomLeft = circularArray(contour3, idxP3 + 2);
+					let verticalBottomRight = circularArray(contour3, idxP3 - 1);
+					let vtrI = circularIndex(contour3, idxP3);
+					let vtlI = circularIndex(contour3, idxP3 + 1);
+					let vbrI = circularIndex(contour3, idxP3 - 1);
+					let r1 = circularArray(contour2, idxP2 - 3);
+					let r2 = circularArray(contour2, idxP2 - 2);
+					let r3 = circularArray(contour2, idxP2 - 1);
+					let r4 = circularArray(contour2, idxP2);
+					let l3 = circularArray(contour2, idxP2 + 6);
+					let l4 = circularArray(contour2, idxP2 + 7);
+					let r1I = circularIndex(contour2, idxP2 - 3);
+					let r2I = circularIndex(contour2, idxP2 - 2);
+					let r3I = circularIndex(contour2, idxP2 - 1);
+					let r4I = circularIndex(contour2, idxP2);
+					let l3I = circularIndex(contour2, idxP2 + 6);
+					let l4I = circularIndex(contour2, idxP2 + 7);
+					let b1I = circularIndex(contour2, idxP2 + 8);
+					let b2I = circularIndex(contour2, idxP2 + 9);
+					if (originHeavy(verticalBottomRight.y) > originHeavy(r1.y)) {
+						oldContours[idxC3][vbrI] = {
+							x: makeVariance(originLight(verticalBottomRight.x), originHeavy(verticalBottomRight.x)),
+							y: makeVariance(originLight(verticalBottomRight.y), originHeavy(r1.y) - 5),
+							kind: verticalBottomRight.kind,
+						};
+					}
+					let verticalLight = { p1: {x:originLight(verticalTopRight.x), y:originLight(verticalTopRight.y)}, p2: {x:originLight(verticalBottomRight.x), y:originLight(verticalBottomRight.y)} };
+					let verticalHeavy = { p1: {x:originHeavy(verticalTopRight.x), y:originHeavy(verticalTopRight.y)}, p2: {x:originHeavy(verticalBottomRight.x), y:originHeavy(verticalBottomRight.y)} };
+					let topLeftDiffLightX = originLight(verticalTopLeft.x) - originLight(l4.x);
+					let topLeftDiffHeavyX = originHeavy(verticalTopLeft.x) - originHeavy(l4.x);
+					let topLeftDiffLightY = originLight(verticalTopLeft.y) - originLight(l4.y);
+					let topLeftDiffHeavyY = originHeavy(verticalTopLeft.y) - originHeavy(l4.y);
+					let oldRightLight = new Bezier(originLight(r1.x),originLight(r1.y),originLight(r2.x),originLight(r2.y),originLight(r3.x),originLight(r3.y),originLight(r4.x),originLight(r4.y));
+					let oldRightHeavy = new Bezier(originHeavy(r1.x),originHeavy(r1.y),originHeavy(r2.x),originHeavy(r2.y),originHeavy(r3.x),originHeavy(r3.y),originHeavy(r4.x),originHeavy(r4.y));
+					let intersectRL = oldRightLight.intersects(verticalLight);
+					let intersectRH = oldRightHeavy.intersects(verticalHeavy);
+					let splitRL = oldRightLight.split(intersectRL[0]);
+					let splitRH = oldRightHeavy.split(intersectRH[0]);
+					let rightLight = splitRL.right.points;
+					let rightHeavy = splitRH.right.points;
+					contour2[r1I] = {
+						x: makeVariance(rightLight[0].x, rightHeavy[0].x),
+						y: makeVariance(rightLight[0].y, rightHeavy[0].y),
+						kind: r1.kind,
+					};
+					contour2[r2I] = {
+						x: makeVariance(rightLight[1].x, rightHeavy[1].x),
+						y: makeVariance(rightLight[1].y, rightHeavy[1].y),
+						kind: r2.kind,
+					};
+					contour2[r3I] = {
+						x: makeVariance(rightLight[2].x, rightHeavy[2].x),
+						y: makeVariance(rightLight[2].y, rightHeavy[2].y),
+						kind: r3.kind,
+					};
+					contour2[r4I] = {
+						x: makeVariance(rightLight[3].x, rightHeavy[3].x),
+						y: makeVariance(rightLight[3].y, rightHeavy[3].y),
+						kind: r4.kind,
+					};
+					contour2[l3I] = {
+						x: makeVariance(originLight(l3.x) + topLeftDiffLightX, originHeavy(l3.x) + topLeftDiffHeavyX),
+						y: makeVariance(originLight(l3.y), originHeavy(l3.y)),
+						kind: l3.kind,
+					};
+					contour2[l4I] = {
+						x: makeVariance(originLight(l4.x) + topLeftDiffLightX, originHeavy(l4.x) + topLeftDiffHeavyX),
+						y: makeVariance(originLight(l4.y), originHeavy(l4.y)),
+						kind: l4.kind,
+					};
+					contour2[b1I] = {
+						x: makeVariance(originLight(verticalBottomLeft.x), originHeavy(verticalBottomLeft.x)),
+						y: makeVariance(originLight(verticalBottomLeft.y), originHeavy(verticalBottomLeft.y)),
+						kind: 0,
+					};
+					contour2[b2I] = {
+						x: makeVariance(originLight(verticalBottomRight.x), originHeavy(verticalBottomRight.x)),
+						y: makeVariance(originLight(verticalBottomRight.y), originHeavy(verticalBottomRight.y)),
+						kind: 0,
+					};
+					contour3[vtrI] = {
+						x: makeVariance(originLight(verticalTopRight.x), originHeavy(verticalTopRight.x)),
+						y: makeVariance(originLight(l4.y), originHeavy(l4.y)),
+						kind: 0,
+					};
+					contour3[vtlI] = {
+						x: makeVariance(originLight(verticalTopLeft.x), originHeavy(verticalTopLeft.x)),
+						y: makeVariance(originLight(l4.y), originHeavy(l4.y)),
+						kind: 0,
+					};
 				}
 			}
 		}
@@ -1145,16 +1245,32 @@ function correctGlyphs(font, references) {
 				if (matched) break;
 			}
 
-			if (glyph.name == "uni36C4"){
+			// if (glyph.name == "uni36C4"){
 				// const logcontours = glyph.geometry.contours;
 				// console.log(contour);
 				// console.log(newContour);
-			}
+			// }
 			
 			glyph.geometry.contours.push(newContour);
 		}
 	}
-
+	
+	let len = font.glyphs.items.length;
+	let consoleWidth = process.stdout.columns - 50 || 150
+	let bar = new ProgressBar('\u001b[38;5;82mcorrectGlyphs\u001b[0m [3/5]     :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+	
+	function progressTick() {
+		if (len) {
+			var chunk = 1;
+			bar.tick(chunk);
+			if (bar.curr > 0 && bar.curr < len - 2) { 
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
+			}
+			if (bar.curr === len - 1) { 
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
+			}
+		}
+	}
 
 	let count = 0;
 	for (const glyph of font.glyphs.items) {
@@ -1165,11 +1281,10 @@ function correctGlyphs(font, references) {
 			
 		// 	continue;
 		// }
-		if (extendSkip.includes(name)) continue;
-		checkSingleGlyph(glyph)
-		count++;
-		if (count % 1000 == 0)
-			console.log("correctGlyphs:", count, "glyphs processed.");
+		if (!extendSkip.includes(name)) checkSingleGlyph(glyph);
+		progressTick();
+		// count++;
+		// if (count % 1000 == 0) console.log("correctGlyphs:", count, "glyphs processed.");
 	}
 }
 

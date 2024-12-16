@@ -1,7 +1,8 @@
 "use strict";
 
 const { Ot } = require("ot-builder");
-const {Bezier} = require("./bezier.js");
+const Bezier = require("./bezier.js");
+const ProgressBar = require('./node-progress');
 const { extendSkip } = require("./exceptions");
 const { hangulSios } = require("./correctionsUnicode");
 const fs = require("node:fs");
@@ -329,6 +330,11 @@ function postProcess(font, references) {
 					hCurveHeavy = new Bezier(originHeavy(h1.x) + hXH,originHeavy(h1.y),originHeavy(h2.x) + hXH,originHeavy(h2.y),originHeavy(h3.x) + hXH,originHeavy(h3.y),originHeavy(h4.x) + hXH,originHeavy(h4.y));
 					intersectHeavy = vCurveHeavy.intersects(hCurveHeavy);
 				}
+				// if (name === "uni3122") {
+				// 	for (const t of intersectHeavy) {
+				// 		console.log(idxC2, vCurveHeavy.split(t.split('/')[0]).left.points[3]);
+				// 	}
+				// }
 				let splitLight = vCurveLight.split(intersectLight[0].split('/')[0]);
 				let splitHeavy = vCurveHeavy.split(intersectHeavy[0].split('/')[0]);
 				let pointsLight = splitLight.left.points;
@@ -670,23 +676,38 @@ function postProcess(font, references) {
 			glyph.geometry.contours.push(newContour);
 		}
 	}
-
+	
+	let len = font.glyphs.items.length;
+	let consoleWidth = process.stdout.columns - 50 || 150
+	let bar = new ProgressBar('\u001b[38;5;82mpostProcessing\u001b[0m [5/5]    :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+	
+	function progressTick() {
+		if (len) {
+			var chunk = 1;
+			bar.tick(chunk);
+			if (bar.curr > 0 && bar.curr < len - 2) { 
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
+			}
+			if (bar.curr === len - 1) { 
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
+			}
+		}
+	}
 
 	let count = 0;
 	for (const glyph of font.glyphs.items) {
 		const name = glyph.name;
-		console.log(name);
+		// console.log(name);
 		// if (replacements.includes(name)) {
 		// 	glyph.geometry.contours = JSON.parse(fs.readFileSync(`${__dirname}/../replacements/${name}.json`, 'utf-8'));
 		// 	if (name === "alpha") console.log(JSON.stringify(glyph));
 			
 		// 	continue;
 		// }
-		if (extendSkip.includes(name)) continue;
-		checkSingleGlyph(glyph)
-		count++;
-		if (count % 200 == 0)
-			console.log("postProcessing: ", count, " glyphs processed.");
+		if (!extendSkip.includes(name)) checkSingleGlyph(glyph);
+		progressTick();
+		// count++;
+		// if (count % 200 == 0) console.log("postProcessing: ", count, " glyphs processed.");
 	}
 }
 

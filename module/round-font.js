@@ -2,6 +2,7 @@
 
 const { Ot } = require("ot-builder");
 const { roundTo } = require("./util");
+const ProgressBar = require('./node-progress');
 const { invertRadius, minRadius, negativeGlyphs, skipGlyphs, modifyGlyphs } = require("./exceptions");
 
 function roundFont(font, references) {
@@ -603,22 +604,41 @@ let curGlyph = "";
 			result.push(result.shift());
 		return result;
 	}
-
+	
+	let len = font.glyphs.items.length;
+	let consoleWidth = process.stdout.columns - 50 || 150
+	let bar = new ProgressBar('\u001b[38;5;82mroundingGlyphs\u001b[0m [4/5]    :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+	
+	function progressTick() {
+		if (len) {
+			var chunk = 1;
+			bar.tick(chunk);
+			if (bar.curr > 0 && bar.curr < len - 2) { 
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
+			}
+			if (bar.curr === len - 1) { 
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
+			}
+		}
+	}
+	
 	let count = 0;
 	for (const glyph of font.glyphs.items) {
 		const name = glyph.name;
 		// curGlyph = name;
 		// console.log(name);
-		if (!glyph.geometry || !glyph.geometry.contours || skipGlyphs.includes(name))
+		if (!glyph.geometry || !glyph.geometry.contours || skipGlyphs.includes(name)) {
+			progressTick();
 			continue;
+		}
 		const oldContours = glyph.geometry.contours;
 		glyph.geometry.contours = [];
 		for (const [idxC, contour] of oldContours.entries()) {
 			glyph.geometry.contours.push(transformContour(contour, name, idxC));
 		}
-		count++;
-		if (count % 1000 == 0)
-			console.log("roundFont: ", count, " glyphs processed.");
+		progressTick();
+		// count++;
+		// if (count % 1000 == 0) console.log("roundingGlyphs: ", count, " glyphs processed.");
 	}
 }
 
