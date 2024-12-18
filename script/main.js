@@ -20,7 +20,7 @@ const font = readOtf(filename.shs(param.subfamily));
 preExtension(font);
 extendShortStroke(font, references);
 correctGlyphs(font, references);
-// console.log(JSON.stringify(references));
+console.log(JSON.stringify(references));
 roundFont(font, references);
 // postProcess(font, references);
 console.log('\u001b[38;5;82mCompiling OpenType font file.\u001b[0m This may take several minutes.');

@@ -504,11 +504,13 @@ function extendShortStroke(font, references) {
 								originLight(horizontalTopRight.x) - originLight(circularArray(contour2, idxP2 + 4).x) > 0 &&
 								originLight(contour2[idxP2].x) > originLight(horizontalTopRight.x)
 							) {
+								let filtered = contour2.filter((point) => point.kind === 0);
+								let segment = filtered.indexOf(contour2[idxP2]);
 								if (name in references.horizontalLeftFalling2 === false) {
 									references.horizontalLeftFalling2[name] = [];
 								}
 								let refs = references.horizontalLeftFalling2[name];
-								refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
+								refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2, "leftFallingTopRightSgmt": segment });
 							}
 
 							if (

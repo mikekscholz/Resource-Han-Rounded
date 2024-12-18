@@ -63,81 +63,6 @@ function postProcess(font, references) {
 		return Ot.Var.Ops.evaluate(point, instanceShsWghtMax);
 	}
 	
-	function isBreve(contour) {
-		if (contour.length < 15) return false;
-		const c = contour;
-		const cy0 = originLight(c[0].y);
-		const cy1 = originLight(c[1].y);
-		const cy13 = originLight(c[13].y);
-		const cy14 = originLight(c[14].y);
-		return c[0].kind == 0 && c[1].kind == 1 && c[2].kind == 2 && c[3].kind == 0 && c[4].kind == 0 && c[5].kind == 1 && c[6].kind == 2 && c[7].kind == 0 && c[8].kind == 1 && c[9].kind == 2 && c[10].kind == 0 && c[11].kind == 0 && c[12].kind == 1 && c[13].kind == 2 && c[14].kind == 0 && [627,631,783].includes(cy0) && cy0 == cy1 && cy1 == cy13 && cy13 == cy14;
-	}
-	
-	function isTilde(contour) {
-		if (contour.length != 21) return false;
-		const c = contour;
-		const cy0 = originLight(c[0].y);
-		const cy1 = originLight(c[1].y);
-		const cy19 = originLight(c[19].y);
-		const cy20 = originLight(c[20].y);
-		return c[0].kind == 0 && c[1].kind == 1 && c[2].kind == 2 && c[3].kind == 0 && c[4].kind == 0 && c[5].kind == 1 && c[6].kind == 2 && c[7].kind == 0 && c[8].kind == 1 && c[9].kind == 2 && c[10].kind == 0 && c[11].kind == 1 && c[12].kind == 2 && c[13].kind == 0 && c[14].kind == 0 && c[15].kind == 1 && c[16].kind == 2 && c[17].kind == 0 && c[18].kind == 1 && c[19].kind == 2 && c[20].kind == 0 && [638, 778, 794, 925].includes(cy0) && cy0 == cy1 && cy1 == cy19 && cy19 == cy20;
-	}
-	
-	function isAcute(c) {
-		if (c.length !== 8) return false;
-		const s1x = originHeavy(c[1].x) - originHeavy(c[0].x);
-		const s1y = originHeavy(c[1].y) - originHeavy(c[0].y);
-		const s2x = originHeavy(c[2].x) - originHeavy(c[0].x);
-		const s2y = originHeavy(c[2].y) - originHeavy(c[0].y);
-		const s3x = originHeavy(c[3].x) - originHeavy(c[0].x);
-		const s3y = originHeavy(c[3].y) - originHeavy(c[0].y);
-		const s4x = originHeavy(c[4].x) - originHeavy(c[0].x);
-		const s4y = originHeavy(c[4].y) - originHeavy(c[0].y);
-		const s5x = originHeavy(c[5].x) - originHeavy(c[0].x);
-		const s5y = originHeavy(c[5].y) - originHeavy(c[0].y);
-		const s6x = originHeavy(c[6].x) - originHeavy(c[0].x);
-		const s6y = originHeavy(c[6].y) - originHeavy(c[0].y);
-		const s7x = originHeavy(c[7].x) - originHeavy(c[0].x);
-		const s7y = originHeavy(c[7].y) - originHeavy(c[0].y);
-		return	s1x >= 141	&&	s1x <= 196 && 
-				s1y == 0	&&
-				s2x >= 244	&&	s2x <= 307 && 
-				s2y >= 103	&&	s2y <= 150 &&
-				s3x >= 186	&&	s3x <= 239 && 
-				s3y >= 156	&&	s3y <= 212 &&
-				s4x >= 67	&&	s4x <= 101 && 
-				s4y >= 78	&&	s4y <= 130 && 
-				s6x >= -57	&&	s6x <= -22 && 
-				s6y >= 156	&&	s6y <= 212 &&
-				s7x >= -124	&&	s7x <= -79 && 
-				s7y >= 103	&&	s7y	<= 150;
-	}
-	
-	function isCircumflex(c) {
-		if (c.length !== 8) return false;
-		const s1x = originHeavy(c[1].x) - originHeavy(c[0].x);
-		const s1y = originHeavy(c[1].y) - originHeavy(c[0].y);
-		const s2x = originHeavy(c[2].x) - originHeavy(c[1].x);
-		const s2y = originHeavy(c[2].y) - originHeavy(c[1].y);
-		const s3x = originHeavy(c[3].x) - originHeavy(c[2].x);
-		const s3y = originHeavy(c[3].y) - originHeavy(c[2].y);
-		const s4x = originHeavy(c[4].x) - originHeavy(c[3].x);
-		const s4y = originHeavy(c[4].y) - originHeavy(c[3].y);
-		const s5x = originHeavy(c[5].x) - originHeavy(c[4].x);
-		const s5y = originHeavy(c[5].y) - originHeavy(c[4].y);
-		const s6x = originHeavy(c[6].x) - originHeavy(c[5].x);
-		const s6y = originHeavy(c[6].y) - originHeavy(c[5].y);
-		const s7x = originHeavy(c[7].x) - originHeavy(c[6].x);
-		const s7y = originHeavy(c[7].y) - originHeavy(c[6].y);
-		const s8x = originHeavy(c[0].x) - originHeavy(c[7].x);
-		const s8y = originHeavy(c[0].y) - originHeavy(c[7].y);
-		return s1x >= 104 && s1x <= 145 && s1y >= 61 && s1y <= 102 &&
-		s2x >= 3 && s2x <= 6 && s2y == 0 && s3x >= 104 && s3x <= 146 && s3y >= -102 && s3y <= -61 &&
-		s4x >= 56 && s4x <= 78 && s4y >= 46 && s4y <= 64 && s5x >= -124 && s5x <= -99 && s5y >= 94 && s5y <= 149 &&
-		s6x >= -196 && s6x <= -140 && s6y == 0 && s7x >= -124 && s7x <= -98 && s7y >= -149 && s7y <= -94 &&
-		s8x >= 55 && s8x <= 78 && s8y >= -64 && s8y <= -46;
-	}
-	
 	function approxEq(a, b, threshold = 5) {
 		if (typeof a == 'number' && typeof b == 'number')
 			return abs(a - b) <= threshold;
@@ -277,10 +202,6 @@ function postProcess(font, references) {
 				let h6I = circularIndex(contour, idxP1 + 5);
 				let h7I = circularIndex(contour, idxP1 + 6);
 				let h8I = circularIndex(contour, idxP1 + 7);
-				let hXL = 0;
-				let hXH = 0;
-				let hCurveLight = new Bezier(originLight(h1.x) + hXL,originLight(h1.y),originLight(h2.x) + hXL,originLight(h2.y),originLight(h3.x) + hXL,originLight(h3.y),originLight(h4.x) + hXL,originLight(h4.y));
-				let hCurveHeavy = new Bezier(originHeavy(h1.x) + hXH,originHeavy(h1.y),originHeavy(h2.x) + hXH,originHeavy(h2.y),originHeavy(h3.x) + hXH,originHeavy(h3.y),originHeavy(h4.x) + hXH,originHeavy(h4.y));
 				let r1 = circularArray(contour2, -7);
 				let r2 = circularArray(contour2, -6);
 				let r3 = circularArray(contour2, -5);
@@ -310,31 +231,46 @@ function postProcess(font, references) {
 				}
 				let vCurveLight = new Bezier(originLight(r1.x),originLight(r1.y),originLight(r2.x),originLight(r2.y),originLight(r3.x),originLight(r3.y),originLight(r4.x),originLight(r4.y));
 				let vCurveHeavy = new Bezier(r1xH,r1yH,r2xH,r2yH,r3xH,r3yH,r4xH,r4yH);
+				let hXL = 0;
+				let hXH = 0;
+				let hCurveLight;
+				let hCurveHeavy;
 				let intersectLight = [];
-				while (intersectLight.length === 0) {
-					hXL++
-					// if (name === "uni637B") {
-					// 	console.log(intersectLight);
-					// 	console.log("hXL", hXL);
-					// }
+				let intersectHeavy = [];
+				function generateCurveLight() {
 					hCurveLight = new Bezier(originLight(h1.x) + hXL,originLight(h1.y),originLight(h2.x) + hXL,originLight(h2.y),originLight(h3.x) + hXL,originLight(h3.y),originLight(h4.x) + hXL,originLight(h4.y));
 					intersectLight = vCurveLight.intersects(hCurveLight);
 				}
-				let intersectHeavy = [];
-				while (intersectHeavy.length === 0) {
-					hXH++
-					// if (name === "uni637B") {
-					// 	console.log(intersectHeavy);
-					// 	console.log("hXH", hXH);
-					// }
+				function generateCurveHeavy() {
 					hCurveHeavy = new Bezier(originHeavy(h1.x) + hXH,originHeavy(h1.y),originHeavy(h2.x) + hXH,originHeavy(h2.y),originHeavy(h3.x) + hXH,originHeavy(h3.y),originHeavy(h4.x) + hXH,originHeavy(h4.y));
 					intersectHeavy = vCurveHeavy.intersects(hCurveHeavy);
 				}
-				// if (name === "uni3122") {
-				// 	for (const t of intersectHeavy) {
-				// 		console.log(idxC2, vCurveHeavy.split(t.split('/')[0]).left.points[3]);
-				// 	}
-				// }
+				generateCurveLight();
+				while (intersectLight.length === 0) {
+					hXL = hXL + 4;
+					generateCurveLight();
+				}
+				while (intersectLight.length !== 0) {
+					hXL = hXL - 1;
+					generateCurveLight();
+				}
+				while (intersectLight.length === 0) {
+					hXL = hXL + 0.1;
+					generateCurveLight();
+				}
+				generateCurveHeavy();
+				while (intersectHeavy.length === 0) {
+					hXH = hXH + 10;
+					generateCurveHeavy();
+				}
+				while (intersectHeavy.length !== 0) {
+					hXH = hXH - 1;
+					generateCurveHeavy();
+				}
+				while (intersectHeavy.length === 0) {
+					hXH = hXH + 0.1;
+					generateCurveHeavy();
+				}
 				let splitLight = vCurveLight.split(intersectLight[0].split('/')[0]);
 				let splitHeavy = vCurveHeavy.split(intersectHeavy[0].split('/')[0]);
 				let pointsLight = splitLight.left.points;
@@ -697,7 +633,7 @@ function postProcess(font, references) {
 	let count = 0;
 	for (const glyph of font.glyphs.items) {
 		const name = glyph.name;
-		// console.log(name);
+		console.log(name);
 		// if (replacements.includes(name)) {
 		// 	glyph.geometry.contours = JSON.parse(fs.readFileSync(`${__dirname}/../replacements/${name}.json`, 'utf-8'));
 		// 	if (name === "alpha") console.log(JSON.stringify(glyph));

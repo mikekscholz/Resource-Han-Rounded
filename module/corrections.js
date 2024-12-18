@@ -442,6 +442,41 @@ function correctGlyphs(font, references) {
 				}
 			}
 		}
+
+		if (name in references.horizontalLeftFalling2) {
+			let refs = references.horizontalLeftFalling2[name];
+			// console.log(refs);
+			for (const ref of refs) {
+				let idxC2 = ref.leftFalling;
+				let idxP2 = ref.leftFallingTopRight;
+				let contour2 = oldContours[idxC2];
+				if (circularIndex(contour2, -3) !== idxP2) {
+					// console.log(name, idxP2, circularIndex(contour2, idxP2 + 3));
+					let offset = circularIndex(contour2, idxP2 + 3);
+					for (let i = 0; i < offset; i++) {
+						oldContours[idxC2].push(oldContours[idxC2].shift());
+					}
+					// console.log(oldContours[idxC2]);
+				}
+			}
+		}
+		if (name in references.horizontalLeftFalling3) {
+			let refs = references.horizontalLeftFalling3[name];
+			// console.log(refs);
+			for (const ref of refs) {
+				let idxC2 = ref.leftFalling;
+				let idxP2 = ref.leftFallingTopRight;
+				let contour2 = oldContours[idxC2];
+				if (circularIndex(contour2, -3) !== idxP2) {
+					// console.log(name, idxP2, circularIndex(contour2, idxP2 + 3));
+					let offset = circularIndex(contour2, idxP2 + 3);
+					for (let i = 0; i < offset; i++) {
+						oldContours[idxC2].push(oldContours[idxC2].shift());
+					}
+					// console.log(oldContours[idxC2]);
+				}
+			}
+		}
 		// if (name in references.horizontalLeftFalling) {
 		// 	let refs = references.horizontalLeftFalling[name];
 		// 	// console.log(refs);

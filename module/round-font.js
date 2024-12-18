@@ -391,7 +391,7 @@ let curGlyph = "";
 
 	function transformContour(contour, name, idxC) {
 		const segments = splitContour(contour);
-		let spec = false;
+		let spec = false, specSgmt;
 		if (name in invertRadius) {
 			const invertedContours = invertRadius[name];
 			if (invertedContours.includes(segments.length)) {
@@ -411,6 +411,30 @@ let curGlyph = "";
 				if (idxLF === idxC) spec = "leftFalling";
 			}
 		}
+		if (name in references.horizontalLeftFalling2) {
+			let refs = references.horizontalLeftFalling2[name];
+			for (const ref of refs) {
+				let idxLF = ref.leftFalling;
+				if (idxLF === idxC) spec = "leftFalling";
+			}
+		}
+		if (name in references.horizontalLeftFalling3) {
+			let refs = references.horizontalLeftFalling3[name];
+			for (const ref of refs) {
+				let idxLF = ref.leftFalling;
+				if (idxLF === idxC) spec = "leftFalling";
+			}
+		}
+		// if (name in references.horizontalLeftFalling2) {
+		// 	let refs = references.horizontalLeftFalling2[name];
+		// 	for (const ref of refs) {
+		// 		let idxLF = ref.leftFalling;
+		// 		if (idxLF === idxC) {
+		// 			spec = "leftFalling2";
+		// 			specSgmt = ref.leftFallingTopRight;
+		// 		}
+		// 	}
+		// }
 		const length = segments.length;
 		const result = [];
 		if (length < 2) // malformed
@@ -426,6 +450,7 @@ let curGlyph = "";
 			const shsM1Seg = [];
 			const kind = [];
 
+			// if ((spec === "leftFalling" && i > length - 4) || (spec === "leftFalling2" && i === specSgmt)) {
 			if (spec === "leftFalling" && i > length - 4) {
 				m0Seg.push(cur.m0.p1);
 				m1Seg.push(cur.m1.p1);
@@ -517,6 +542,7 @@ let curGlyph = "";
 					kind.push(Ot.Glyph.PointType.Lead);
 				}
 			}
+			// if ((spec === "leftFalling" && i === length - 4) || (spec === "leftFalling2" && i === specSgmt)) {
 			if (spec === "leftFalling" && i === length - 4) {
 				if (cur.type == "curve") {
 					m0Seg.push(cur.m0.c2);
