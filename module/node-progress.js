@@ -7,7 +7,7 @@
 /**
  * Expose `ProgressBar`.
  */
-
+// const process = require('node:process');
 exports = module.exports = ProgressBar;
 
 /**
@@ -63,13 +63,44 @@ function ProgressBar(fmt, options) {
   this.chars = {
     complete   : options.complete || '=',
     incomplete : options.incomplete || '-',
-    head       : options.head || (options.complete || '=')
+    head       : options.head || (options.complete || '='),
+    // spinner    : options.spinner || ['󰪞', '󰪟', '󰪠', '󰪡', '󰪢', '󰪣', '󰪤', '󰪥']
+    spinner    : options.spinner || ['', '', '', '', '', '']
+    // spinner    : options.spinner || ['󱑋','󱑌','󱑍','󱑎','󱑏','󱑐','󱑑','󱑒','󱑓','󱑔','󱑕','󱑖']
+    // spinner    : options.spinner || ['','','','','','','','','','','','','','','','','','','','','','','','','','','','']
+    // spinner    : options.spinner || ['◜','◠','◝','◞','◡','◟']
+    // spinner    : options.spinner || ['⋮','⋰','⋯','⋱']
+    // spinner    : options.spinner || ['⢎ ','⠎⠁','⠊⠑','⠈⠱',' ⡱','⢀⡰','⢄⡠','⢆⡀']
+    // spinner    : options.spinner || ['⢎ ','⠎⠁','⠊⠑','⠈⠱',' ⡱','⢀⡰','⢄⡠','⢆⡀']
+    // spinner    : options.spinner || ['⢀ ','⢄ ','⢆ ','⢎ ','⠎⠁','⠊⠑','⠈⠱',' ⡱','⢀⡰','⢄⡠','⢆⡀','⢎ ','⠎⠁','⠊⠑','⠈⠱',' ⡱',' ⡰',' ⡠',' ⡀','  ']
+    // spinner    : options.spinner || ['⢀⠀','⡀⠀','⠄⠀','⢂⠀','⡂⠀','⠅⠀','⢃⠀','⡃⠀','⠍⠀','⢋⠀','⡋⠀','⠍⠁','⢋⠁','⡋⠁','⠍⠉','⠋⠉','⠋⠉','⠉⠙','⠉⠙','⠉⠩','⠈⢙','⠈⡙','⢈⠩','⡀⢙','⠄⡙','⢂⠩','⡂⢘','⠅⡘','⢃⠨','⡃⢐','⠍⡐','⢋⠠','⡋⢀','⠍⡁','⢋⠁','⡋⠁','⠍⠉','⠋⠉','⠋⠉','⠉⠙','⠉⠙','⠉⠩','⠈⢙','⠈⡙','⠈⠩','⠀⢙','⠀⡙','⠀⠩','⠀⢘','⠀⡘','⠀⠨','⠀⢐','⠀⡐','⠀⠠','⠀⢀','⠀⡀']
   };
   this.renderThrottle = options.renderThrottle !== 0 ? (options.renderThrottle || 16) : 0;
+  this.spinnerThrottle = options.spinnerThrottle !== 0 ? (options.spinnerThrottle || 64) : 0;
   this.lastRender = -Infinity;
   this.callback = options.callback || function () {};
   this.tokens = {};
   this.lastDraw = '';
+  this.spindex = -1;
+  this.lastSpin = 0;
+  
+  // process.on('uncaughtException', (err, origin) => {
+  //   this.stream.write('\u001b[?25h\u001b[0m');
+  // });
+  // process.on('beforeExit', (code) => {
+  //   this.stream.write('\u001b[?25h\u001b[0m');
+  // });
+  // process.on('exit', (code) => {
+  //   this.stream.write('\u001b[?25h\u001b[0m');
+  // });
+  // process.on('SIGINT', () => {
+  //   this.terminate();
+  //   this.stream.write('\u001b[?25h\u001b[0m');
+  // });
+  // process.on('SIGTERM', () => {
+  //   this.terminate();
+  //   this.stream.write('\u001b[?25h\u001b[0m');
+  // });
 }
 
 function timeFormat(duration) {
@@ -158,6 +189,15 @@ ProgressBar.prototype.render = function (tokens, force) {
   var percentString = percent + '%';
   if (percent < 10) percentString = percentString.replace("", " ");
   if (percent < 100) percentString = percentString.replace("", " ");
+  var spinnerLength = this.chars.spinner.length;
+  // var idx = abs(spinnerLength + index % spinnerLength) % spinnerLength;
+  if (this.spindex === -1 || now - this.lastSpin >= this.spinnerThrottle) {
+    this.spindex = ++this.spindex % spinnerLength;
+    this.lastSpin = now;
+  }
+
+  var frames = this.chars.spinner;
+  let frame = (percent == 100) ? Array(frames[0].length + 1).join(' ') : frames[this.spindex];
   // while (percentString.length < 3) percentString.replace("", " ");
   /* populate the bar template with percentages and timestamps */
   var str = this.fmt
@@ -166,7 +206,8 @@ ProgressBar.prototype.render = function (tokens, force) {
     .replace(':elapsed', isNaN(elapsed) ? '0.0' : (elapsed / 1000).toFixed(1))
     .replace(':eta', (isNaN(eta) || !isFinite(eta)) ? '0.0' : timeFormat((eta / 1000).toFixed(1)))
     .replace(':percent', percentString)
-    .replace(':rate', Math.round(rate));
+    .replace(':rate', Math.round(rate))
+    .replace(':spinner', `\u001b[1m${frame}\u001b[0m`);
 
   /* compute the available space (non-zero) for the bar */
   var availableSpace = Math.max(0, this.stream.columns - str.replace(':bar', '').replaceAll(/\u001b\[[\d;]*m/gi, '').length);
@@ -192,6 +233,7 @@ ProgressBar.prototype.render = function (tokens, force) {
   if (this.tokens) for (var key in this.tokens) str = str.replace(':' + key, this.tokens[key]);
 
   if (this.lastDraw !== str) {
+    // this.stream.write('\u001b[?25l');
     this.stream.cursorTo(0);
     this.stream.write(str);
     this.stream.clearLine(1);
@@ -254,4 +296,23 @@ ProgressBar.prototype.terminate = function () {
   } else {
     this.stream.write('\n');
   }
+  // this.stream.write('\u001b[?25h\u001b[0m');
 };
+
+// process.on('uncaughtException', (err, origin) => {
+//   process.stderr.write('\u001b[?25h\u001b[0m');
+// });
+// process.on('beforeExit', (code) => {
+//   process.stderr.write('\u001b[?25h\u001b[0m');
+// });
+// process.on('exit', (code) => {
+//   process.stderr.write('\u001b[?25h\u001b[0m');
+// });
+// process.on('SIGINT', () => {
+//   process.stderr.write('\u001b[?25h\u001b[0m');
+//   process.exit(130);
+// });
+// process.on('SIGTERM', () => {
+//   process.stderr.write('\u001b[?25h\u001b[0m');
+//   process.exit(143);
+// });

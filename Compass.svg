@@ -1,0 +1,447 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="840"
+   height="840"
+   viewBox="0 0 840 840"
+   version="1.1"
+   id="svg62"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs62" />
+  <style
+     id="style1"><![CDATA[
+          .a {
+              fill:   none;
+          }
+          .c {
+              stroke-width: 3px;
+              stroke-linecap: round;
+              stroke-linejoin: round;
+          }
+          .e {
+              stroke: #fff;
+              stroke-linecap: round;
+              stroke-linejoin: round;
+          }
+          .f {
+              fill: #fff;
+          }
+          .h {
+              display: none;
+          }
+          .ic {
+              stroke-width: 3px;
+              stroke-linecap: round;
+              stroke-linejoin: round;
+          }
+          .l {
+              stroke-width: 3px;
+              stroke-linecap: round;
+              stroke-linejoin: round;
+          }
+          .o {
+              stroke-width: 3px;
+              stroke-linecap: round;
+              stroke-linejoin: round;
+          }
+          .t {
+              font-family: Nunito, Aptos, Calibri, Arial, Helvetica, sans-serif;
+              font-size: 25px;
+              font-weight: 700;
+              stroke-width: 0px;
+              paint-order: stroke fill;
+          }
+          .v {
+              stroke-width: 4px;
+              stroke-linecap: round;
+              stroke-linejoin: round;
+          }
+          text {
+              text-anchor: middle;
+          }
+      ]]></style>
+  <marker
+     id="h"
+     viewBox="0 0 26 20"
+     refX="18"
+     refY="11"
+     markerUnits="strokeWidth"
+     markerWidth="10"
+     markerHeight="14"
+     orient="auto">
+    <path
+       d="M 4,0 18,11 4,22"
+       class="a e ic"
+       id="path1" />
+  </marker>
+  <path
+     id="m"
+     d="M -255,0 A 255,255 0 0 1 255,0"
+     class="h" />
+  <path
+     id="v"
+     d="m 525,620 a 75,75 0 0 1 150,0"
+     class="h" />
+  <path
+     id="a"
+     d="m 509,620 a 91,91 0 0 0 182,0"
+     class="h" />
+  <path
+     d="m 413.52518,420 h 12.94964 M 420,413.52518 v 12.94964"
+     class="c e f"
+     id="path6" />
+  <g
+     transform="matrix(0.71942446,0,0,0.71942446,420,420)"
+     id="g53">
+    <g
+       id="r"
+       transform="translate(0,-482)">
+      <text
+         class="e f t"
+         id="text7">0</text>
+      <text
+         transform="rotate(10,0,482)"
+         class="e f t"
+         id="text8">10</text>
+      <text
+         transform="rotate(20,0,482)"
+         class="e f t"
+         id="text9">20</text>
+      <text
+         transform="rotate(30,0,482)"
+         class="e f t"
+         id="text10">30</text>
+      <text
+         transform="rotate(40,0,482)"
+         class="e f t"
+         id="text11">40</text>
+      <text
+         transform="rotate(50,0,482)"
+         class="e f t"
+         id="text12">50</text>
+      <text
+         transform="rotate(60,0,482)"
+         class="e f t"
+         id="text13">60</text>
+      <text
+         transform="rotate(70,0,482)"
+         class="e f t"
+         id="text14">70</text>
+      <text
+         transform="rotate(80,0,482)"
+         class="e f t"
+         id="text15">80</text>
+      <text
+         transform="rotate(90,0,482)"
+         class="e f t"
+         id="text16">90</text>
+      <text
+         transform="rotate(100,0,482)"
+         class="e f t"
+         id="text17">100</text>
+      <text
+         transform="rotate(110,0,482)"
+         class="e f t"
+         id="text18">110</text>
+      <text
+         transform="rotate(120,0,482)"
+         class="e f t"
+         id="text19">120</text>
+      <text
+         transform="rotate(130,0,482)"
+         class="e f t"
+         id="text20">130</text>
+      <text
+         transform="rotate(140,0,482)"
+         class="e f t"
+         id="text21">140</text>
+      <text
+         transform="rotate(150,0,482)"
+         class="e f t"
+         id="text22">150</text>
+      <text
+         transform="rotate(160,0,482)"
+         class="e f t"
+         id="text23">160</text>
+      <text
+         transform="rotate(170,0,482)"
+         class="e f t"
+         id="text24">170</text>
+      <text
+         transform="rotate(180,0,482)"
+         class="e f t"
+         id="text25">180</text>
+      <text
+         transform="rotate(-170,0,482)"
+         class="e f t"
+         id="text26">190</text>
+      <text
+         transform="rotate(-160,0,482)"
+         class="e f t"
+         id="text27">200</text>
+      <text
+         transform="rotate(-150,0,482)"
+         class="e f t"
+         id="text28">210</text>
+      <text
+         transform="rotate(-140,0,482)"
+         class="e f t"
+         id="text29">220</text>
+      <text
+         transform="rotate(-130,0,482)"
+         class="e f t"
+         id="text30">230</text>
+      <text
+         transform="rotate(-120,0,482)"
+         class="e f t"
+         id="text31">240</text>
+      <text
+         transform="rotate(-110,0,482)"
+         class="e f t"
+         id="text32">250</text>
+      <text
+         transform="rotate(-100,0,482)"
+         class="e f t"
+         id="text33">260</text>
+      <text
+         transform="rotate(-90,0,482)"
+         class="e f t"
+         id="text34">270</text>
+      <text
+         transform="rotate(-80,0,482)"
+         class="e f t"
+         id="text35">280</text>
+      <text
+         transform="rotate(-70,0,482)"
+         class="e f t"
+         id="text36">290</text>
+      <text
+         transform="rotate(-60,0,482)"
+         class="e f t"
+         id="text37">300</text>
+      <text
+         transform="rotate(-50,0,482)"
+         class="e f t"
+         id="text38">310</text>
+      <text
+         transform="rotate(-40,0,482)"
+         class="e f t"
+         id="text39">320</text>
+      <text
+         transform="rotate(-30,0,482)"
+         class="e f t"
+         id="text40">330</text>
+      <text
+         transform="rotate(-20,0,482)"
+         class="e f t"
+         id="text41">340</text>
+      <text
+         transform="rotate(-10,0,482)"
+         class="e f t"
+         id="text42">350</text>
+      <g
+         transform="translate(0,482)"
+         id="g52">
+        <g
+           id="d180">
+          <g
+             id="d90">
+            <line
+               y1="40"
+               transform="translate(0,504)"
+               class="e f v"
+               id="line42"
+               x1="0"
+               x2="0"
+               y2="5" />
+            <g
+               id="d40">
+              <g
+                 id="d20">
+                <g
+                   id="d10">
+                  <line
+                     y1="24"
+                     transform="translate(0,450)"
+                     class="e f o"
+                     id="line43"
+                     x1="0"
+                     x2="0"
+                     y2="0" />
+                  <g
+                     id="d4">
+                    <line
+                       id="k"
+                       y1="12"
+                       transform="rotate(1,-25782.446,-225)"
+                       class="e f o"
+                       x1="0"
+                       x2="0"
+                       y2="0" />
+                    <use
+                       href="#k"
+                       transform="rotate(1)"
+                       id="use43" />
+                    <use
+                       href="#k"
+                       transform="rotate(2)"
+                       id="use44" />
+                    <use
+                       href="#k"
+                       transform="rotate(3)"
+                       id="use45" />
+                  </g>
+                  <line
+                     y1="18"
+                     transform="rotate(5,-5153.3472,-225)"
+                     class="e f o"
+                     id="line45"
+                     x1="0"
+                     x2="0"
+                     y2="0" />
+                  <use
+                     href="#d4"
+                     transform="rotate(5)"
+                     id="use46" />
+                </g>
+                <use
+                   href="#d10"
+                   transform="rotate(10)"
+                   id="use47" />
+              </g>
+              <use
+                 href="#d20"
+                 transform="rotate(20)"
+                 id="use48" />
+            </g>
+            <use
+               href="#d40"
+               transform="rotate(40)"
+               id="use49" />
+            <use
+               href="#d10"
+               transform="rotate(80)"
+               id="use50" />
+          </g>
+          <use
+             href="#d90"
+             transform="rotate(90)"
+             id="use51" />
+        </g>
+        <use
+           href="#d180"
+           transform="scale(-1)"
+           id="use52" />
+      </g>
+    </g>
+  </g>
+  <g
+     transform="matrix(0.71242307,0.10012453,-0.10012453,0.71242307,420.04605,419.84225)"
+     id="g62">
+    <g
+       transform="rotate(-8)"
+       id="g61">
+      <use
+         href="#r"
+         transform="scale(0.72)"
+         id="use53" />
+      <line
+         y1="50"
+         transform="translate(0,-444)"
+         class="e ic"
+         marker-end="url(#h)"
+         id="line53"
+         x1="0"
+         x2="0"
+         y2="13" />
+      <line
+         y1="154"
+         transform="rotate(180,0,-48)"
+         class="e f ic"
+         id="line54"
+         x1="0"
+         x2="0"
+         y2="0" />
+      <line
+         id="c"
+         y1="154"
+         transform="translate(0,96)"
+         class="e f ic"
+         x1="0"
+         x2="0"
+         y2="0" />
+      <use
+         href="#c"
+         transform="rotate(90)"
+         id="use54" />
+      <use
+         href="#c"
+         transform="rotate(-90)"
+         id="use55" />
+      <g
+         id="j">
+        <g
+           id="i">
+          <g
+             id="g">
+            <g
+               id="f">
+              <g
+                 id="e">
+                <line
+                   y1="20"
+                   transform="translate(0,276)"
+                   class="e f ic"
+                   id="line55"
+                   x1="0"
+                   x2="0"
+                   y2="0" />
+                <line
+                   id="d"
+                   y1="6"
+                   transform="rotate(2.8125,-5906.6452,-145)"
+                   class="e f ic"
+                   x1="0"
+                   x2="0"
+                   y2="0" />
+                <line
+                   y1="10"
+                   transform="rotate(5.625,-2910.8319,-143)"
+                   class="e f ic"
+                   id="line56"
+                   x1="0"
+                   x2="0"
+                   y2="0" />
+                <use
+                   href="#d"
+                   transform="rotate(5.625)"
+                   id="use56" />
+              </g>
+              <use
+                 href="#e"
+                 transform="rotate(11.25)"
+                 id="use57" />
+            </g>
+            <use
+               href="#f"
+               transform="rotate(22.5)"
+               id="use58" />
+          </g>
+          <use
+             href="#g"
+             transform="rotate(45)"
+             id="use59" />
+        </g>
+        <use
+           href="#i"
+           transform="rotate(90)"
+           id="use60" />
+      </g>
+      <use
+         href="#j"
+         transform="scale(-1)"
+         id="use61" />
+    </g>
+  </g>
+</svg>

@@ -1,7 +1,6 @@
 "use strict";
 
 const { Ot } = require("ot-builder");
-const { extendSkip } = require("./exceptions");
 const ProgressBar = require('./node-progress');
 const path = require("path");
 const fsp = require("fs/promises");
@@ -34,7 +33,7 @@ function abs(num) {
 	return num >= 0 ? num : -num;
 }
 
-function preExtension(font) {
+function preProcess(font, references) {
 	const dimWght = font.fvar.axes[0].dim;
 	const instanceShsWghtMax = new Map([[dimWght, 1]]);
 	const masterDimWghtMax = { dim: dimWght, min: 0, peak: 1, max: 1 };
@@ -129,7 +128,7 @@ function preExtension(font) {
 	
 	let len = font.glyphs.items.length;
 	let consoleWidth = process.stdout.columns - 50 || 150
-	let bar = new ProgressBar('\u001b[38;5;82mpreProcessing\u001b[0m [1/5]     :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+	let bar = new ProgressBar('\u001b[38;5;82mpreProcessing\u001b[0m [1/5]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
 	
 	function progressTick() {
 		if (len) {
@@ -153,7 +152,7 @@ function preExtension(font) {
 		// 	writeFile(filename, data);
 		// }
 		// console.log(name);
-		if (!extendSkip.includes(name)) checkSingleGlyph(glyph);
+		if (!references.extendSkip.includes(name)) checkSingleGlyph(glyph);
 		progressTick();
 		// count++;
 		// if (count % 1000 == 0) console.log("preExtension:", count, "glyphs processed.");
@@ -161,5 +160,5 @@ function preExtension(font) {
 }
 
 module.exports = {
-	preExtension
+	preProcess
 };

@@ -5,3 +5,4 @@ dist/
 Makefile
 *.json
 glyphnames.txt
+bar.js
