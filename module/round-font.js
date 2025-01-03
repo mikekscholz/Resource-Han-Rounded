@@ -709,7 +709,7 @@ let curGlyph = "";
 		const name = glyph.name;
 		
 		// curGlyph = name;
-		// console.log(name);
+		console.log(name);
 		if (!glyph.geometry || !glyph.geometry.contours || references.skipGlyphs.includes(name)) {
 			progressTick();
 			continue;

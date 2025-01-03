@@ -27,6 +27,10 @@ function circularIndex(array, index) {
 	return isNaN(idx) ? index : idx;
 }
 
+function base60(num) {
+	return abs(360 + num % 360) % 360;
+}
+
 function horizontalSlope(line) {
 	let { p1, p2 } = line;
 	return (p2.y - p1.y) / (p2.x - p1.x);
@@ -381,7 +385,7 @@ function extendShortStroke(font, references) {
 			let dir2 = angle(lineLight(curr, next));
 			let bear2 = bearing(lineLight(curr, next));
 			let rotation = abs(dir1 - dir2);
-			if (rotation > 70 && rotation < 110 && bear2 > 45 && bear2 < 135) return circularIndex(contour, start + i);
+			if (rotation >= 68 && rotation <= 112 && bear2 > 45 && bear2 < 135) return circularIndex(contour, start + i);
 		}
 	}
 	function findBottomRightCorner(contour, start = 0) {
@@ -396,7 +400,7 @@ function extendShortStroke(font, references) {
 			let dir2 = angle(lineLight(curr, next));
 			let bear2 = bearing(lineLight(curr, next));
 			let rotation = abs(dir1 - dir2);
-			if (rotation > 70 && rotation < 110 && (bear2 > 315 || bear2 < 45)) return circularIndex(contour, start + i);
+			if (rotation >= 68 && rotation <= 112 && ((bear2 > 315 || bear2 < 45) || (bear1 < 135 || bear1 > 225))) return circularIndex(contour, start + i);
 		}
 	}
 	function findBottomRightCornerR(contour, start = 0) {
@@ -411,7 +415,7 @@ function extendShortStroke(font, references) {
 			let dir2 = angle(lineLight(curr, next));
 			let bear2 = bearing(lineLight(curr, next));
 			let rotation = abs(dir1 - dir2);
-			if (rotation > 80 && rotation < 110 && (bear2 > 315 || bear2 < 45)) return circularIndex(contour, start + i);
+			if (rotation >= 80 && rotation <= 112 && (bear2 > 315 || bear2 < 45)) return circularIndex(contour, start + i);
 		}
 	}
 	function findTopRightCorner(contour, start = 0) {
@@ -426,7 +430,7 @@ function extendShortStroke(font, references) {
 			let dir2 = angle(lineLight(curr, next));
 			let bear2 = bearing(lineLight(curr, next));
 			let rotation = abs(dir1 - dir2);
-			if (rotation > 70 && rotation < 110 && bear2 > 225 && bear2 < 315) return circularIndex(contour, start + i);
+			if (rotation >= 68 && rotation <= 112 && bear2 > 225 && bear2 < 315) return circularIndex(contour, start + i);
 		}
 	}
 	function findTopLeftCorner(contour, start = 0) {
@@ -441,7 +445,7 @@ function extendShortStroke(font, references) {
 			let dir2 = angle(lineLight(curr, next));
 			let bear2 = bearing(lineLight(curr, next));
 			let rotation = abs(dir1 - dir2);
-			if (rotation > 70 && rotation < 110 && bear2 > 225 && bear2 < 315) return circularIndex(contour, start + i);
+			if (rotation >= 68 && rotation <= 112 && bear2 > 225 && bear2 < 315) return circularIndex(contour, start + i);
 		}
 	}
 	
@@ -561,8 +565,8 @@ function extendShortStroke(font, references) {
 									
 								// }
 								debug && console.log(`is top end - idxC2: ${idxC2}, idxP2: ${idxP2}`);
-								debug && console.log(JSON.stringify(verticalBottomLeft));
-								debug && console.log(JSON.stringify(verticalBottomRight));
+								// debug && console.log(verticalBottomLeft);
+								// debug && console.log(verticalBottomRight);
 								if (
 									// and 横's (horizontal's) right end inside 竖 (vertical)
 									// ───┬──┬──┐
@@ -581,6 +585,8 @@ function extendShortStroke(font, references) {
 									
 									const verticalRightSlopeLight = verticalSlope(lineLight(verticalBottomRight, verticalTopRight));
 									const verticalRightSlopeHeavy = verticalSlope(lineHeavy(verticalBottomRight, verticalTopRight));
+									// const verticalRightSlopeLight = verticalSlope(lineLight(verticalTopRight, circularArray(contour2, cornerN1))) === 0 ? 0 : verticalSlope(lineLight(verticalBottomRight, verticalTopRight));
+									// const verticalRightSlopeHeavy = verticalSlope(lineHeavy(verticalTopRight, circularArray(contour2, cornerN1))) === 0 ? 0 : verticalSlope(lineHeavy(verticalBottomRight, verticalTopRight));
 									let isCorner = (abs(originLight(horizontalTopRight.y) - originLight(verticalTopRight.y)) < 5) || (abs(originLight(horizontalBottomRight.y) - originLight(verticalBottomRight.y)) < 5);
 									let horizontalRightCenterYLight = (originLight(horizontalTopRight.y) + originLight(horizontalBottomRight.y)) / 2;
 									let horizontalRightCenterYHeavy = (originHeavy(horizontalTopRight.y) + originHeavy(horizontalBottomRight.y)) / 2;
@@ -676,6 +682,7 @@ function extendShortStroke(font, references) {
 
 								// }
 							}
+							
 							if (
 								// is bottom end
 								canBeBottomEnd(circularArray(contour2, corner0), circularArray(contour2, cornerP1)) &&
@@ -686,6 +693,9 @@ function extendShortStroke(font, references) {
 								const verticalBottomRight = circularArray(contour2, idxP2 + 1);
 								const verticalTopRight = circularArray(contour2, idxP2 + 2);
 								const verticalTopLeft = circularArray(contour2, idxP2 - 1);
+								debug && console.log(`is bottom end - idxC2: ${idxC2}, idxP2: ${idxP2}`);
+								debug && console.log(verticalBottomLeft);
+								debug && console.log(verticalBottomRight);
 								if (
 									// and 横's (horizontal's) right end inside 竖 (vertical)
 									// isBetween(verticalBottomLeft.x, horizontalBottomRight.x, verticalBottomRight.x) &&
@@ -721,6 +731,7 @@ function extendShortStroke(font, references) {
 									// break;
 								}
 							}
+							
 							// find 横's (horizontal's) right end inside ㇇'s (horizontal + left-falling)
 							if (
 								contour2.length > 10 &&
@@ -1024,7 +1035,7 @@ function extendShortStroke(font, references) {
 					const horizontalTopRight = circularArray(contour, idxP1 - 1);
 					const horizontalStrokeLight = originLight(horizontalTopLeft.y) - originLight(horizontalBottomLeft.y);
 					const horizontalStrokeHeavy = originHeavy(horizontalTopLeft.y) - originHeavy(horizontalBottomLeft.y);
-
+					debug && console.log(`is left end - idxC1: ${idxC1}, idxP1: ${idxP1}`);
 					for (const [idxC2, contour2] of oldContours.entries()) {
 						// find possible 竖s (verticals)
 						if (contour2 == contour || contour2.length < 4) continue;
@@ -1081,13 +1092,17 @@ function extendShortStroke(font, references) {
 								approxEq(circularArray(contour2, idxP2 + 1).x, circularArray(contour2, idxP2 + 2).x, 450)
 							) {
 								const verticalBottomLeft = contour2[idxP2];
-								const verticalBottomRight = circularArray(contour2, idxP2 + 1);
+								const verticalBottomRight = circularArray(contour2, nextNode(contour2, idxP2));
 								// const verticalTopRight = nextNode(contour2, idxP2 + 1);
 								// const verticalTopLeft = previousNode(contour2, idxP2);
-								const verticalTopRight = circularArray(contour2, idxP2 + 2);
-								const verticalTopLeft = circularArray(contour2, idxP2 - 1);
+
+								const verticalTopRight = circularArray(contour2, findTopRightCorner(contour2)) || circularArray(contour2, idxP2 + 2);
+								const verticalTopLeft = circularArray(contour2, findTopLeftCorner(contour2)) || circularArray(contour2, previousNode(contour2, idxP2));
+								// const verticalTopRight = circularArray(contour2, idxP2 + 2);
+								// const verticalTopLeft = circularArray(contour2, idxP2 - 1);
 								const verticalLeftSlopeLight = verticalSlope(lineLight(verticalBottomLeft, verticalTopLeft));
 								const verticalLeftSlopeHeavy = verticalSlope(lineHeavy(verticalBottomLeft, verticalTopLeft));
+								debug && console.log(`is lefts bottom end - idxC2: ${idxC2}, idxP2: ${idxP2}`);
 								if (
 									// and 横's (horizontal's) left end inside 竖 (vertical)
 									isBetween(verticalBottomLeft.x, horizontalBottomLeft.x, verticalBottomRight.x) &&
@@ -1293,7 +1308,7 @@ function extendShortStroke(font, references) {
 	for (const glyph of font.glyphs.items) {
 		const name = glyph.name;
 		// console.log(name);
-		if (["uni1EA2"].includes(name)) {
+		if (["uni31E1"].includes(name)) {
 			debug = true;
 			console.log(" ");
 			console.log(name);
