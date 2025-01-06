@@ -65,16 +65,16 @@ function ProgressBar(fmt, options) {
     incomplete : options.incomplete || '-',
     head       : options.head || (options.complete || '='),
     // spinner    : options.spinner || ['󰪞', '󰪟', '󰪠', '󰪡', '󰪢', '󰪣', '󰪤', '󰪥']
-    spinner    : options.spinner || ['', '', '', '', '', '']
+    // spinner    : options.spinner || ['', '', '', '', '', '']
     // spinner    : options.spinner || ['󱑋','󱑌','󱑍','󱑎','󱑏','󱑐','󱑑','󱑒','󱑓','󱑔','󱑕','󱑖']
     // spinner    : options.spinner || ['','','','','','','','','','','','','','','','','','','','','','','','','','','','']
     // spinner    : options.spinner || ['◜','◠','◝','◞','◡','◟']
     // spinner    : options.spinner || ['⋮','⋰','⋯','⋱']
-    // spinner    : options.spinner || ['⢎ ','⠎⠁','⠊⠑','⠈⠱',' ⡱','⢀⡰','⢄⡠','⢆⡀']
-    // spinner    : options.spinner || ['⢎ ','⠎⠁','⠊⠑','⠈⠱',' ⡱','⢀⡰','⢄⡠','⢆⡀']
+    spinner    : options.spinner || ['⢎ ','⠎⠁','⠊⠑','⠈⠱',' ⡱','⢀⡰','⢄⡠','⢆⡀']
+
     // spinner    : options.spinner || ['⢀ ','⢄ ','⢆ ','⢎ ','⠎⠁','⠊⠑','⠈⠱',' ⡱','⢀⡰','⢄⡠','⢆⡀','⢎ ','⠎⠁','⠊⠑','⠈⠱',' ⡱',' ⡰',' ⡠',' ⡀','  ']
     // spinner    : options.spinner || ['⢀⠀','⡀⠀','⠄⠀','⢂⠀','⡂⠀','⠅⠀','⢃⠀','⡃⠀','⠍⠀','⢋⠀','⡋⠀','⠍⠁','⢋⠁','⡋⠁','⠍⠉','⠋⠉','⠋⠉','⠉⠙','⠉⠙','⠉⠩','⠈⢙','⠈⡙','⢈⠩','⡀⢙','⠄⡙','⢂⠩','⡂⢘','⠅⡘','⢃⠨','⡃⢐','⠍⡐','⢋⠠','⡋⢀','⠍⡁','⢋⠁','⡋⠁','⠍⠉','⠋⠉','⠋⠉','⠉⠙','⠉⠙','⠉⠩','⠈⢙','⠈⡙','⠈⠩','⠀⢙','⠀⡙','⠀⠩','⠀⢘','⠀⡘','⠀⠨','⠀⢐','⠀⡐','⠀⠠','⠀⢀','⠀⡀']
-  };
+};
   this.renderThrottle = options.renderThrottle !== 0 ? (options.renderThrottle || 16) : 0;
   this.spinnerThrottle = options.spinnerThrottle !== 0 ? (options.spinnerThrottle || 64) : 0;
   this.lastRender = -Infinity;
@@ -119,7 +119,7 @@ function timeFormat(duration) {
 	ret += "" + mins + ":" + (secs < 10 ? "0" : "");
 	ret += "" + secs;
 
-	return ret;
+	return Array(Math.max(0, 8 - ret.length)).join(' ') + ret;
  }
 
 /**

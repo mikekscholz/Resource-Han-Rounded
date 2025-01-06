@@ -10,11 +10,7 @@ const params = {
 	strokeWidth: { light: 35, heavy: 175 },
 };
 let debug = false;
-// function circularArray(arr, idxP1) {
-// 	const quotient = Math.floor(idxP1 / arr.length);
-// 	const remainder = idxP1 - quotient * arr.length;
-// 	return arr[remainder];
-// }
+
 function circularArray(array, index) {
 	let length = array && array.length;
 	var idx = abs(length + index % length) % length;
@@ -56,6 +52,10 @@ function bearing(line) {
 	return (Math.atan2((p1.x - p2.x), (p1.y - p2.y)) + Math.PI) * 360 / (2 * Math.PI);
 }
 
+function turn(b1, b2) {
+	let delta = b2 - b1;
+	return delta > 180 ? delta - 360 : delta;
+}
 // some 横s of 横折s in SHS is shorter than expected.
 // extend to align them.
 // ─────┬──┬──┐
@@ -331,13 +331,15 @@ function extendShortStroke(font, references) {
 	// }
 	
 	
-	function previousNode(contour, idx) {
-
-		let currentXL = originLight(circularArray(contour, idx).x);
-		let currentYL = originLight(circularArray(contour, idx).y);
+	function previousNode(contour, idx, corner = false) {
+		let current = circularArray(contour, idx);
+		let currentXL = originLight(current.x);
+		let currentYL = originLight(current.y);
 		for (let i = 1; i < contour.length; i++) {
-			let prevXL = originLight(circularArray(contour, idx - i).x);
-			let prevYL = originLight(circularArray(contour, idx - i).y);
+			let previous = circularArray(contour, idx - i);
+			if (corner && previous.kind !== 0) continue;
+			let prevXL = originLight(previous.x);
+			let prevYL = originLight(previous.y);
 			if (currentXL !== prevXL || currentYL !== prevYL) {
 				return circularIndex(contour, idx - i);
 			}
@@ -361,12 +363,15 @@ function extendShortStroke(font, references) {
 		}
 		return  circularIndex(contour, idx - 1);
 	}
-	function nextNode(contour, idx) {
-		let currentXL = originLight(circularArray(contour, idx).x);
-		let currentYL = originLight(circularArray(contour, idx).y);
+	function nextNode(contour, idx, corner = false) {
+		let current = circularArray(contour, idx);
+		let currentXL = originLight(current.x);
+		let currentYL = originLight(current.y);
 		for (let i = 1; i < contour.length; i++) {
-			let nextXL = originLight(circularArray(contour, idx + i).x);
-			let nextYL = originLight(circularArray(contour, idx + i).y);
+			let next = circularArray(contour, idx + i);
+			if (corner && next.kind !== 0) continue;
+			let nextXL = originLight(next.x);
+			let nextYL = originLight(next.y);
 			if (currentXL !== nextXL || currentYL !== nextYL) {
 				return circularIndex(contour, idx + i);
 			}
@@ -399,22 +404,23 @@ function extendShortStroke(font, references) {
 			let dir1 = angle(lineLight(prev, curr));
 			let dir2 = angle(lineLight(curr, next));
 			let bear2 = bearing(lineLight(curr, next));
-			let rotation = abs(dir1 - dir2);
-			if (rotation >= 68 && rotation <= 112 && ((bear2 > 315 || bear2 < 45) || (bear1 < 135 || bear1 > 225))) return circularIndex(contour, start + i);
+			// let rotation = abs(dir1 - dir2);
+			let rotation = turn(bear1, bear2);
+			if ((rotation <= -68 && rotation >= -112) || (rotation <= 95 && rotation >= 85)) return circularIndex(contour, start + i);
 		}
 	}
 	function findBottomRightCornerR(contour, start = 0) {
 		for (let i = 0; i < contour.length; i++) {
-			let curr = circularArray(contour, start + i);
+			let curr = circularArray(contour, start - i);
 			if (curr.kind !== 0) continue;
-			let prev = contour[previousNode(contour, start + i)];
-			let next = contour[nextNode(contour, start + i)];
-			let bear1 = bearing(lineLight(prev, curr));
-			if (bear1 < 45 || bear1 > 135) continue;
+			let prev = contour[previousNode(contour, start - i)];
+			let next = contour[nextNode(contour, start - i)];
+			let bear1 = bearing(lineLight(next, curr));
+			if (bear1 < 135 || bear1 > 225) continue;
 			let dir1 = angle(lineLight(prev, curr));
 			let dir2 = angle(lineLight(curr, next));
-			let bear2 = bearing(lineLight(curr, next));
-			let rotation = abs(dir1 - dir2);
+			let bear2 = bearing(lineLight(curr, prev));
+			let rotation = turn(bear1, bear2);
 			if (rotation >= 80 && rotation <= 112 && (bear2 > 315 || bear2 < 45)) return circularIndex(contour, start + i);
 		}
 	}

@@ -1145,10 +1145,10 @@ function correctGlyphs(font, references) {
 
 			// fix л
 			if (glyph.name == "uni043B") {
-				newContour[20] = {
+				newContour[16] = {
 					x: makeVariance(15, 6),
-					y: makeVariance(originLight(contour[20].y), originHeavy(contour[20].y)),
-					kind: contour[20].kind,
+					y: makeVariance(originLight(contour[16].y), originHeavy(contour[16].y)),
+					kind: contour[16].kind,
 				};
 			}
 			

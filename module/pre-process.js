@@ -29,8 +29,28 @@ function circularIndex(length, index) {
 	return isNaN(idx) ? index : idx;
 }
 
-function abs(num) {
-	return num >= 0 ? num : -num;
+// function abs(num) {
+// 	return num >= 0 ? num : -num;
+// }
+
+function horizontalSlope(line) {
+	let { p1, p2 } = line;
+	return (p2.y - p1.y) / (p2.x - p1.x);
+}
+
+function verticalSlope(line) {
+	let { p1, p2 } = line;
+	return (p2.x - p1.x) / (p2.y - p1.y);
+}
+
+function bearing(line) {
+	let { p1, p2 } = line;
+	return (Math.atan2((p1.x - p2.x), (p1.y - p2.y)) + Math.PI) * 360 / (2 * Math.PI);
+}
+
+function turn(b1, b2) {
+	let delta = b2 - b1;
+	return delta > 180 ? delta - 360 : delta;
 }
 
 function preProcess(font, references) {
@@ -50,11 +70,19 @@ function preProcess(font, references) {
 		return Ot.Var.Ops.evaluate(point, instanceShsWghtMax);
 	}
 	
+	function lineLight(p1, p2) {
+		return {p1: {x: originLight(p1.x), y: originLight(p1.y)},p2: {x: originLight(p2.x), y: originLight(p2.y)}};
+	}
+	
+	function lineHeavy(p1, p2) {
+		return {p1: {x: originHeavy(p1.x), y: originHeavy(p1.y)},p2: {x: originHeavy(p2.x), y: originHeavy(p2.y)}};
+	}
+	
 	function approxEq(a, b, threshold = 5) {
 		if (typeof a == 'number' && typeof b == 'number')
-			return abs(a - b) <= threshold;
-		return abs(originLight(a) - originLight(b)) <= threshold &&
-			abs(originHeavy(a) - originHeavy(b)) <= threshold;
+			return Math.abs(a - b) <= threshold;
+		return Math.abs(originLight(a) - originLight(b)) <= threshold &&
+			Math.abs(originHeavy(a) - originHeavy(b)) <= threshold;
 	}
 
 	function isBetween(a, x, b) {
@@ -89,7 +117,7 @@ function preProcess(font, references) {
 					circularArray(contour, idx).kind === 0 &&
 					circularArray(contour, idx - 1).kind === 0 &&
 					circularArray(contour, idx - 2).kind === 0 &&
-					abs(originLight(circularArray(contour, idx).x) - originLight(circularArray(contour, idx - 1).x)) <= 1 &&
+					Math.abs(originLight(circularArray(contour, idx).x) - originLight(circularArray(contour, idx - 1).x)) <= 1 &&
 					originLight(circularArray(contour, idx - 1).x) < originLight(circularArray(contour, idx - 2).x) &&
 					originLight(circularArray(contour, idx).y) < originLight(circularArray(contour, idx - 1).y) &&
 					originLight(circularArray(contour, idx - 1).y) < originLight(circularArray(contour, idx - 2).y)
@@ -100,14 +128,11 @@ function preProcess(font, references) {
 						for (let idx2 = 0; idx2 < contour2.length; idx2++) {
 							if (
 								originLight(contour[idx].x) === originLight(contour2[idx2].x) &&
-								abs(originLight(contour[idx].y) - originLight(contour2[idx2].y)) <= 1
-								// originLight(circularArray(contour, idx - 1).x) !== originLight(circularArray(contour2, idx2 - 1).x) ||
-								// originLight(circularArray(contour, idx - 1).y) !== originLight(circularArray(contour2, idx2 - 1).y)
+								Math.abs(originLight(contour[idx].y) - originLight(contour2[idx2].y)) <= 1
 							) {
-								// console.log(glyph.name, idx, idx2);
-								let targetPoint = circularArray(contour2, idx2 - 2).kind === 0 ? circularArray(contour2, idx2 - 2) :
-													circularArray(contour2, idx2 - 3).kind === 0 ? circularArray(contour2, idx2 - 3) :
-														circularArray(contour2, idx2 - 4).kind === 0 ? circularArray(contour2, idx2 - 4) : circularArray(contour, idx - 1);
+								let targetPoint = circularArray(contour2, idx2 - 2).kind === 0 ? circularArray(contour2, idx2 - 2) : circularArray(contour2, idx2 - 3).kind === 0 ? circularArray(contour2, idx2 - 3) :
+								circularArray(contour2, idx2 - 4).kind === 0 ? circularArray(contour2, idx2 - 4) : 
+								circularArray(contour, idx - 1);
 													
 								newContour[circularIndex(contour.length, idx - 1)] = {
 									x: targetPoint.x,
@@ -120,6 +145,68 @@ function preProcess(font, references) {
 						}
 						if (matched) break;
 					}
+				}
+			}
+			let redundantPoints = [];
+			for (let idx = 0; idx < contour.length; idx++) {
+				let pushed = 0;
+				let vert = false;
+				let p1 = circularArray(contour, idx);
+				let p2 = circularArray(contour, idx + 1);
+				let p3 = circularArray(contour, idx + 2);
+				let p4 = circularArray(contour, idx + 3);
+				if (p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0) {
+					let sB = horizontalSlope(lineLight(p1, p4));
+					let c1B = horizontalSlope(lineLight(p1, p2)) || sB;
+					let ccB = horizontalSlope(lineLight(p2, p3));
+					let c2B = horizontalSlope(lineLight(p3, p4)) || sB;
+					for (let n of [sB, c1B, c2B]) {
+						if (n > 1 || n < -1) {
+							vert = true;
+							sB = verticalSlope(lineLight(p1, p4));
+							c1B = verticalSlope(lineLight(p1, p2)) || sB;
+							ccB = verticalSlope(lineLight(p2, p3));
+							c2B = verticalSlope(lineLight(p3, p4)) || sB;
+							break;
+						}
+					}
+					let d1 = Math.abs(sB - c1B);
+					let d2 = Math.abs(sB - c2B);
+					let d3 = Math.abs(sB - ccB);
+					if ((d1 < 0.04 && d2 < 0.06 && d3 < 0.04) || (d1 < 0.08 && d2 < 0.05 && d3 < 0.06)) {
+						if (!redundantPoints.includes(idx + 1)) redundantPoints.push(idx + 1);
+						if (!redundantPoints.includes(idx + 2)) redundantPoints.push(idx + 2);
+						// pushed += 2;
+						let p5 = circularArray(contour, idx + 4);
+						let p6 = circularArray(contour, idx + 5);
+						let p7 = circularArray(contour, idx + 6);
+						if (p5.kind === 1 && p6.kind === 2 && p7.kind === 0) {
+							let s2B = horizontalSlope(lineLight(p4, p7));
+							let c3B = horizontalSlope(lineLight(p4, p5)) || s2B;
+							let c4B = horizontalSlope(lineLight(p6, p7)) || s2B;
+							if (vert) {
+								s2B = verticalSlope(lineLight(p4, p7));
+								c3B = verticalSlope(lineLight(p4, p5)) || s2B;
+								c4B = verticalSlope(lineLight(p6, p7)) || s2B;
+							}
+							let d4 = Math.abs(sB - s2B);
+							if (d4 < 0.1) {
+								if (!redundantPoints.includes(idx + 3)) redundantPoints.push(idx + 3);
+								// pushed += 1;
+							}
+						}
+					}
+				}
+				// idx += pushed;
+			}
+			if (redundantPoints.length > 0) {
+				if (glyph.name === 'uni30ED') {
+					console.log('redundantPoints: ' + glyph.name);
+					console.log(redundantPoints);
+				}
+				redundantPoints.reverse();
+				for (const i of redundantPoints) {
+					newContour.splice(i, 1);
 				}
 			}
 			glyph.geometry.contours.push(newContour);

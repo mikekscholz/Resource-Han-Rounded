@@ -20,12 +20,12 @@
               stroke-linejoin: round;
           }
           .e {
-              stroke: #fff;
+              stroke: #000;
               stroke-linecap: round;
               stroke-linejoin: round;
           }
           .f {
-              fill: #fff;
+              fill: #000;
           }
           .h {
               display: none;
@@ -91,7 +91,7 @@
      d="m 413.52518,420 h 12.94964 M 420,413.52518 v 12.94964"
      class="c e f"
      id="path6" />
-  <g
+  <g class=""
      transform="matrix(0.71942446,0,0,0.71942446,420,420)"
      id="g53">
     <g
@@ -336,11 +336,11 @@
       </g>
     </g>
   </g>
-  <g
-     transform="matrix(0.71242307,0.10012453,-0.10012453,0.71242307,420.04605,419.84225)"
+  <g class=""
+     transform="translate(420,420) scale(0.73)"
      id="g62">
     <g
-       transform="rotate(-8)"
+       transform="rotate(0)"
        id="g61">
       <use
          href="#r"
@@ -444,4 +444,40 @@
          id="use61" />
     </g>
   </g>
+  <circle cx="50%" cy="50%" r="50%" fill="#00000001" id="target"/>
+   <script>
+    // <![CDATA[
+function Init() {
+var qDivElement = document.getElementById("target");
+  // The mouse move event handler
+  qDivElement.onmousemove = function(e) {
+    //this.SetCursorCoordinates(e);
+    var bBox = this.getBBox();
+    var dCenterX = (bBox.width)/2 + this.parentElement.scrollLeft;
+    var dCenterY = (bBox.height)/2 + this.parentElement.scrollTop;
+    var dDeltaX = (e.pageX - dCenterX) + qDivElement.scrollLeft;
+    var dDeltaY = - (e.pageY - dCenterY) + qDivElement.scrollTop;
+    qGroupElement = document.getElementById("g61");
+    var dAngle = Math.atan2(dDeltaX, dDeltaY) * (180 / Math.PI);
+    qGroupElement.setAttribute('transform', 'rotate('+dAngle+')');
+   console.log(dCenterX, dCenterY, e.pageX, e.pageY)
+  };
+  // A function to calculate the coordinates of the cursor in the
+  qDivElement.SetCursorCoordinates = function(e) {
+    var dElementOffsetX = 0;
+    var dElementOffsetY = 0;
+    var qElement = this;
+    do{
+      dElementOffsetX += qElement.offsetLeft - qElement.scrollLeft;
+      dElementOffsetY += qElement.offsetTop - qElement.scrollTop;
+      qElement = qElement.offsetParent
+    } while(qElement != document.body)
+    this.mdCursorX = e.pageX - dElementOffsetX;
+    this.mdCursorY = e.pageY - dElementOffsetY;
+  }
+}
+var qGroupElement = null;
+window.onload = Init;
+    // ]]>
+  </script>
 </svg>

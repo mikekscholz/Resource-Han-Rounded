@@ -34,7 +34,7 @@ preProcess(font, references);
 extendShortStroke(font, references);
 correctGlyphs(font, references);
 // console.log(JSON.stringify(references));
-roundFont(font, references);
+// roundFont(font, references);
 // postProcess(font, references);
 console.log('\u001b[38;5;82mCompiling OpenType font file.\u001b[0m This may take several minutes.');
 buildVFMetaData(font, param);
