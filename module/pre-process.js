@@ -2,6 +2,7 @@
 
 const { Ot } = require("ot-builder");
 const ProgressBar = require('./node-progress');
+const { base60, bearing, horizontalSlope, roundTo, turn, verticalSlope } = require("./util");
 const path = require("path");
 const fsp = require("fs/promises");
 const writeFile = async(filename, data, increment = 0) => {
@@ -32,26 +33,6 @@ function circularIndex(length, index) {
 // function abs(num) {
 // 	return num >= 0 ? num : -num;
 // }
-
-function horizontalSlope(line) {
-	let { p1, p2 } = line;
-	return (p2.y - p1.y) / (p2.x - p1.x);
-}
-
-function verticalSlope(line) {
-	let { p1, p2 } = line;
-	return (p2.x - p1.x) / (p2.y - p1.y);
-}
-
-function bearing(line) {
-	let { p1, p2 } = line;
-	return (Math.atan2((p1.x - p2.x), (p1.y - p2.y)) + Math.PI) * 360 / (2 * Math.PI);
-}
-
-function turn(b1, b2) {
-	let delta = b2 - b1;
-	return delta > 180 ? delta - 360 : delta;
-}
 
 function preProcess(font, references) {
 	const dimWght = font.fvar.axes[0].dim;

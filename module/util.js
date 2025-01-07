@@ -3,6 +3,32 @@ function roundTo(x, precision) {
 	return Math.round(x * precision) / precision;
 }
 
+function bearing(line) {
+	let { p1, p2 } = line;
+	return (Math.atan2((p1.x - p2.x), (p1.y - p2.y)) + Math.PI) * 360 / (2 * Math.PI);
+}
+
+function turn(b1, b2) {
+	let delta = b2 - b1;
+	return delta > 180 ? delta - 360 : delta;
+}
+
+function base60(num) {
+	return abs(360 + num % 360) % 360;
+}
+
+function horizontalSlope(line) {
+	let { p1, p2 } = line;
+	return (p2.y - p1.y) / (p2.x - p1.x);
+}
+
+function verticalSlope(line) {
+	let { p1, p2 } = line;
+	return (p2.x - p1.x) / (p2.y - p1.y);
+}
+
+
+
 module.exports = {
-	roundTo,
+	base60, bearing, horizontalSlope, roundTo, turn, verticalSlope
 };

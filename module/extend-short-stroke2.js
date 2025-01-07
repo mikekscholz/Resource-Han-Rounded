@@ -2,7 +2,9 @@
 
 const { Ot } = require("ot-builder");
 const ProgressBar = require('./node-progress');
+const { base60, bearing, horizontalSlope, roundTo, turn, verticalSlope } = require("./util");
 const { abs, ceil, floor, pow, round, sqrt, trunc } = Math;
+
 // const { System } = require("detect-collisions");
 // const system = new System();
 // based on measurement of SHS
@@ -23,19 +25,7 @@ function circularIndex(array, index) {
 	return isNaN(idx) ? index : idx;
 }
 
-function base60(num) {
-	return abs(360 + num % 360) % 360;
-}
 
-function horizontalSlope(line) {
-	let { p1, p2 } = line;
-	return (p2.y - p1.y) / (p2.x - p1.x);
-}
-
-function verticalSlope(line) {
-	let { p1, p2 } = line;
-	return (p2.x - p1.x) / (p2.y - p1.y);
-}
 
 
 function angle(line) {
@@ -47,15 +37,7 @@ function angle(line) {
 	return deg;
 }
 
-function bearing(line) {
-	let { p1, p2 } = line;
-	return (Math.atan2((p1.x - p2.x), (p1.y - p2.y)) + Math.PI) * 360 / (2 * Math.PI);
-}
 
-function turn(b1, b2) {
-	let delta = b2 - b1;
-	return delta > 180 ? delta - 360 : delta;
-}
 // some 横s of 横折s in SHS is shorter than expected.
 // extend to align them.
 // ─────┬──┬──┐
