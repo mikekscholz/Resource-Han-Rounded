@@ -8,9 +8,14 @@ function bearing(line) {
 	return (Math.atan2((p1.x - p2.x), (p1.y - p2.y)) + Math.PI) * 360 / (2 * Math.PI);
 }
 
-function turn(b1, b2) {
-	let delta = b2 - b1;
-	return delta > 180 ? delta - 360 : delta;
+function turn(bearing1, bearing2) {
+	let delta = bearing2 - bearing1;
+	if (delta < -180) {
+			delta += 360;
+	} else if (delta > 180) {
+			delta -= 360;
+	}
+	return delta;
 }
 
 function base60(num) {
