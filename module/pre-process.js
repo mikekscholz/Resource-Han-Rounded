@@ -3,6 +3,8 @@
 const { Ot } = require("ot-builder");
 const ProgressBar = require('./node-progress');
 const { base60, bearing, horizontalSlope, roundTo, turn, verticalSlope } = require("./util");
+const { abs, ceil, floor, pow, round, sqrt, trunc } = Math;
+
 const path = require("path");
 const fsp = require("fs/promises");
 const writeFile = async(filename, data, increment = 0) => {
@@ -59,6 +61,26 @@ function preProcess(font, references) {
 		return {p1: {x: originHeavy(p1.x), y: originHeavy(p1.y)},p2: {x: originHeavy(p2.x), y: originHeavy(p2.y)}};
 	}
 	
+	function distanceLight(p1, p2) {
+		let x1l = originLight(p1.x);
+		let x2l = originLight(p2.x);
+		let y1l = originLight(p1.y);
+		let y2l = originLight(p2.y);
+		let xdl = abs(x2l - x1l);
+		let ydl = abs(y2l - y1l);
+		return sqrt(pow(xdl, 2) + pow(ydl, 2));
+	}
+	
+	function distanceHeavy(p1, p2) {
+		let x1h = originHeavy(p1.x);
+		let x2h = originHeavy(p2.x);
+		let y1h = originHeavy(p1.y);
+		let y2h = originHeavy(p2.y);
+		let xdh = abs(x2h - x1h);
+		let ydh = abs(y2h - y1h);
+		return sqrt(pow(xdh, 2) + pow(ydh, 2));
+	}
+
 	function approxEq(a, b, threshold = 5) {
 		if (typeof a == 'number' && typeof b == 'number')
 			return Math.abs(a - b) <= threshold;
@@ -172,9 +194,12 @@ function preProcess(font, references) {
 			}
 			let redundantPoints = [];
 			for (let idx = 0; idx < corners.length - 1; idx++) {
-				let curr = corners[idx];
-				let next = corners[idx + 1];
-				let btw = (next - curr) - 1;
+				let corner1 = corners[idx];
+				let corner2 = circularArray(corners, idx + 1);
+				let mpts = (corner2 - corner1) - 1;
+				if (mpts > 2) {
+					
+				}
 			}
 
 			// for (let idx = 0; idx < contour.length; idx++) {
