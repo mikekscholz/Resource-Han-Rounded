@@ -256,17 +256,10 @@ function extendShortStroke(font, references) {
 	//                          1 ○   
 	//                        0 ○     
 	//                        ●       
-	function canBeLeftFalling4(rightC2, topRight, topRightC1, topRightC2, farRight, topPeak, topLeft, flatLeft, leftC1) {
-		return rightC2.kind == 2 && topRight.kind == 0 && topRightC1.kind == 1 && topRightC2.kind == 2 &&
-		farRight.kind == 0 && topPeak.kind == 0 && topLeft.kind == 0 && flatLeft.kind == 0 && leftC1.kind == 1 &&
-		originLight(rightC2.x) < originLight(topRight.x) &&
-		originLight(rightC2.y) < originLight(topRight.y) &&
-		originLight(topRight.x) < originLight(topRightC1.x) &&
-		originLight(topRight.y) <= originLight(topRightC1.y) &&
-		originLight(topRightC1.x) < originLight(topRightC2.x) &&
-		originLight(topRightC1.y) < originLight(topRightC2.y) &&
-		originLight(topRightC2.x) < originLight(farRight.x) &&
-		originLight(topRightC2.y) < originLight(farRight.y) &&
+	function canBeLeftFalling4(rightC2, farRight, topPeak, topLeft, flatLeft, leftC1) {
+		return rightC2.kind == 2 && farRight.kind == 0 && topPeak.kind == 0 && topLeft.kind == 0 && flatLeft.kind == 0 && leftC1.kind == 1 &&
+		originLight(rightC2.x) < originLight(farRight.x) &&
+		originLight(rightC2.y) < originLight(farRight.y) &&
 		originLight(farRight.x) > originLight(topPeak.x) &&
 		originLight(farRight.y) < originLight(topPeak.y) &&
 		originLight(topPeak.x) > originLight(topLeft.x) &&
@@ -276,6 +269,26 @@ function extendShortStroke(font, references) {
 		originLight(flatLeft.x) > originLight(leftC1.x) &&
 		originLight(flatLeft.y) > originLight(leftC1.y)
 	}
+	// function canBeLeftFalling4(rightC2, topRight, topRightC1, topRightC2, farRight, topPeak, topLeft, flatLeft, leftC1) {
+	// 	return rightC2.kind == 2 && topRight.kind == 0 && topRightC1.kind == 1 && topRightC2.kind == 2 &&
+	// 	farRight.kind == 0 && topPeak.kind == 0 && topLeft.kind == 0 && flatLeft.kind == 0 && leftC1.kind == 1 &&
+	// 	originLight(rightC2.x) < originLight(topRight.x) &&
+	// 	originLight(rightC2.y) < originLight(topRight.y) &&
+	// 	originLight(topRight.x) < originLight(topRightC1.x) &&
+	// 	originLight(topRight.y) <= originLight(topRightC1.y) &&
+	// 	originLight(topRightC1.x) < originLight(topRightC2.x) &&
+	// 	originLight(topRightC1.y) < originLight(topRightC2.y) &&
+	// 	originLight(topRightC2.x) < originLight(farRight.x) &&
+	// 	originLight(topRightC2.y) < originLight(farRight.y) &&
+	// 	originLight(farRight.x) > originLight(topPeak.x) &&
+	// 	originLight(farRight.y) < originLight(topPeak.y) &&
+	// 	originLight(topPeak.x) > originLight(topLeft.x) &&
+	// 	originLight(topPeak.y) > originLight(topLeft.y) &&
+	// 	originLight(topLeft.x) > originLight(flatLeft.x) &&
+	// 	abs(originLight(topLeft.y) - originLight(flatLeft.y)) < 3 &&
+	// 	originLight(flatLeft.x) > originLight(leftC1.x) &&
+	// 	originLight(flatLeft.y) > originLight(leftC1.y)
+	// }
 
 	function isBetween(a, x, b) {
 		return (originLight(a) - 2) <= originLight(x) &&
@@ -830,7 +843,7 @@ function extendShortStroke(font, references) {
 							}
 							if (
 								contour2.length > 10 &&
-								canBeLeftFalling4(circularArray(contour2, idxP2 - 4), circularArray(contour2, idxP2 - 3), circularArray(contour2, idxP2 - 2), circularArray(contour2, idxP2 - 1), contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4)) &&
+								canBeLeftFalling4(circularArray(contour2, idxP2 - 1), contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4)) &&
 								abs(originLight(horizontalTopRight.y) - originLight(circularArray(contour2, idxP2 + 3).y)) <= 15 &&
 								abs(originLight(horizontalTopRight.x) - originLight(circularArray(contour2, idxP2 + 3).x)) <= 30 &&
 								originLight(circularArray(contour2, idxP2).x) > originLight(horizontalTopRight.x)
@@ -1296,13 +1309,13 @@ function extendShortStroke(font, references) {
 	for (const glyph of font.glyphs.items) {
 		const name = glyph.name;
 		// console.log(name);
-		if (["uni31E1"].includes(name)) {
-			debug = true;
-			console.log(" ");
-			console.log(name);
-		} else {
-			debug = false;
-		}
+		// if (["uni31E1"].includes(name)) {
+		// 	debug = true;
+		// 	console.log(" ");
+		// 	console.log(name);
+		// } else {
+		// 	debug = false;
+		// }
 		if (!references.extendSkip.includes(name)) checkSingleGlyph(glyph);
 		progressTick();
 		// count++;

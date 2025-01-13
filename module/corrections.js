@@ -1145,10 +1145,10 @@ function correctGlyphs(font, references) {
 
 			// fix л
 			if (glyph.name == "uni043B") {
-				newContour[16] = {
+				newContour[20] = {
 					x: makeVariance(15, 6),
-					y: makeVariance(originLight(contour[16].y), originHeavy(contour[16].y)),
-					kind: contour[16].kind,
+					y: makeVariance(originLight(contour[20].y), originHeavy(contour[20].y)),
+					kind: contour[20].kind,
 				};
 			}
 			
@@ -1258,6 +1258,11 @@ function correctGlyphs(font, references) {
 				newContour.reverseContour();
 			}
 
+			// // fix ⓫⓬⓭⓮⓯⓰⓱⓲⓳⓴
+			// if (["uni24EB","uni24EC","uni24ED","uni24EE","uni24EF","uni24F0","uni24F1","uni24F2","uni24F3","uni24F4"].includes(glyph.name)) {
+			// 	newContour.reverseContour();
+			// }
+			
 			// fix ➡ ⬅ ⬆ ⬇
 			if (["uni27A1","uni2B05","uni2B06","uni2B07"].includes(glyph.name)) {
 				newContour.splice(7, 1);

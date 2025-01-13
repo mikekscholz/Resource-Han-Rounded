@@ -27,8 +27,9 @@ function circularArray(array, index) {
 	return array[isNaN(idx) ? index : idx];
 }
 
-function circularIndex(length, index) {
-	var idx = Math.abs(length + index % length) % length;
+function circularIndex(array, index) {
+	var length = array && array.length;
+	var idx = abs(length + index % length) % length;
 	return isNaN(idx) ? index : idx;
 }
 
@@ -133,7 +134,7 @@ function preProcess(font, references) {
 	function checkSingleGlyph(glyph) {
 		if (!glyph.geometry || !glyph.geometry.contours)
 			return;
-
+		if (glyph.name === "period") console.log(JSON.stringify(glyph))
 		let oldContours = glyph.geometry.contours;
 		
 		glyph.geometry.contours = [];
@@ -168,7 +169,7 @@ function preProcess(font, references) {
 								circularArray(contour2, idx2 - 4).kind === 0 ? circularArray(contour2, idx2 - 4) : 
 								circularArray(contour, idx - 1);
 													
-								newContour[circularIndex(contour.length, idx - 1)] = {
+								newContour[circularIndex(contour, idx - 1)] = {
 									x: targetPoint.x,
 									y: targetPoint.y,
 									kind: targetPoint.kind,
@@ -182,6 +183,8 @@ function preProcess(font, references) {
 				}
 			}
 			let corners = [];
+			let redundantPoints = [];
+			let maxSlope = 0.1;
 			for (let i = 0; i < contour.length; i++) {
 				let curr = contour[i];
 				if (curr.kind !== 0) continue;
@@ -190,73 +193,75 @@ function preProcess(font, references) {
 				let bear1 = bearing(lineLight(prev, curr));
 				let bear2 = bearing(lineLight(curr, next));
 				let rotation = Math.abs(turn(bear1, bear2));
-				if (rotation >= 68 && rotation <= 112 && !corners.includes(i)) corners.push(i);
+				if (rotation >= 20 && rotation <= 150 && !corners.includes(i)) corners.push(i);
 			}
-			let redundantPoints = [];
-			for (let idx = 0; idx < corners.length - 1; idx++) {
-				let corner1 = corners[idx];
-				let corner2 = circularArray(corners, idx + 1);
-				let mpts = (corner2 - corner1) - 1;
-				if (mpts > 2) {
-					
+			for (let cIdx = 0; cIdx < corners.length; cIdx++) {
+				let vert = false;
+				let startIdx = corners[cIdx];
+				let endIdx = circularArray(corners, cIdx + 1);
+				let startPoint = circularArray(contour, startIdx);
+				let endPoint = circularArray(contour, endIdx);
+				let mainSlope = horizontalSlope(lineLight(startPoint, endPoint));
+				if (abs(mainSlope) > 1) {
+					mainSlope = verticalSlope(lineLight(startPoint, endPoint));
+					vert = true;
+				}
+				let innerPoints = (endIdx - startIdx) - 1;
+				if (innerPoints > 3 && innerPoints < 10) {
+					for (let idx = startIdx + 1; idx < endIdx - 1; idx++) {
+						let p1Idx = circularIndex(contour, idx);
+						let p2Idx = circularIndex(contour, idx + 1);
+						let p3Idx = circularIndex(contour, idx + 2);
+						let p4Idx = circularIndex(contour, idx + 3);
+						let p1 = contour[p1Idx];
+						let p2 = contour[p2Idx];
+						let p3 = contour[p3Idx];
+						let p4 = contour[p4Idx];
+						let s1a = (vert ? verticalSlope(lineLight(startPoint, p1)) : horizontalSlope(lineLight(startPoint, p1))) || mainSlope;
+						let s1b = (vert ? verticalSlope(lineLight(p1, endPoint)) : horizontalSlope(lineLight(p1, endPoint))) || mainSlope;
+						let s2a = (vert ? verticalSlope(lineLight(startPoint, p2)) : horizontalSlope(lineLight(startPoint, p2))) || mainSlope;
+						let s2b = (vert ? verticalSlope(lineLight(p2, endPoint)) : horizontalSlope(lineLight(p2, endPoint))) || mainSlope;
+						let s3a = (vert ? verticalSlope(lineLight(startPoint, p3)) : horizontalSlope(lineLight(startPoint, p3))) || mainSlope;
+						let s3b = (vert ? verticalSlope(lineLight(p3, endPoint)) : horizontalSlope(lineLight(p3, endPoint))) || mainSlope;
+						let s4a = (vert ? verticalSlope(lineLight(startPoint, p4)) : horizontalSlope(lineLight(startPoint, p4))) || mainSlope;
+						let s4b = (vert ? verticalSlope(lineLight(p4, endPoint)) : horizontalSlope(lineLight(p4, endPoint))) || mainSlope;
+						let d1a = Math.abs(mainSlope - s1a);
+						let d1b = Math.abs(mainSlope - s1b);
+						let d2a = Math.abs(mainSlope - s2a);
+						let d2b = Math.abs(mainSlope - s2b);
+						let d3a = Math.abs(mainSlope - s3a);
+						let d3b = Math.abs(mainSlope - s3b);
+						let d4a = Math.abs(mainSlope - s4a);
+						let d4b = Math.abs(mainSlope - s4b);
+						if (p1.kind === 1 && p2.kind === 2 && p3.kind === 0) {
+							let sC = vert ? verticalSlope(lineLight(p1, p2)) : horizontalSlope(lineLight(p1, p2));
+							let dC = Math.abs(mainSlope - sC);
+							if ((d1a < maxSlope || d1b < maxSlope / 2) && (d2a < maxSlope / 2 || d2b < maxSlope) && dC < 0.2 && (d3a < maxSlope / 2 || d3b < maxSlope / 2)) {
+							// if ((d1a < maxSlope || d1b < maxSlope) && (d2a < maxSlope || d2b < maxSlope) && dC < 0.2 && (d3a < maxSlope || d3b < maxSlope)) {
+								if (!redundantPoints.includes(p1Idx)) redundantPoints.push(p1Idx);
+								if (!redundantPoints.includes(p2Idx)) redundantPoints.push(p2Idx);
+								if (!redundantPoints.includes(p3Idx) && p3Idx < endIdx) redundantPoints.push(p3Idx);
+							}
+						} else if (p1.kind === 0 && p2.kind === 1 && p3.kind === 2) {
+							let sC = vert ? verticalSlope(lineLight(p2, p3)) : horizontalSlope(lineLight(p2, p3));
+							let dC = Math.abs(mainSlope - sC);
+							if ((d1a < maxSlope / 2 || d1b < maxSlope / 2) && (d2a < maxSlope || d2b < maxSlope / 2) && dC < 0.2 && (d3a < maxSlope / 2 || d3b < maxSlope / 2)) {
+							// if ((d1a < maxSlope || d1b < maxSlope) && (d2a < maxSlope || d2b < maxSlope) && dC < 0.2 && (d3a < maxSlope || d3b < maxSlope)) {
+								if (!redundantPoints.includes(p1Idx)) redundantPoints.push(p1Idx);
+								if (!redundantPoints.includes(p2Idx)) redundantPoints.push(p2Idx);
+								if (!redundantPoints.includes(p3Idx) && p3Idx < endIdx) redundantPoints.push(p3Idx);
+							}
+						}
+					}
 				}
 			}
 
-			// for (let idx = 0; idx < contour.length; idx++) {
-			// 	let pushed = 0;
-			// 	let vert = false;
-			// 	let p1 = circularArray(contour, idx);
-			// 	let p2 = circularArray(contour, idx + 1);
-			// 	let p3 = circularArray(contour, idx + 2);
-			// 	let p4 = circularArray(contour, idx + 3);
-			// 	if (p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0) {
-			// 		let sB = horizontalSlope(lineLight(p1, p4));
-			// 		let c1B = horizontalSlope(lineLight(p1, p2)) || sB;
-			// 		let ccB = horizontalSlope(lineLight(p2, p3));
-			// 		let c2B = horizontalSlope(lineLight(p3, p4)) || sB;
-			// 		for (let n of [sB, c1B, c2B]) {
-			// 			if (n > 1 || n < -1) {
-			// 				vert = true;
-			// 				sB = verticalSlope(lineLight(p1, p4));
-			// 				c1B = verticalSlope(lineLight(p1, p2)) || sB;
-			// 				ccB = verticalSlope(lineLight(p2, p3));
-			// 				c2B = verticalSlope(lineLight(p3, p4)) || sB;
-			// 				break;
-			// 			}
-			// 		}
-			// 		let d1 = Math.abs(sB - c1B);
-			// 		let d2 = Math.abs(sB - c2B);
-			// 		let d3 = Math.abs(sB - ccB);
-			// 		if ((d1 < 0.04 && d2 < 0.06 && d3 < 0.04) || (d1 < 0.08 && d2 < 0.05 && d3 < 0.06)) {
-			// 			if (!redundantPoints.includes(idx + 1)) redundantPoints.push(idx + 1);
-			// 			if (!redundantPoints.includes(idx + 2)) redundantPoints.push(idx + 2);
-			// 			// pushed += 2;
-			// 			let p5 = circularArray(contour, idx + 4);
-			// 			let p6 = circularArray(contour, idx + 5);
-			// 			let p7 = circularArray(contour, idx + 6);
-			// 			if (p5.kind === 1 && p6.kind === 2 && p7.kind === 0) {
-			// 				let s2B = horizontalSlope(lineLight(p4, p7));
-			// 				let c3B = horizontalSlope(lineLight(p4, p5)) || s2B;
-			// 				let c4B = horizontalSlope(lineLight(p6, p7)) || s2B;
-			// 				if (vert) {
-			// 					s2B = verticalSlope(lineLight(p4, p7));
-			// 					c3B = verticalSlope(lineLight(p4, p5)) || s2B;
-			// 					c4B = verticalSlope(lineLight(p6, p7)) || s2B;
-			// 				}
-			// 				let d4 = Math.abs(sB - s2B);
-			// 				if (d4 < 0.1) {
-			// 					if (!redundantPoints.includes(idx + 3)) redundantPoints.push(idx + 3);
-			// 					// pushed += 1;
-			// 				}
-			// 			}
-			// 		}
-			// 	}
-			// 	// idx += pushed;
-			// }
 			if (redundantPoints.length > 0) {
-				if (glyph.name === 'uni30ED') {
-					console.log('redundantPoints: ' + glyph.name);
-					console.log(redundantPoints);
+				if (glyph.name === 'braceleft') {
+					console.log('\n');
+					console.log(glyph.name);
+					console.log('corners ' + corners)
+					console.log('redundantPoints: ' + redundantPoints);
 				}
 				redundantPoints.reverse();
 				for (const i of redundantPoints) {
