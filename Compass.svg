@@ -20,12 +20,12 @@
               stroke-linejoin: round;
           }
           .e {
-              stroke: #000;
+              stroke: #0CF;
               stroke-linecap: round;
               stroke-linejoin: round;
           }
           .f {
-              fill: #000;
+              fill: #FFF;
           }
           .h {
               display: none;

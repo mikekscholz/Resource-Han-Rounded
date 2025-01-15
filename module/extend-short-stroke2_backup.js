@@ -412,9 +412,11 @@ function extendShortStroke(font, references) {
 			let next = contour[nextNode(contour, start - i)];
 			let bear1 = bearing(lineLight(next, curr));
 			if (bear1 < 135 || bear1 > 225) continue;
+			let dir1 = angle(lineLight(prev, curr));
+			let dir2 = angle(lineLight(curr, next));
 			let bear2 = bearing(lineLight(curr, prev));
-			let rotation = abs(turn(bear1, bear2));
-			if (rotation >= 45 && rotation <= 135) return circularIndex(contour, start + i);
+			let rotation = turn(bear1, bear2);
+			if (rotation >= 80 && rotation <= 112 && (bear2 > 315 || bear2 < 45)) return circularIndex(contour, start + i);
 		}
 	}
 	function findTopRightCorner(contour, start = 0) {

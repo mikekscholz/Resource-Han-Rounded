@@ -134,7 +134,10 @@ function preProcess(font, references) {
 	function checkSingleGlyph(glyph) {
 		if (!glyph.geometry || !glyph.geometry.contours)
 			return;
-		if (glyph.name === "period") console.log(JSON.stringify(glyph))
+		if (glyph.name === "period") {
+			console.log(originLight(glyph.horizontal.end));
+			console.log(originHeavy(glyph.horizontal.end));
+		}
 		let oldContours = glyph.geometry.contours;
 		
 		glyph.geometry.contours = [];
@@ -274,7 +277,7 @@ function preProcess(font, references) {
 	}
 	
 	let len = font.glyphs.items.length;
-	let consoleWidth = process.stdout.columns - 10 || 150
+	let consoleWidth = process.stdout.columns || 150
 	let bar = new ProgressBar('\u001b[38;5;82mpreProcessing\u001b[0m [1/5]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
 	
 	function progressTick(info = "") {

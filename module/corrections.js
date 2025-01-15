@@ -1573,7 +1573,7 @@ function correctGlyphs(font, references) {
 	}
 	
 	let len = font.glyphs.items.length;
-	let consoleWidth = process.stdout.columns - 10 || 150
+	let consoleWidth = process.stdout.columns || 150
 	let bar = new ProgressBar('\u001b[38;5;82mcorrectGlyphs\u001b[0m [3/5]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
 	
 	function progressTick(info = "") {
