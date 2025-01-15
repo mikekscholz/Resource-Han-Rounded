@@ -475,42 +475,42 @@ function postProcess(font, references) {
 		
 		if (name in references.horizontalLeftFalling) {
 			let refs = references.horizontalLeftFalling[name];
+			progressTick(name);
 			for (const ref of refs) {
 				fixLeftFallingBezier(ref);
 			}
-			progressTick();
 		}
 		
 		if (name in references.horizontalLeftFalling2) {
 			let refs = references.horizontalLeftFalling2[name];
+			progressTick(name);
 			for (const ref of refs) {
 				fixLeftFallingBezier(ref);
 			}
-			progressTick();
 		}
 		
 		if (name in references.horizontalLeftFalling3) {
 			let refs = references.horizontalLeftFalling3[name];
+			progressTick(name);
 			for (const ref of refs) {
 				fixLeftFallingBezier(ref);
 			}
-			progressTick();
 		}
 		
 		if (name in references.horizontalLeftFalling4) {
 			let refs = references.horizontalLeftFalling4[name];
+			progressTick(name);
 			for (const ref of refs) {
 				fixLeftFallingBezier(ref);
 			}
-			progressTick();
 		}
 		
 		if (name in references.horizontalLeftFalling2b) {
 			let refs = references.horizontalLeftFalling2b[name];
+			progressTick(name);
 			for (const ref of refs) {
 				fixLeftFallingBezier(ref);
 			}
-			progressTick();
 		}
 		
 		for (const contour of oldContours) {
@@ -527,18 +527,18 @@ function postProcess(font, references) {
 	// let len = references.horizontalLeftFalling.length + references.horizontalLeftFalling2.length + references.horizontalLeftFalling3.length + references.horizontalLeftFalling4.length;
 
 	let len = font.glyphs.items.length;
-	let consoleWidth = process.stdout.columns - 50 || 150
-	let bar = new ProgressBar('\u001b[38;5;82mpostProcessing\u001b[0m [5/5]    :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: progressLength });
+	let consoleWidth = process.stdout.columns - 10 || 150
+	let bar = new ProgressBar('\u001b[38;5;82mpostProcessing\u001b[0m [5/5]    :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: progressLength });
 	
-	function progressTick() {
+	function progressTick(info = "") {
 		if (len) {
 			var chunk = 1;
 			bar.tick(chunk);
-			if (bar.curr > 0 && bar.curr < progressLength - 2) { 
-				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
+			if (bar.curr > 0 && bar.curr < len - 2) { 
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
 			}
-			if (bar.curr === progressLength - 1) { 
-				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
+			if (bar.curr === len - 1) { 
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
 			}
 		}
 	}

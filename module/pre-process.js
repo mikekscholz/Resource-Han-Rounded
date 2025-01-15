@@ -182,9 +182,10 @@ function preProcess(font, references) {
 					}
 				}
 			}
+
 			let corners = [];
 			let redundantPoints = [];
-			let maxSlope = 0.1;
+			let maxSlope = 0.09;
 			for (let i = 0; i < contour.length; i++) {
 				let curr = contour[i];
 				if (curr.kind !== 0) continue;
@@ -236,20 +237,20 @@ function preProcess(font, references) {
 						if (p1.kind === 1 && p2.kind === 2 && p3.kind === 0) {
 							let sC = vert ? verticalSlope(lineLight(p1, p2)) : horizontalSlope(lineLight(p1, p2));
 							let dC = Math.abs(mainSlope - sC);
-							if ((d1a < maxSlope || d1b < maxSlope / 2) && (d2a < maxSlope / 2 || d2b < maxSlope) && dC < 0.2 && (d3a < maxSlope / 2 || d3b < maxSlope / 2)) {
+							if ((d1a < maxSlope || d1b < maxSlope / 2) && (d2a < maxSlope / 2 || d2b < maxSlope) && dC < 0.1 && (d3a < maxSlope / 2 || d3b < maxSlope / 2)) {
 							// if ((d1a < maxSlope || d1b < maxSlope) && (d2a < maxSlope || d2b < maxSlope) && dC < 0.2 && (d3a < maxSlope || d3b < maxSlope)) {
-								if (!redundantPoints.includes(p1Idx)) redundantPoints.push(p1Idx);
-								if (!redundantPoints.includes(p2Idx)) redundantPoints.push(p2Idx);
-								if (!redundantPoints.includes(p3Idx) && p3Idx < endIdx) redundantPoints.push(p3Idx);
+								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length) redundantPoints.push(p1Idx);
+								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length) redundantPoints.push(p2Idx);
+								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length && p3Idx < endIdx) redundantPoints.push(p3Idx);
 							}
 						} else if (p1.kind === 0 && p2.kind === 1 && p3.kind === 2) {
 							let sC = vert ? verticalSlope(lineLight(p2, p3)) : horizontalSlope(lineLight(p2, p3));
 							let dC = Math.abs(mainSlope - sC);
-							if ((d1a < maxSlope / 2 || d1b < maxSlope / 2) && (d2a < maxSlope || d2b < maxSlope / 2) && dC < 0.2 && (d3a < maxSlope / 2 || d3b < maxSlope / 2)) {
+							if ((d1a < maxSlope / 2 || d1b < maxSlope / 2) && (d2a < maxSlope || d2b < maxSlope / 2) && dC < 0.1 && (d3a < maxSlope / 2 || d3b < maxSlope / 2)) {
 							// if ((d1a < maxSlope || d1b < maxSlope) && (d2a < maxSlope || d2b < maxSlope) && dC < 0.2 && (d3a < maxSlope || d3b < maxSlope)) {
-								if (!redundantPoints.includes(p1Idx)) redundantPoints.push(p1Idx);
-								if (!redundantPoints.includes(p2Idx)) redundantPoints.push(p2Idx);
-								if (!redundantPoints.includes(p3Idx) && p3Idx < endIdx) redundantPoints.push(p3Idx);
+								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length) redundantPoints.push(p1Idx);
+								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length) redundantPoints.push(p2Idx);
+								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length && p3Idx < endIdx) redundantPoints.push(p3Idx);
 							}
 						}
 					}
@@ -273,18 +274,18 @@ function preProcess(font, references) {
 	}
 	
 	let len = font.glyphs.items.length;
-	let consoleWidth = process.stdout.columns - 50 || 150
-	let bar = new ProgressBar('\u001b[38;5;82mpreProcessing\u001b[0m [1/5]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+	let consoleWidth = process.stdout.columns - 10 || 150
+	let bar = new ProgressBar('\u001b[38;5;82mpreProcessing\u001b[0m [1/5]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
 	
-	function progressTick() {
+	function progressTick(info = "") {
 		if (len) {
 			var chunk = 1;
 			bar.tick(chunk);
 			if (bar.curr > 0 && bar.curr < len - 2) { 
-				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
 			}
 			if (bar.curr === len - 1) { 
-				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
 			}
 		}
 	}
@@ -298,8 +299,8 @@ function preProcess(font, references) {
 		// 	writeFile(filename, data);
 		// }
 		// console.log(name);
+		progressTick(name);
 		if (!references.extendSkip.includes(name)) checkSingleGlyph(glyph);
-		progressTick();
 		// count++;
 		// if (count % 1000 == 0) console.log("preExtension:", count, "glyphs processed.");
 	}
