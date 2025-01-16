@@ -57,21 +57,21 @@ function preProcess(font, references) {
 	function checkSingleGlyph(glyph) {
 		if (!glyph.geometry || !glyph.geometry.contours)
 			return;
-
-		let oldContours = glyph.geometry.contours;
+		let widthLight = originLight(glyph.horizontal.end);
+		let widthHeavy = originHeavy(glyph.horizontal.end);
+		let heightMax = originLight(glyph.vertical.start);
+		let heightMin = originLight(glyph.vertical.end);
+		let viewportWidth = 100 + widthLight + 200 + widthHeavy + 100;
+		let viewportHeight = abs(heightMin - heightMax) * 1.35;
+		let contours = glyph.geometry.contours;
+		let pointsLight = [];
+		let pointsHeavy = [];
+		let svgHeader = `<svg height="100%" viewBox="0 0 ${viewportWidth} ${viewportHeight}" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">`;
 		
-		glyph.geometry.contours = [];
-		
-		for (const contour of oldContours) {
-			if (contour.length < 4) {
-				glyph.geometry.contours.push(contour);
-				continue;
-			}
-
-			const newContour = [...contour];
+		for (const contour of contours) {
 
 			for (let idx = 0; idx < contour.length; idx++) {
-
+				pointsLight.push({x: originLight(contour[idx].x), y: originLight(contour[idx].y), type: contour[idx].type})
 			}
 		}
 	}
