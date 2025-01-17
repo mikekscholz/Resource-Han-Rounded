@@ -67,12 +67,17 @@ function preProcess(font, references) {
 		let pointsLight = [];
 		let pointsHeavy = [];
 		let svgHeader = `<svg height="100%" viewBox="0 0 ${viewportWidth} ${viewportHeight}" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">`;
-		
+		let groupLight = "";
+		let groupLightOverlay = "";
+		let groupHeavy = "";
+		let groupHeavyOverlay = "";
 		for (const contour of contours) {
-
 			for (let idx = 0; idx < contour.length; idx++) {
-				pointsLight.push({x: originLight(contour[idx].x), y: originLight(contour[idx].y), type: contour[idx].type})
+				pointsLight.push({x: originLight(contour[idx].x), y: originLight(contour[idx].y), type: contour[idx].type});
+				pointsHeavy.push({x: originHeavy(contour[idx].x), y: originHeavy(contour[idx].y), type: contour[idx].type});
 			}
+			let pathLight = `M ${pointsLight[0].x}`;
+			let pathHeavy = `M ${pointsHeavy[0].x}`;
 		}
 	}
 	
