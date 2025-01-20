@@ -45,6 +45,14 @@ function preProcess(font, references) {
 	const masterSet = new Ot.Var.MasterSet();
 	masterSet.getOrPush(masterWghtMax);
 	const valueFactory = new Ot.Var.ValueFactory(masterSet);
+	// const os2 = new Ot.Os2.Table(4);
+	// const os2 = new font.;
+	// console.log(font.os2.usWinDescent);
+	// console.log(font.os2.sTypoDescender);
+	// console.log(font.os2.sxHeight);
+	// console.log(font.os2.sCapHeight);
+	// console.log(font.os2.sTypoAscender);
+	// console.log(font.os2.usWinAscent);
 
 	function originLight(point) {
 		return Ot.Var.Ops.originOf(point);
@@ -134,15 +142,19 @@ function preProcess(font, references) {
 	function checkSingleGlyph(glyph) {
 		if (!glyph.geometry || !glyph.geometry.contours)
 			return;
-		if (glyph.name === "period") {
-			console.log(originLight(glyph.horizontal.end));
-			console.log(originHeavy(glyph.horizontal.end));
-		}
+		
+		const name = glyph.name;
+		
 		let oldContours = glyph.geometry.contours;
+		
+		if (glyph.name === ".gid1938") {
+			oldContours.push(oldContours.shift());
+			oldContours.push(oldContours.shift());
+		}
 		
 		glyph.geometry.contours = [];
 		
-		for (const contour of oldContours) {
+		for (const [idxC, contour] of oldContours.entries()) {
 			if (contour.length < 4) {
 				glyph.geometry.contours.push(contour);
 				continue;
@@ -185,7 +197,13 @@ function preProcess(font, references) {
 					}
 				}
 			}
-
+			if (name in references.skipRedundantPoints) {
+				const skipContours = references.skipRedundantPoints[name];
+				if (skipContours.includes(idxC)) {
+					glyph.geometry.contours.push(contour);
+					continue;
+				}
+			}
 			let corners = [];
 			let redundantPoints = [];
 			let maxSlope = 0.09;
@@ -199,20 +217,23 @@ function preProcess(font, references) {
 				let rotation = Math.abs(turn(bear1, bear2));
 				if (rotation >= 20 && rotation <= 150 && !corners.includes(i)) corners.push(i);
 			}
-			for (let cIdx = 0; cIdx < corners.length; cIdx++) {
+			for (let kIdx = 0; kIdx < corners.length; kIdx++) {
 				let vert = false;
-				let startIdx = corners[cIdx];
-				let endIdx = circularArray(corners, cIdx + 1);
+				let prevIdx = circularArray(corners, kIdx - 1);
+				let startIdx = corners[kIdx];
+				let endIdx = circularArray(corners, kIdx + 1);
+				let prevPoint = circularArray(contour, prevIdx);
 				let startPoint = circularArray(contour, startIdx);
 				let endPoint = circularArray(contour, endIdx);
 				let mainSlope = horizontalSlope(lineLight(startPoint, endPoint));
+				let parentBearing = bearing(lineLight(startPoint, endPoint));
 				if (abs(mainSlope) > 1) {
 					mainSlope = verticalSlope(lineLight(startPoint, endPoint));
 					vert = true;
 				}
 				let innerPoints = (endIdx - startIdx) - 1;
 				if (innerPoints > 3 && innerPoints < 10) {
-					for (let idx = startIdx + 1; idx < endIdx - 1; idx++) {
+					for (let idx = startIdx; idx < endIdx - 1; idx++) {
 						let p1Idx = circularIndex(contour, idx);
 						let p2Idx = circularIndex(contour, idx + 1);
 						let p3Idx = circularIndex(contour, idx + 2);
@@ -221,41 +242,70 @@ function preProcess(font, references) {
 						let p2 = contour[p2Idx];
 						let p3 = contour[p3Idx];
 						let p4 = contour[p4Idx];
-						let s1a = (vert ? verticalSlope(lineLight(startPoint, p1)) : horizontalSlope(lineLight(startPoint, p1))) || mainSlope;
-						let s1b = (vert ? verticalSlope(lineLight(p1, endPoint)) : horizontalSlope(lineLight(p1, endPoint))) || mainSlope;
-						let s2a = (vert ? verticalSlope(lineLight(startPoint, p2)) : horizontalSlope(lineLight(startPoint, p2))) || mainSlope;
-						let s2b = (vert ? verticalSlope(lineLight(p2, endPoint)) : horizontalSlope(lineLight(p2, endPoint))) || mainSlope;
-						let s3a = (vert ? verticalSlope(lineLight(startPoint, p3)) : horizontalSlope(lineLight(startPoint, p3))) || mainSlope;
-						let s3b = (vert ? verticalSlope(lineLight(p3, endPoint)) : horizontalSlope(lineLight(p3, endPoint))) || mainSlope;
-						let s4a = (vert ? verticalSlope(lineLight(startPoint, p4)) : horizontalSlope(lineLight(startPoint, p4))) || mainSlope;
-						let s4b = (vert ? verticalSlope(lineLight(p4, endPoint)) : horizontalSlope(lineLight(p4, endPoint))) || mainSlope;
-						let d1a = Math.abs(mainSlope - s1a);
-						let d1b = Math.abs(mainSlope - s1b);
-						let d2a = Math.abs(mainSlope - s2a);
-						let d2b = Math.abs(mainSlope - s2b);
-						let d3a = Math.abs(mainSlope - s3a);
-						let d3b = Math.abs(mainSlope - s3b);
-						let d4a = Math.abs(mainSlope - s4a);
-						let d4b = Math.abs(mainSlope - s4b);
-						if (p1.kind === 1 && p2.kind === 2 && p3.kind === 0) {
-							let sC = vert ? verticalSlope(lineLight(p1, p2)) : horizontalSlope(lineLight(p1, p2));
-							let dC = Math.abs(mainSlope - sC);
-							if ((d1a < maxSlope || d1b < maxSlope / 2) && (d2a < maxSlope / 2 || d2b < maxSlope) && dC < 0.1 && (d3a < maxSlope / 2 || d3b < maxSlope / 2)) {
+						let segmentBearing = bearing(lineLight(p1, p4));
+						let control1Bearing = bearing(lineLight(p1, p2));
+						let control2Bearing = bearing(lineLight(p3, p4));
+						let controlVectorBearing = bearing(lineLight(p2, p3));
+						let segD = abs(turn(parentBearing, segmentBearing));
+						let c1D = abs(turn(parentBearing, control1Bearing));
+						let c2D = abs(turn(parentBearing, control2Bearing));
+						let cVD = abs(turn(parentBearing, controlVectorBearing));
+						
+						
+						
+						// let s1a = (vert ? verticalSlope(lineLight(startPoint, p1)) : horizontalSlope(lineLight(startPoint, p1))) || mainSlope;
+						// let s1b = (vert ? verticalSlope(lineLight(p1, endPoint)) : horizontalSlope(lineLight(p1, endPoint))) || mainSlope;
+						// let s2a = (vert ? verticalSlope(lineLight(startPoint, p2)) : horizontalSlope(lineLight(startPoint, p2))) || mainSlope;
+						// let s2b = (vert ? verticalSlope(lineLight(p2, endPoint)) : horizontalSlope(lineLight(p2, endPoint))) || mainSlope;
+						// let s3a = (vert ? verticalSlope(lineLight(startPoint, p3)) : horizontalSlope(lineLight(startPoint, p3))) || mainSlope;
+						// let s3b = (vert ? verticalSlope(lineLight(p3, endPoint)) : horizontalSlope(lineLight(p3, endPoint))) || mainSlope;
+						// let s4a = (vert ? verticalSlope(lineLight(startPoint, p4)) : horizontalSlope(lineLight(startPoint, p4))) || mainSlope;
+						// let s4b = (vert ? verticalSlope(lineLight(p4, endPoint)) : horizontalSlope(lineLight(p4, endPoint))) || mainSlope;
+						// let d1a = Math.abs(mainSlope - s1a);
+						// let d1b = Math.abs(mainSlope - s1b);
+						// let d2a = Math.abs(mainSlope - s2a);
+						// let d2b = Math.abs(mainSlope - s2b);
+						// let d3a = Math.abs(mainSlope - s3a);
+						// let d3b = Math.abs(mainSlope - s3b);
+						// let d4a = Math.abs(mainSlope - s4a);
+						// let d4b = Math.abs(mainSlope - s4b);
+						if (p2.kind === 1 && p3.kind === 2 && p4.kind === 0) {
+							// let sC = vert ? verticalSlope(lineLight(p1, p2)) : horizontalSlope(lineLight(p1, p2));
+							// let dC = Math.abs(mainSlope - sC);
+							// if ((d1a < maxSlope / 0.6 || d1b < maxSlope / 2) && (d2a < maxSlope / 1.5 || d2b < maxSlope) && dC < 0.2 && (d3a < maxSlope / 2 || d3b < maxSlope / 2 || distanceLight(p2, p3) === 0)) {
+							if (segD < 11 && (c1D < 11 || distanceLight(p1, p2) === 0) && (c2D < 11 || distanceLight(p3, p4) === 0) && cVD < 11) {
 							// if ((d1a < maxSlope || d1b < maxSlope) && (d2a < maxSlope || d2b < maxSlope) && dC < 0.2 && (d3a < maxSlope || d3b < maxSlope)) {
-								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length) redundantPoints.push(p1Idx);
 								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length) redundantPoints.push(p2Idx);
-								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length && p3Idx < endIdx) redundantPoints.push(p3Idx);
+								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length) redundantPoints.push(p3Idx);
+								if (!redundantPoints.includes(p4Idx) && p4Idx !== 0 && p4Idx < contour.length && p4Idx < endIdx) redundantPoints.push(p4Idx);
 							}
-						} else if (p1.kind === 0 && p2.kind === 1 && p3.kind === 2) {
-							let sC = vert ? verticalSlope(lineLight(p2, p3)) : horizontalSlope(lineLight(p2, p3));
-							let dC = Math.abs(mainSlope - sC);
-							if ((d1a < maxSlope / 2 || d1b < maxSlope / 2) && (d2a < maxSlope || d2b < maxSlope / 2) && dC < 0.1 && (d3a < maxSlope / 2 || d3b < maxSlope / 2)) {
-							// if ((d1a < maxSlope || d1b < maxSlope) && (d2a < maxSlope || d2b < maxSlope) && dC < 0.2 && (d3a < maxSlope || d3b < maxSlope)) {
-								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length) redundantPoints.push(p1Idx);
-								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length) redundantPoints.push(p2Idx);
-								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length && p3Idx < endIdx) redundantPoints.push(p3Idx);
-							}
+						// } else if (p1.kind === 0 && p2.kind === 1 && p3.kind === 2) {
+						// 	let sC = vert ? verticalSlope(lineLight(p2, p3)) : horizontalSlope(lineLight(p2, p3));
+						// 	let dC = Math.abs(mainSlope - sC);
+						// 	if ((d1a < maxSlope / 2 || d1b < maxSlope / 2) && (d2a < maxSlope || d2b < maxSlope / 2 || distanceLight(p1, p2) === 0) && dC < 0.2 && (d3a < maxSlope / 2 || d3b < maxSlope / 0.8)) {
+						// 	// if ((d1a < maxSlope || d1b < maxSlope) && (d2a < maxSlope || d2b < maxSlope) && dC < 0.2 && (d3a < maxSlope || d3b < maxSlope)) {
+						// 		if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length) redundantPoints.push(p1Idx);
+						// 		if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length) redundantPoints.push(p2Idx);
+						// 		if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length && p3Idx < endIdx) redundantPoints.push(p3Idx);
+						// 	}
 						}
+						
+					}
+				}
+				if (innerPoints === 2) {
+					let c1Idx = circularIndex(contour, startIdx + 1);
+					let c2Idx = circularIndex(contour, startIdx + 2);
+					let c1 = contour[c1Idx];
+					let c2 = contour[c2Idx];
+					let s1 = (vert ? verticalSlope(lineLight(startPoint, c1)) : horizontalSlope(lineLight(startPoint, c1))) || mainSlope;
+					let s2 = (vert ? verticalSlope(lineLight(startPoint, c2)) : horizontalSlope(lineLight(startPoint, c2))) || mainSlope;
+					let s3 = (vert ? verticalSlope(lineLight(c1, c2)) : horizontalSlope(lineLight(c1, c2))) || mainSlope;
+					let d1 = Math.abs(mainSlope - s1);
+					let d2 = Math.abs(mainSlope - s2);
+					let d3 = Math.abs(mainSlope - s3);
+					if (c1.kind === 1 && c2.kind === 2 && d1 < 0.04 && d2 < 0.04 && d3 < 0.04) {
+						if (!redundantPoints.includes(c1Idx) && c1Idx !== 0 && c1Idx < contour.length) redundantPoints.push(c1Idx);
+						if (!redundantPoints.includes(c2Idx) && c2Idx !== 0 && c2Idx < contour.length) redundantPoints.push(c2Idx);
 					}
 				}
 			}
@@ -296,6 +346,9 @@ function preProcess(font, references) {
 	let count = 0;
 	for (const glyph of font.glyphs.items) {
 		const name = glyph.name;
+		if (name === "uni20DD") {
+			console.log(JSON.stringify(glyph));
+		}
 		// if (glyph?.geometry?.contours) {
 		// 	let data = JSON.stringify(glyph.geometry.contours);
 		// 	let filename = `/home/mike/Resource-Han-Rounded/replacements/${name}.json`;

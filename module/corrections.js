@@ -603,15 +603,15 @@ function correctGlyphs(font, references) {
 				}
 			}
 		}
-		if (name in references.horizontalLeftFalling4) {
-			let refs = references.horizontalLeftFalling4[name];
-			for (const ref of refs) {
-				let idxC2 = ref.leftFalling;
-				let idxP2 = ref.leftFallingTopRight;
-				let contour2 = oldContours[idxC2];
-				oldContours[idxC2].splice(-6, 3);
-			}
-		}
+		// if (name in references.horizontalLeftFalling4) {
+		// 	let refs = references.horizontalLeftFalling4[name];
+		// 	for (const ref of refs) {
+		// 		let idxC2 = ref.leftFalling;
+		// 		let idxP2 = ref.leftFallingTopRight;
+		// 		let contour2 = oldContours[idxC2];
+		// 		oldContours[idxC2].splice(-6, 3);
+		// 	}
+		// }
 
 		if (name in references.horizontalLeftFalling2b) {
 			let refs = references.horizontalLeftFalling2b[name];
@@ -1267,6 +1267,15 @@ function correctGlyphs(font, references) {
 			if (["uni27A1","uni2B05","uni2B06","uni2B07"].includes(glyph.name)) {
 				newContour.splice(7, 1);
 				newContour.splice(5, 1);
+			}
+			
+			// fix ㇍
+			if (glyph.name == "uni31CD" && idxC === 1) {
+				newContour[2] = {
+					x: makeVariance(originLight(contour[3].x), originHeavy(contour[3].x)),
+					y: makeVariance(originLight(contour[2].y), originHeavy(contour[2].y)),
+					kind: contour[2].kind,
+				};
 			}
 			
 			// fix ㈤

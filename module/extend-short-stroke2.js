@@ -532,6 +532,13 @@ function extendShortStroke(font, references) {
 					for (const [idxC2, contour2] of oldContours.entries()) {
 						// find possible 竖s (verticals)
 						if (contour2 == contour || contour2.length < 4) continue;
+						if (references.extendIgnoreLast2Contour.includes(name) && [circularIndex(oldContours, -1), circularIndex(oldContours, -2)].includes(idxC2)) continue;
+						if (references.extendIgnoreFirst2Contour.includes(name) && [0, 1].includes(idxC2)) continue;
+						// {
+						// 	let last1Idx = oldContours.length - 1;
+						// 	let last2Idx = oldContours.length - 2;
+						// 	if (idxC2 === last1Idx || idxC2 === last2Idx) continue;
+						// }
 						let extended = false;
 						
 						for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
@@ -897,6 +904,8 @@ function extendShortStroke(font, references) {
 					for (const [idxC2, contour2o] of oldContours.entries()) {
 						// find possible 横s (horizontals)
 						if (contour2o == contour || contour2o.length < 4) continue;
+						if (references.extendIgnoreLast2Contour.includes(name) && [circularIndex(oldContours, -1), circularIndex(oldContours, -2)].includes(idxC2)) continue;
+						if (references.extendIgnoreFirst2Contour.includes(name) && [0, 1].includes(idxC2)) continue;
 						let contour2 = contour2o.filter((point) => point.kind === 0);
 						let extended = false;
 						for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
@@ -1038,6 +1047,8 @@ function extendShortStroke(font, references) {
 					for (const [idxC2, contour2] of oldContours.entries()) {
 						// find possible 竖s (verticals)
 						if (contour2 == contour || contour2.length < 4) continue;
+						if (references.extendIgnoreLast2Contour.includes(name) && [circularIndex(oldContours, -1), circularIndex(oldContours, -2)].includes(idxC2)) continue;
+						if (references.extendIgnoreFirst2Contour.includes(name) && [0, 1].includes(idxC2)) continue;
 						for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
 							if (
 								// is top end
@@ -1198,8 +1209,9 @@ function extendShortStroke(font, references) {
 
 					for (const [idxC2, contour2o] of oldContours.entries()) {
 						// find possible 横s (horizontals)
-						if (contour2o == contour || contour2o.length < 4)
-						continue;
+						if (contour2o == contour || contour2o.length < 4) continue;
+						if (references.extendIgnoreLast2Contour.includes(name) && [circularIndex(oldContours, -1), circularIndex(oldContours, -2)].includes(idxC2)) continue;
+						if (references.extendIgnoreFirst2Contour.includes(name) && [0, 1].includes(idxC2)) continue;
 						let contour2 = contour2o.filter((point) => point.kind === 0);
 						let extended = false;
 						for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {

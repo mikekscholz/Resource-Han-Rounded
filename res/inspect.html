@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Font Inspector</title>
+	<style>
+		body {
+			background-color: #0a0a0a;
+		}
+
+		.wrapper {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px 0px;
+		}
+
+		.glyph {
+			width: min-content;
+			height: 285px;
+			overflow: hidden;
+			margin-bottom: -20px;
+			display: flex;
+			flex-wrap: wrap;
+		}
+
+		.glyph svg {
+			margin-top: -20px;
+		}
+
+		.glyph-label {
+			color: #FFFFFF;
+			font-family: Nunito;
+			width: 100%;
+			text-align: center;
+		}
+		.contour-fill {
+			fill: #FFFFFF19;
+			fill-rule: nonzero;
+			stroke: none;
+		}
+
+		.contour-stroke {
+			fill: none;
+			stroke: #FFF;
+			stroke-width: 2px;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+		}
+
+		.dotted-rule {
+			stroke: #FFF3;
+			stroke-dasharray: 10 10;
+			stroke-width: 2;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+		}
+
+		.control-vector {
+			stroke: #FFF;
+			stroke-dasharray: 15 5;
+			stroke-width: 1;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+		}
+
+		.start-point {
+			fill: #0cf;
+			stroke: #FFF;
+			stroke-width: 2;
+			r: 8;
+		}
+
+		.corner-point {
+			fill: rgb(255, 0, 64);
+			stroke: #FFF;
+			stroke-width: 2;
+			r: 8;
+		}
+
+		.control-point {
+			fill: #9F0;
+			stroke: #FFF;
+			stroke-width: 2;
+			r: 7;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="wrapper">
+		<div class="glyph">
+			<svg height="100%" viewBox="0 -288 2300 1448" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+				<g transform="scale(1, -1) translate(0, -880)">
+					<line class="dotted-rule" x1="0" y1="-286" x2="2300" y2="-286" />
+					<line class="dotted-rule" x1="0" y1="-120" x2="2300" y2="-120" />
+					<line class="dotted-rule" x1="0" y1="0" x2="2300" y2="0" />
+					<line class="dotted-rule" x1="0" y1="543" x2="2300" y2="543" />
+					<line class="dotted-rule" x1="0" y1="733" x2="2300" y2="733" />
+					<line class="dotted-rule" x1="0" y1="880" x2="2300" y2="880" />
+					<line class="dotted-rule" x1="0" y1="1158" x2="2300" y2="1158" />
+					<g transform="translate(100, 0)">
+						<line stroke="#FFF6" stroke-width="1" x1="0" y1="-288" x2="0" y2="1160" />
+						<line stroke="#FFF6" stroke-width="1" x1="1000" y1="-288" x2="1000" y2="1160" />
+						<g>
+							<path class="contour-fill" d="M 100, -120L 900, -120L 900, 880L 100, 880 z M 500, 421L 182, 830L 818, 830 z M 532, 380L 850, 789L 850, -29 z M 182, -70L 500, 339L 818, -70 z M 150, 789L 468, 380L 150, -29 z " />
+						</g>
+						<g>
+							<path class="contour-stroke" d="M 100, -120L 900, -120L 900, 880L 100, 880 z M 500, 421L 182, 830L 818, 830 z M 532, 380L 850, 789L 850, -29 z M 182, -70L 500, 339L 818, -70 z M 150, 789L 468, 380L 150, -29 z " />
+						</g>
+						<g></g>
+						<g></g>
+					</g>
+					<g transform="translate(1200, 0)">
+						<line stroke="#FFF6" stroke-width="1" x1="0" y1="-288" x2="0" y2="1160" />
+						<line stroke="#FFF6" stroke-width="1" x1="1000" y1="-288" x2="1000" y2="1160" />
+						<g>
+							<path class="contour-fill" d="M 100, -120L 900, -120L 900, 880L 100, 880 z M 500, 421L 182, 830L 818, 830 z M 532, 380L 850, 789L 850, -29 z M 182, -70L 500, 339L 818, -70 z M 150, 789L 468, 380L 150, -29 z " />
+						</g>
+						<g>
+							<path class="contour-stroke" d="M 100, -120L 900, -120L 900, 880L 100, 880 z M 500, 421L 182, 830L 818, 830 z M 532, 380L 850, 789L 850, -29 z M 182, -70L 500, 339L 818, -70 z M 150, 789L 468, 380L 150, -29 z " />
+						</g>
+						<g></g>
+						<g></g>
+					</g>
+				</g>
+			</svg>
+		</div>
+		<div class="glyph">
+			<svg height="100%" viewBox="0 -288 972 1448" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+				<g transform="scale(1, -1) translate(0, -880)">
+					<line class="dotted-rule" x1="0" y1="-286" x2="972" y2="-286" />
+					<line class="dotted-rule" x1="0" y1="-120" x2="972" y2="-120" />
+					<line class="dotted-rule" x1="0" y1="0" x2="972" y2="0" />
+					<line class="dotted-rule" x1="0" y1="543" x2="972" y2="543" />
+					<line class="dotted-rule" x1="0" y1="733" x2="972" y2="733" />
+					<line class="dotted-rule" x1="0" y1="880" x2="972" y2="880" />
+					<line class="dotted-rule" x1="0" y1="1158" x2="972" y2="1158" />
+					<g transform="translate(100, 0)">
+						<line stroke="#FFF6" stroke-width="1" x1="0" y1="-288" x2="0" y2="1160" />
+						<line stroke="#FFF6" stroke-width="1" x1="275" y1="-288" x2="275" y2="1160" />
+						<g>
+							<path class="contour-fill" d="M 123, 190L 152, 190L 156, 668L 156, 738L 119, 738L 119, 668 z M 137, -13C 158, -13 178, 3 178, 30C 178, 59 158, 75 137, 75C 117, 75 97, 59 97, 30C 97, 3 117, -13 137, -13 z " />
+						</g>
+						<g>
+							<path class="contour-stroke" d="M 123, 190L 152, 190L 156, 668L 156, 738L 119, 738L 119, 668 z M 137, -13C 158, -13 178, 3 178, 30C 178, 59 158, 75 137, 75C 117, 75 97, 59 97, 30C 97, 3 117, -13 137, -13 z " />
+						</g>
+						<g></g>
+						<g></g>
+					</g>
+					<g transform="translate(475, 0)">
+						<line stroke="#FFF6" stroke-width="1" x1="0" y1="-288" x2="0" y2="1160" />
+						<line stroke="#FFF6" stroke-width="1" x1="397" y1="-288" x2="397" y2="1160" />
+						<g>
+							<path class="contour-fill" d="M 141, 270L 256, 270L 282, 608L 288, 767L 109, 767L 115, 608 z M 198, -14C 260, -14 304, 35 304, 97C 304, 159 260, 207 198, 207C 137, 207 93, 159 93, 97C 93, 35 137, -14 198, -14 z " />
+						</g>
+						<g>
+							<path class="contour-stroke" d="M 141, 270L 256, 270L 282, 608L 288, 767L 109, 767L 115, 608 z M 198, -14C 260, -14 304, 35 304, 97C 304, 159 260, 207 198, 207C 137, 207 93, 159 93, 97C 93, 35 137, -14 198, -14 z " />
+						</g>
+						<g></g>
+						<g></g>
+					</g>
+				</g>
+			</svg>
+		<span class="glyph-label">test</span>
+	</div>
+		<div class="glyph"><svg height="100%" viewBox="0 -288 1305 1448" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+				<g transform="scale(1, -1) translate(0, -880)">
+					<line class="dotted-rule" x1="0" y1="-286" x2="1305" y2="-286" />
+					<line class="dotted-rule" x1="0" y1="-120" x2="1305" y2="-120" />
+					<line class="dotted-rule" x1="0" y1="0" x2="1305" y2="0" />
+					<line class="dotted-rule" x1="0" y1="543" x2="1305" y2="543" />
+					<line class="dotted-rule" x1="0" y1="733" x2="1305" y2="733" />
+					<line class="dotted-rule" x1="0" y1="880" x2="1305" y2="880" />
+					<line class="dotted-rule" x1="0" y1="1158" x2="1305" y2="1158" />
+					<g transform="translate(100, 0)">
+						<line stroke="#FFF6" stroke-width="1" x1="0" y1="-288" x2="0" y2="1160" />
+						<line stroke="#FFF6" stroke-width="1" x1="374" y1="-288" x2="374" y2="1160" />
+						<g>
+							<path class="contour-fill" d="M 99, 540L 130, 540L 136, 696L 136, 763L 92, 763L 92, 696 z M 243, 540L 272, 540L 280, 696L 280, 763L 235, 763L 235, 696 z " />
+						</g>
+						<g>
+							<path class="contour-stroke" d="M 99, 540L 130, 540L 136, 696L 136, 763L 92, 763L 92, 696 z M 243, 540L 272, 540L 280, 696L 280, 763L 235, 763L 235, 696 z " />
+						</g>
+						<g></g>
+						<g></g>
+					</g>
+					<g transform="translate(574, 0)">
+						<line stroke="#FFF6" stroke-width="1" x1="0" y1="-288" x2="0" y2="1160" />
+						<line stroke="#FFF6" stroke-width="1" x1="631" y1="-288" x2="631" y2="1160" />
+						<g>
+							<path class="contour-fill" d="M 127, 393L 224, 393L 259, 626L 265, 784L 86, 784L 92, 626 z M 407, 393L 504, 393L 539, 626L 545, 784L 366, 784L 372, 626 z " />
+						</g>
+						<g>
+							<path class="contour-stroke" d="M 127, 393L 224, 393L 259, 626L 265, 784L 86, 784L 92, 626 z M 407, 393L 504, 393L 539, 626L 545, 784L 366, 784L 372, 626 z " />
+						</g>
+						<g></g>
+						<g></g>
+					</g>
+				</g>
+			</svg></div>
+		<div class="glyph"><svg height="100%" viewBox="0 -288 1430 1448" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+				<g transform="scale(1, -1) translate(0, -880)">
+					<line class="dotted-rule" x1="0" y1="-286" x2="1430" y2="-286" />
+					<line class="dotted-rule" x1="0" y1="-120" x2="1430" y2="-120" />
+					<line class="dotted-rule" x1="0" y1="0" x2="1430" y2="0" />
+					<line class="dotted-rule" x1="0" y1="543" x2="1430" y2="543" />
+					<line class="dotted-rule" x1="0" y1="733" x2="1430" y2="733" />
+					<line class="dotted-rule" x1="0" y1="880" x2="1430" y2="880" />
+					<line class="dotted-rule" x1="0" y1="1158" x2="1430" y2="1158" />
+					<g transform="translate(100, 0)">
+						<line stroke="#FFF6" stroke-width="1" x1="0" y1="-288" x2="0" y2="1160" />
+						<line stroke="#FFF6" stroke-width="1" x1="521" y1="-288" x2="521" y2="1160" />
+						<g>
+							<path class="contour-fill" d="M 103, 0L 135, 0L 164, 240L 334, 240L 306, 0L 338, 0L 366, 240L 466, 240L 466, 272L 371, 272L 395, 466L 488, 466L 488, 498L 398, 498L 426, 715L 394, 715L 365, 498L 195, 498L 223, 715L 191, 715L 163, 498L 62, 498L 62, 466L 161, 466L 136, 272L 40, 272L 40, 240L 132, 240 z M 168, 272L 192, 466L 363, 466L 339, 272 z " />
+						</g>
+						<g>
+							<path class="contour-stroke" d="M 103, 0L 135, 0L 164, 240L 334, 240L 306, 0L 338, 0L 366, 240L 466, 240L 466, 272L 371, 272L 395, 466L 488, 466L 488, 498L 398, 498L 426, 715L 394, 715L 365, 498L 195, 498L 223, 715L 191, 715L 163, 498L 62, 498L 62, 466L 161, 466L 136, 272L 40, 272L 40, 240L 132, 240 z M 168, 272L 192, 466L 363, 466L 339, 272 z " />
+						</g>
+						<g></g>
+						<g></g>
+					</g>
+					<g transform="translate(721, 0)">
+						<line stroke="#FFF6" stroke-width="1" x1="0" y1="-288" x2="0" y2="1160" />
+						<line stroke="#FFF6" stroke-width="1" x1="609" y1="-288" x2="609" y2="1160" />
+						<g>
+							<path class="contour-fill" d="M 98, 0L 200, 0L 226, 211L 339, 211L 314, 0L 417, 0L 442, 211L 552, 211L 552, 324L 455, 324L 471, 445L 575, 445L 575, 558L 485, 558L 507, 744L 405, 744L 382, 558L 268, 558L 290, 744L 189, 744L 166, 558L 62, 558L 62, 445L 151, 445L 136, 324L 39, 324L 39, 211L 123, 211 z M 238, 324L 253, 445L 367, 445L 352, 324 z " />
+						</g>
+						<g>
+							<path class="contour-stroke" d="M 98, 0L 200, 0L 226, 211L 339, 211L 314, 0L 417, 0L 442, 211L 552, 211L 552, 324L 455, 324L 471, 445L 575, 445L 575, 558L 485, 558L 507, 744L 405, 744L 382, 558L 268, 558L 290, 744L 189, 744L 166, 558L 62, 558L 62, 445L 151, 445L 136, 324L 39, 324L 39, 211L 123, 211 z M 238, 324L 253, 445L 367, 445L 352, 324 z " />
+						</g>
+						<g></g>
+						<g></g>
+					</g>
+				</g>
+			</svg></div>
+		<div class="glyph"><svg height="100%" viewBox="0 -288 1430 1448" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+				<g transform="scale(1, -1) translate(0, -880)">
+					<line class="dotted-rule" x1="0" y1="-286" x2="1430" y2="-286" />
+					<line class="dotted-rule" x1="0" y1="-120" x2="1430" y2="-120" />
+					<line class="dotted-rule" x1="0" y1="0" x2="1430" y2="0" />
+					<line class="dotted-rule" x1="0" y1="543" x2="1430" y2="543" />
+					<line class="dotted-rule" x1="0" y1="733" x2="1430" y2="733" />
+					<line class="dotted-rule" x1="0" y1="880" x2="1430" y2="880" />
+					<line class="dotted-rule" x1="0" y1="1158" x2="1430" y2="1158" />
+					<g transform="translate(100, 0)">
+						<line stroke="#FFF6" stroke-width="1" x1="0" y1="-288" x2="0" y2="1160" />
+						<line stroke="#FFF6" stroke-width="1" x1="521" y1="-288" x2="521" y2="1160" />
+						<g>
+							<path class="contour-fill" d="M 268, -13C 371, -13 454, 54 454, 164C 454, 420 134, 349 134, 552C 134, 626 188, 684 267, 684C 338, 684 371, 659 412, 617L 435, 640C 395, 682 351, 717 269, 717C 172, 717 97, 647 97, 549C 97, 323 417, 391 417, 162C 417, 78 365, 20 268, 20C 190, 20 129, 61 89, 99L 68, 73C 112, 31 183, -13 268, -13 z M 251, -121L 285, -121L 285, -8L 251, -8 z M 251, 697L 285, 697L 285, 825L 251, 825 z " />
+						</g>
+						<g>
+							<path class="contour-stroke" d="M 268, -13C 371, -13 454, 54 454, 164C 454, 420 134, 349 134, 552C 134, 626 188, 684 267, 684C 338, 684 371, 659 412, 617L 435, 640C 395, 682 351, 717 269, 717C 172, 717 97, 647 97, 549C 97, 323 417, 391 417, 162C 417, 78 365, 20 268, 20C 190, 20 129, 61 89, 99L 68, 73C 112, 31 183, -13 268, -13 z M 251, -121L 285, -121L 285, -8L 251, -8 z M 251, 697L 285, 697L 285, 825L 251, 825 z " />
+						</g>
+						<g></g>
+						<g></g>
+					</g>
+					<g transform="translate(721, 0)">
+						<line stroke="#FFF6" stroke-width="1" x1="0" y1="-288" x2="0" y2="1160" />
+						<line stroke="#FFF6" stroke-width="1" x1="609" y1="-288" x2="609" y2="1160" />
+						<g>
+							<path class="contour-fill" d="M 281, -14C 454, -14 540, 83 540, 216C 540, 431 240, 426 240, 527C 240, 577 268, 596 321, 596C 367, 596 403, 577 444, 540L 532, 642C 478, 700 411, 740 311, 740C 163, 740 71, 655 71, 519C 71, 315 370, 312 370, 203C 370, 154 343, 130 281, 130C 229, 130 179, 151 120, 196L 42, 76C 108, 16 210, -14 281, -14 z M 245, -125L 362, -125L 362, 60L 245, 60 z M 245, 685L 362, 685L 362, 852L 245, 852 z " />
+						</g>
+						<g>
+							<path class="contour-stroke" d="M 281, -14C 454, -14 540, 83 540, 216C 540, 431 240, 426 240, 527C 240, 577 268, 596 321, 596C 367, 596 403, 577 444, 540L 532, 642C 478, 700 411, 740 311, 740C 163, 740 71, 655 71, 519C 71, 315 370, 312 370, 203C 370, 154 343, 130 281, 130C 229, 130 179, 151 120, 196L 42, 76C 108, 16 210, -14 281, -14 z M 245, -125L 362, -125L 362, 60L 245, 60 z M 245, 685L 362, 685L 362, 852L 245, 852 z " />
+						</g>
+						<g></g>
+						<g></g>
+					</g>
+				</g>
+			</svg></div>
+		<div class="glyph"><svg height="100%" viewBox="0 -288 2166 1448" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+				<g transform="scale(1, -1) translate(0, -880)">
+					<line class="dotted-rule" x1="0" y1="-286" x2="2166" y2="-286" />
+					<line class="dotted-rule" x1="0" y1="-120" x2="2166" y2="-120" />
+					<line class="dotted-rule" x1="0" y1="0" x2="2166" y2="0" />
+					<line class="dotted-rule" x1="0" y1="543" x2="2166" y2="543" />
+					<line class="dotted-rule" x1="0" y1="733" x2="2166" y2="733" />
+					<line class="dotted-rule" x1="0" y1="880" x2="2166" y2="880" />
+					<line class="dotted-rule" x1="0" y1="1158" x2="2166" y2="1158" />
+					<g transform="translate(100, 0)">
+						<line stroke="#FFF6" stroke-width="1" x1="0" y1="-288" x2="0" y2="1160" />
+						<line stroke="#FFF6" stroke-width="1" x1="880" y1="-288" x2="880" y2="1160" />
+						<g>
+							<path class="contour-fill" d="M 198, 284C 294, 284 351, 365 351, 513C 351, 658 294, 739 198, 739C 103, 739 46, 658 46, 513C 46, 365 103, 284 198, 284 z M 198, 313C 126, 313 80, 388 80, 513C 80, 638 126, 710 198, 710C 271, 710 316, 638 316, 513C 316, 388 271, 313 198, 313 z M 216, -13L 253, -13L 659, 739L 623, 739 z M 682, -13C 776, -13 834, 68 834, 216C 834, 361 776, 442 682, 442C 586, 442 529, 361 529, 216C 529, 68 586, -13 682, -13 z M 682, 16C 609, 16 563, 91 563, 216C 563, 341 609, 413 682, 413C 753, 413 800, 341 800, 216C 800, 91 753, 16 682, 16 z " />
+						</g>
+						<g>
+							<path class="contour-stroke" d="M 198, 284C 294, 284 351, 365 351, 513C 351, 658 294, 739 198, 739C 103, 739 46, 658 46, 513C 46, 365 103, 284 198, 284 z M 198, 313C 126, 313 80, 388 80, 513C 80, 638 126, 710 198, 710C 271, 710 316, 638 316, 513C 316, 388 271, 313 198, 313 z M 216, -13L 253, -13L 659, 739L 623, 739 z M 682, -13C 776, -13 834, 68 834, 216C 834, 361 776, 442 682, 442C 586, 442 529, 361 529, 216C 529, 68 586, -13 682, -13 z M 682, 16C 609, 16 563, 91 563, 216C 563, 341 609, 413 682, 413C 753, 413 800, 341 800, 216C 800, 91 753, 16 682, 16 z " />
+						</g>
+						<g></g>
+						<g></g>
+					</g>
+					<g transform="translate(1080, 0)">
+						<line stroke="#FFF6" stroke-width="1" x1="0" y1="-288" x2="0" y2="1160" />
+						<line stroke="#FFF6" stroke-width="1" x1="986" y1="-288" x2="986" y2="1160" />
+						<g>
+							<path class="contour-fill" d="M 216, 285C 325, 285 405, 374 405, 523C 405, 672 325, 758 216, 758C 107, 758 28, 672 28, 523C 28, 374 107, 285 216, 285 z M 216, 383C 181, 383 151, 419 151, 523C 151, 627 181, 660 216, 660C 251, 660 281, 627 281, 523C 281, 419 251, 383 216, 383 z M 242, -14L 344, -14L 745, 758L 643, 758 z M 770, -14C 878, -14 958, 75 958, 224C 958, 373 878, 460 770, 460C 662, 460 582, 373 582, 224C 582, 75 662, -14 770, -14 z M 770, 85C 735, 85 705, 120 705, 224C 705, 329 735, 361 770, 361C 805, 361 835, 329 835, 224C 835, 120 805, 85 770, 85 z " />
+						</g>
+						<g>
+							<path class="contour-stroke" d="M 216, 285C 325, 285 405, 374 405, 523C 405, 672 325, 758 216, 758C 107, 758 28, 672 28, 523C 28, 374 107, 285 216, 285 z M 216, 383C 181, 383 151, 419 151, 523C 151, 627 181, 660 216, 660C 251, 660 281, 627 281, 523C 281, 419 251, 383 216, 383 z M 242, -14L 344, -14L 745, 758L 643, 758 z M 770, -14C 878, -14 958, 75 958, 224C 958, 373 878, 460 770, 460C 662, 460 582, 373 582, 224C 582, 75 662, -14 770, -14 z M 770, 85C 735, 85 705, 120 705, 224C 705, 329 735, 361 770, 361C 805, 361 835, 329 835, 224C 835, 120 805, 85 770, 85 z " />
+						</g>
+						<g></g>
+						<g></g>
+					</g>
+				</g>
+			</svg></div>
+		<div class="glyph"><svg height="100%" viewBox="0 -288 1694 1448" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+				<g transform="scale(1, -1) translate(0, -880)">
+					<line class="dotted-rule" x1="0" y1="-286" x2="1694" y2="-286" />
+					<line class="dotted-rule" x1="0" y1="-120" x2="1694" y2="-120" />
+					<line class="dotted-rule" x1="0" y1="0" x2="1694" y2="0" />
+					<line class="dotted-rule" x1="0" y1="543" x2="1694" y2="543" />
+					<line class="dotted-rule" x1="0" y1="733" x2="1694" y2="733" />
+					<line class="dotted-rule" x1="0" y1="880" x2="1694" y2="880" />
+					<line class="dotted-rule" x1="0" y1="1158" x2="1694" y2="1158" />
+					<g transform="translate(100, 0)">
+						<line stroke="#FFF6" stroke-width="1" x1="0" y1="-288" x2="0" y2="1160" />
+						<line stroke="#FFF6" stroke-width="1" x1="621" y1="-288" x2="621" y2="1160" />
+						<g>
+							<path class="contour-fill" d="M 247, -13C 333, -13 398, 31 453, 92C 517, 169 564, 269 595, 377L 559, 377C 531, 274 488, 184 427, 113C 378, 59 318, 20 250, 20C 157, 20 79, 85 79, 185C 79, 365 402, 430 402, 612C 402, 684 362, 739 287, 739C 202, 739 143, 673 143, 581C 143, 420 290, 216 432, 90C 492, 37 547, 4 594, -13L 607, 20C 561, 37 508, 70 453, 118C 321, 232 177, 431 177, 583C 177, 650 217, 707 285, 707C 345, 707 367, 657 367, 609C 367, 442 42, 382 42, 183C 42, 62 136, -13 247, -13 z " />
+						</g>
+						<g>
+							<path class="contour-stroke" d="M 247, -13C 333, -13 398, 31 453, 92C 517, 169 564, 269 595, 377L 559, 377C 531, 274 488, 184 427, 113C 378, 59 318, 20 250, 20C 157, 20 79, 85 79, 185C 79, 365 402, 430 402, 612C 402, 684 362, 739 287, 739C 202, 739 143, 673 143, 581C 143, 420 290, 216 432, 90C 492, 37 547, 4 594, -13L 607, 20C 561, 37 508, 70 453, 118C 321, 232 177, 431 177, 583C 177, 650 217, 707 285, 707C 345, 707 367, 657 367, 609C 367, 442 42, 382 42, 183C 42, 62 136, -13 247, -13 z " />
+						</g>
+						<g></g>
+						<g></g>
+					</g>
+					<g transform="translate(821, 0)">
+						<line stroke="#FFF6" stroke-width="1" x1="0" y1="-288" x2="0" y2="1160" />
+						<line stroke="#FFF6" stroke-width="1" x1="773" y1="-288" x2="773" y2="1160" />
+						<g>
+							<path class="contour-fill" d="M 279, -14C 406, -14 505, 38 576, 117C 659, 209 713, 311 747, 424L 585, 424C 560, 328 512, 253 454, 196C 405, 150 352, 122 301, 122C 237, 122 196, 158 196, 211C 196, 343 512, 388 512, 587C 512, 691 438, 758 324, 758C 197, 758 117, 668 117, 562C 117, 414 282, 210 471, 86C 550, 36 632, 0 709, -14L 751, 130C 702, 137 641, 163 579, 199C 425, 289 263, 447 263, 562C 263, 612 292, 642 328, 642C 360, 642 376, 621 376, 587C 376, 444 27, 446 27, 200C 27, 87 112, -14 279, -14 z " />
+						</g>
+						<g>
+							<path class="contour-stroke" d="M 279, -14C 406, -14 505, 38 576, 117C 659, 209 713, 311 747, 424L 585, 424C 560, 328 512, 253 454, 196C 405, 150 352, 122 301, 122C 237, 122 196, 158 196, 211C 196, 343 512, 388 512, 587C 512, 691 438, 758 324, 758C 197, 758 117, 668 117, 562C 117, 414 282, 210 471, 86C 550, 36 632, 0 709, -14L 751, 130C 702, 137 641, 163 579, 199C 425, 289 263, 447 263, 562C 263, 612 292, 642 328, 642C 360, 642 376, 621 376, 587C 376, 444 27, 446 27, 200C 27, 87 112, -14 279, -14 z " />
+						</g>
+						<g></g>
+						<g></g>
+					</g>
+				</g>
+			</svg></div>
+		<div class="glyph"><svg height="100%" viewBox="0 -288 882 1448" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+				<g transform="scale(1, -1) translate(0, -880)">
+					<line class="dotted-rule" x1="0" y1="-286" x2="882" y2="-286" />
+					<line class="dotted-rule" x1="0" y1="-120" x2="882" y2="-120" />
+					<line class="dotted-rule" x1="0" y1="0" x2="882" y2="0" />
+					<line class="dotted-rule" x1="0" y1="543" x2="882" y2="543" />
+					<line class="dotted-rule" x1="0" y1="733" x2="882" y2="733" />
+					<line class="dotted-rule" x1="0" y1="880" x2="882" y2="880" />
+					<line class="dotted-rule" x1="0" y1="1158" x2="882" y2="1158" />
+					<g transform="translate(100, 0)">
+						<line stroke="#FFF6" stroke-width="1" x1="0" y1="-288" x2="0" y2="1160" />
+						<line stroke="#FFF6" stroke-width="1" x1="231" y1="-288" x2="231" y2="1160" />
+						<g>
+							<path class="contour-fill" d="M 99, 540L 130, 540L 136, 696L 136, 763L 92, 763L 92, 696 z " />
+						</g>
+						<g>
+							<path class="contour-stroke" d="M 99, 540L 130, 540L 136, 696L 136, 763L 92, 763L 92, 696 z " />
+						</g>
+						<g></g>
+						<g></g>
+					</g>
+					<g transform="translate(431, 0)">
+						<line stroke="#FFF6" stroke-width="1" x1="0" y1="-288" x2="0" y2="1160" />
+						<line stroke="#FFF6" stroke-width="1" x1="351" y1="-288" x2="351" y2="1160" />
+						<g>
+							<path class="contour-fill" d="M 127, 393L 224, 393L 259, 626L 265, 784L 86, 784L 92, 626 z " />
+						</g>
+						<g>
+							<path class="contour-stroke" d="M 127, 393L 224, 393L 259, 626L 265, 784L 86, 784L 92, 626 z " />
+						</g>
+						<g></g>
+						<g></g>
+					</g>
+				</g>
+			</svg></div>
+		<div class="glyph"><svg height="100%" viewBox="0 -288 999 1448" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+				<g transform="scale(1, -1) translate(0, -880)">
+					<line class="dotted-rule" x1="0" y1="-286" x2="999" y2="-286" />
+					<line class="dotted-rule" x1="0" y1="-120" x2="999" y2="-120" />
+					<line class="dotted-rule" x1="0" y1="0" x2="999" y2="0" />
+					<line class="dotted-rule" x1="0" y1="543" x2="999" y2="543" />
+					<line class="dotted-rule" x1="0" y1="733" x2="999" y2="733" />
+					<line class="dotted-rule" x1="0" y1="880" x2="999" y2="880" />
+					<line class="dotted-rule" x1="0" y1="1158" x2="999" y2="1158" />
+					<g transform="translate(100, 0)">
+						<line stroke="#FFF6" stroke-width="1" x1="0" y1="-288" x2="0" y2="1160" />
+						<line stroke="#FFF6" stroke-width="1" x1="299" y1="-288" x2="299" y2="1160" />
+						<g>
+							<path class="contour-fill" d="M 244, -191L 265, -178C 177, -40 132, 130 132, 306C 132, 482 177, 651 265, 790L 244, 804C 154, 658 99, 499 99, 306C 99, 112 154, -46 244, -191 z " />
+						</g>
+						<g>
+							<path class="contour-stroke" d="M 244, -191L 265, -178C 177, -40 132, 130 132, 306C 132, 482 177, 651 265, 790L 244, 804C 154, 658 99, 499 99, 306C 99, 112 154, -46 244, -191 z " />
+						</g>
+						<g></g>
+						<g></g>
+					</g>
+					<g transform="translate(499, 0)">
+						<line stroke="#FFF6" stroke-width="1" x1="0" y1="-288" x2="0" y2="1160" />
+						<line stroke="#FFF6" stroke-width="1" x1="400" y1="-288" x2="400" y2="1160" />
+						<g>
+							<path class="contour-fill" d="M 232, -205L 343, -159C 260, -11 224, 157 224, 318C 224, 478 260, 647 343, 795L 232, 841C 136, 684 81, 519 81, 318C 81, 116 136, -48 232, -205 z " />
+						</g>
+						<g>
+							<path class="contour-stroke" d="M 232, -205L 343, -159C 260, -11 224, 157 224, 318C 224, 478 260, 647 343, 795L 232, 841C 136, 684 81, 519 81, 318C 81, 116 136, -48 232, -205 z " />
+						</g>
+						<g></g>
+						<g></g>
+					</g>
+				</g>
+			</svg></div>
+	</div>
+</body>
+
+</html>
