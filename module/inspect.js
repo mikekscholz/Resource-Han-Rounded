@@ -23,7 +23,7 @@ const htmlHeader = `<!DOCTYPE html>
 	<title>Font Inspector</title>
 	<style>
 		body {
-			background-color: #262626;
+			background-color: #1c1c1c;
 		}
 		.nav-bar {
 			background-color: #2226;
@@ -70,7 +70,7 @@ const htmlHeader = `<!DOCTYPE html>
 			font-family: Nunito;
 			width: 100%;
 			text-align: center;
-			background-color: #222
+			background-color: #555
 		}
 		.contour-fill {
 			fill:   #FFFFFF26;
