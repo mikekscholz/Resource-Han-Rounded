@@ -6,3 +6,4 @@ Makefile
 *.json
 glyphnames.txt
 bar.js
+inspector-*.html

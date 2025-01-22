@@ -3,19 +3,19 @@
 const { Ot } = require("ot-builder");
 const ProgressBar = require('./node-progress');
 const { base60, bearing, horizontalSlope, roundTo, turn, verticalSlope } = require("./util");
-const { abs, ceil, floor, pow, round, sqrt, trunc } = Math;
-
+const { abs, ceil, floor, max, min, pow, round, sqrt, trunc } = Math;
+const { writeFile } = require("node:fs");
 const path = require("path");
 const fsp = require("fs/promises");
-const writeFile = async(filename, data, increment = 0) => {
-	const name = `/mnt/c/Users/Michael/${path.basename(filename, path.extname(filename))}${"(" + increment + ")" || ""}${path.extname(filename)}`;
-	// const name = `${path.dirname(filename)}/${path.basename(filename, path.extname(filename))}${ increment ? "(" + increment + ")" : ""}${path.extname(filename)}`;
-	return await fsp.writeFile(name, data, { encoding: 'utf8', flag: 'wx' }).catch(async ex => {
-		if (ex.code === "EEXIST") return await writeFile(filename, data, increment += 1)
-		throw ex
-	}) || name
-};
-let htmlHeader = `<!DOCTYPE html>
+// const writeFile = async(filename, data, increment = 0) => {
+// 	const name = `/mnt/c/Users/Michael/${path.basename(filename, path.extname(filename))}${"(" + increment + ")" || ""}${path.extname(filename)}`;
+// 	// const name = `${path.dirname(filename)}/${path.basename(filename, path.extname(filename))}${ increment ? "(" + increment + ")" : ""}${path.extname(filename)}`;
+// 	return await fsp.writeFile(name, data, { encoding: 'utf8', flag: 'wx' }).catch(async ex => {
+// 		if (ex.code === "EEXIST") return await writeFile(filename, data, increment += 1)
+// 		throw ex
+// 	}) || name
+// };
+const htmlHeader = `<!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
@@ -23,20 +23,42 @@ let htmlHeader = `<!DOCTYPE html>
 	<title>Font Inspector</title>
 	<style>
 		body {
-			background-color: #0a0a0a;
+			background-color: #262626;
 		}
+		.nav-bar {
+			background-color: #0009;
+			backdrop-filter: blur(6px);
+			width: 100%;
+			height: 40px;
+			position: fixed;
+			top: 0;
+			left: 0;
+		}
+		a {
+			width: 28px;
+			position: relative;
+			display: inline-block;
+			background-color: #444;
+			color: #FFF;
+			padding: 5px 5px;
+			margin: 5px 2px;
+			border-radius: 3px;
+			font-family: nunito;
+			text-align: center;
+	}
 		.wrapper {
 			display: flex;
 			flex-wrap: wrap;
-			gap: 20px 40px;
+			gap: 30px 10px;
 		}
 		.glyph {
 			width: min-content;
-			height: 210px;
+			height: 300px;
 			overflow: hidden;
 			margin-bottom: -20px;
 			display: flex;
 			flex-wrap: wrap;
+			background-color: #0b0b0b;
 		}
 
 		.glyph svg {
@@ -48,6 +70,7 @@ let htmlHeader = `<!DOCTYPE html>
 			font-family: Nunito;
 			width: 100%;
 			text-align: center;
+			background-color: #222
 		}
 		.contour-fill {
 			fill:   #FFFFFF26;
@@ -95,8 +118,8 @@ let htmlHeader = `<!DOCTYPE html>
 		}
 	</style>
 </head>
-<body>
-	<div class="wrapper">`;
+<body>`;
+	
 // based on measurement of SHS
 const params = {
 	strokeWidth: { light: 29, heavy: 162 },
@@ -149,9 +172,8 @@ function inspect(font, references) {
 		let widthHeavy = originHeavy(glyph.horizontal.end);
 		let heightMax = originLight(glyph.vertical.start);
 		let heightMin = originLight(glyph.vertical.end);
-		let viewportWidth = 100 + widthLight + 100 + widthHeavy + 100;
+		let viewportWidth = 10 + widthLight + 10 + widthHeavy + 10;
 		let contours = glyph.geometry.contours;
-		let svgHeader = `<svg height="100%" viewBox="0 ${safeBottom} ${viewportWidth} ${viewportHeight}" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">`;
 		let groupLightFill = "";
 		let groupLightStroke = "";
 		let groupLightHandles = "";
@@ -181,6 +203,15 @@ function inspect(font, references) {
 				pointsHeavyX.push(hX);
 				pointsHeavyY.push(hY);
 			}
+			let minLightX = min(pointsLightX);
+			let maxLightX = max(pointsLightX);
+			let minLightY = min(pointsLightY);
+			let maxLightY = max(pointsLightY);
+			let minHeavyX = min(pointsHeavyX);
+			let maxHeavyX = max(pointsHeavyX);
+			let minHeavyY = min(pointsHeavyY);
+			let maxHeavyY = max(pointsHeavyY);
+			let svgHeader = `<svg height="100%" viewBox="0 ${safeBottom} ${viewportWidth} ${viewportHeight}" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">`;
 			let len = pointsLight.length - 1;
 			for (let idx = 0; idx <= len; idx++) {
 				let l1 = pointsLight[idx];
@@ -188,15 +219,15 @@ function inspect(font, references) {
 				if (idx === 0) {
 					pathLight += `M ${l1.x}, ${l1.y}`;
 					pathHeavy += `M ${h1.x}, ${h1.y}`;
-					// groupLightPoints += `<circle class="start-point" cx="${l1.x}" cy="${l1.y}" r="5" />`;
-					// groupHeavyPoints += `<circle class="start-point" cx="${h1.x}" cy="${h1.y}" r="5" />`;
+					groupLightPoints += `<circle class="start-point" cx="${l1.x}" cy="${l1.y}" r="5" />`;
+					groupHeavyPoints += `<circle class="start-point" cx="${h1.x}" cy="${h1.y}" r="5" />`;
 				} else if (idx > 0 && l1.type === 0) {
 					pathLight += `L ${l1.x}, ${l1.y}`;
 					pathHeavy += `L ${h1.x}, ${h1.y}`;
-					// if (pointsLight[0].x !== l1.x || pointsLight[0].y !== l1.y) {
-					// 	groupLightPoints += `<circle class="corner-point" cx="${l1.x}" cy="${l1.y}" r="5" />`;
-					// 	groupHeavyPoints += `<circle class="corner-point" cx="${h1.x}" cy="${h1.y}" r="5" />`;
-					// }
+					if (pointsLight[0].x !== l1.x || pointsLight[0].y !== l1.y) {
+						groupLightPoints += `<circle class="corner-point" cx="${l1.x}" cy="${l1.y}" r="5" />`;
+						groupHeavyPoints += `<circle class="corner-point" cx="${h1.x}" cy="${h1.y}" r="5" />`;
+					}
 				} else if (l1.type === 1) {
 					let l0 = pointsLight[idx - 1];
 					let h0 = pointsHeavy[idx - 1];
@@ -206,18 +237,18 @@ function inspect(font, references) {
 					let h3 = circularArray(pointsHeavy, idx + 2);
 					pathLight += `C ${l1.x}, ${l1.y} ${l2.x}, ${l2.y} ${l3.x}, ${l3.y}`;
 					pathHeavy += `C ${h1.x}, ${h1.y} ${h2.x}, ${h2.y} ${h3.x}, ${h3.y}`;
-					// groupLightPoints += `<circle class="control-point" cx="${l1.x}" cy="${l1.y}" r="4" />`;
-					// groupHeavyPoints += `<circle class="control-point" cx="${h1.x}" cy="${h1.y}" r="4" />`;
-					// groupLightPoints += `<circle class="control-point" cx="${l2.x}" cy="${l2.y}" r="4" />`;
-					// groupHeavyPoints += `<circle class="control-point" cx="${h2.x}" cy="${h2.y}" r="4" />`;
-					// if (pointsLight[0].x !== l3.x || pointsLight[0].y !== l3.y) {
-					// 	groupLightPoints += `<circle class="corner-point" cx="${l3.x}" cy="${l3.y}" r="5" />`;
-					// 	groupHeavyPoints += `<circle class="corner-point" cx="${h3.x}" cy="${h3.y}" r="5" />`;
-					// }
-					// groupLightHandles += `<line class="control-vector" x1="${l0.x}" y1="${l0.y}" x2="${l1.x}" y2="${l1.y}" />`;
-					// groupHeavyHandles += `<line class="control-vector" x1="${h0.x}" y1="${h0.y}" x2="${h1.x}" y2="${h1.y}" />`;
-					// groupLightHandles += `<line class="control-vector" x1="${l2.x}" y1="${l2.y}" x2="${l3.x}" y2="${l3.y}" />`;
-					// groupHeavyHandles += `<line class="control-vector" x1="${h2.x}" y1="${h2.y}" x2="${h3.x}" y2="${h3.y}" />`;
+					groupLightPoints += `<circle class="control-point" cx="${l1.x}" cy="${l1.y}" r="4" />`;
+					groupHeavyPoints += `<circle class="control-point" cx="${h1.x}" cy="${h1.y}" r="4" />`;
+					groupLightPoints += `<circle class="control-point" cx="${l2.x}" cy="${l2.y}" r="4" />`;
+					groupHeavyPoints += `<circle class="control-point" cx="${h2.x}" cy="${h2.y}" r="4" />`;
+					if (pointsLight[0].x !== l3.x || pointsLight[0].y !== l3.y) {
+						groupLightPoints += `<circle class="corner-point" cx="${l3.x}" cy="${l3.y}" r="5" />`;
+						groupHeavyPoints += `<circle class="corner-point" cx="${h3.x}" cy="${h3.y}" r="5" />`;
+					}
+					groupLightHandles += `<line class="control-vector" x1="${l0.x}" y1="${l0.y}" x2="${l1.x}" y2="${l1.y}" />`;
+					groupHeavyHandles += `<line class="control-vector" x1="${h0.x}" y1="${h0.y}" x2="${h1.x}" y2="${h1.y}" />`;
+					groupLightHandles += `<line class="control-vector" x1="${l2.x}" y1="${l2.y}" x2="${l3.x}" y2="${l3.y}" />`;
+					groupHeavyHandles += `<line class="control-vector" x1="${h2.x}" y1="${h2.y}" x2="${h3.x}" y2="${h3.y}" />`;
 					idx += 2;
 				}
 			}
@@ -236,7 +267,7 @@ function inspect(font, references) {
 				<line class="dotted-rule" x1="0" y1="${capsHeight}" x2="${viewportWidth}" y2="${capsHeight}" />
 				<line class="dotted-rule" x1="0" y1="${ascender}" x2="${viewportWidth}" y2="${ascender}" />
 				<line class="dotted-rule" x1="0" y1="${safeTop - 2}" x2="${viewportWidth}" y2="${safeTop - 2}" />
-				<g transform="translate(100, 0)">
+				<g transform="translate(10, 0)">
 					<line stroke="#FFF6" stroke-width="1" x1="0" y1="${safeBottom}" x2="0" y2="${safeTop}" />
 					<line stroke="#FFF6" stroke-width="1" x1="${widthLight}" y1="${safeBottom}" x2="${widthLight}" y2="${safeTop}" />
 					<g><path class="contour-fill" d="${groupLightFill}" /></g>
@@ -244,7 +275,7 @@ function inspect(font, references) {
 					<g>${groupLightHandles}</g>
 					<g>${groupLightPoints}</g>
 				</g>
-				<g transform="translate(${widthLight + 200}, 0)">
+				<g transform="translate(${widthLight + 20}, 0)">
 					<line stroke="#FFF6" stroke-width="1" x1="0" y1="${safeBottom}" x2="0" y2="${safeTop}" />
 					<line stroke="#FFF6" stroke-width="1" x1="${widthHeavy}" y1="${safeBottom}" x2="${widthHeavy}" y2="${safeTop}" />
 					<g><path class="contour-fill" d="${groupHeavyFill}" /></g>
@@ -254,7 +285,7 @@ function inspect(font, references) {
 				</g>
 			</g>
 		</svg>`;
-		htmlHeader += `<div class="glyph">${svgHeader}<span class="glyph-label">${glyph.name}</span></div>`;
+		currentHtml += `<div class="glyph">${svgHeader}<span class="glyph-label">${glyph.name}</span></div>`;
 	}
 
 	let len = font.glyphs.items.length;
@@ -274,21 +305,47 @@ function inspect(font, references) {
 		}
 	}
 
+	let pages = Math.ceil(len / 1000);
+	let currentHtml;
 	let count = 0;
-	for (const glyph of font.glyphs.items) {
+	let page = 1;
+	function newHtml() {
+		let navbar = `<div class="nav-bar">`;
+		for (let i = 1; i <= pages; i++) {
+			let button = `<a ${i === page ? 'class="current"': ''}href="inspector-${i}.html">${i}</a>`;
+			navbar += button;
+		}
+		navbar += `<a ${page === 1 ? 'class="disabled"': ''}href="inspector-${page - 1}.html">&lt;</a>`;
+		navbar += `<a ${page === pages ? 'class="disabled"': ''}href="inspector-${page + 1}.html">&gt;</a>`;
+		navbar += `</div>`;
+		currentHtml = htmlHeader;
+		currentHtml += navbar;
+		currentHtml += `<div class="wrapper">`;
+	}
+	newHtml();
+	for (const [gIdx, glyph] of font.glyphs.items.entries()) {
 		const name = glyph.name;
 
 		// console.log(name);
 		progressTick(name);
 		if (glyph?.geometry?.contours) checkSingleGlyph(glyph);
 		// count++;
-		// if (count % 1000 == 0) console.log("preExtension:", count, "glyphs processed.");
+		if (gIdx % 1000 === 0 || gIdx === len - 1) {
+			currentHtml += `	</div>
+			</body>
+			</html>`;
+			let filename = `inspector-${page}.html`;
+			writeFile(filename, currentHtml, (err) => {
+  if (err) throw err;
+  console.log('The file has been saved!');
+}); 
+			// writeFile(filename, htmlHeader);
+			page++
+			newHtml();
+		};
 	}
-	htmlHeader += `	</div>
-	</body>
-	</html>`;
+
 	// let filename = glyph.name + ".svg";
-	writeFile('inspector.html', htmlHeader);
 }
 
 module.exports = {
