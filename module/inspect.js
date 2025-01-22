@@ -26,7 +26,7 @@ const htmlHeader = `<!DOCTYPE html>
 			background-color: #262626;
 		}
 		.nav-bar {
-			background-color: #0009;
+			background-color: #2226;
 			backdrop-filter: blur(6px);
 			width: 100%;
 			height: 40px;
@@ -168,11 +168,7 @@ function inspect(font, references) {
 	function checkSingleGlyph(glyph) {
 		if (!glyph.geometry || !glyph.geometry.contours)
 			return;
-		let widthLight = originLight(glyph.horizontal.end);
-		let widthHeavy = originHeavy(glyph.horizontal.end);
-		let heightMax = originLight(glyph.vertical.start);
-		let heightMin = originLight(glyph.vertical.end);
-		let viewportWidth = 10 + widthLight + 10 + widthHeavy + 10;
+
 		let contours = glyph.geometry.contours;
 		let groupLightFill = "";
 		let groupLightStroke = "";
@@ -182,13 +178,15 @@ function inspect(font, references) {
 		let groupHeavyStroke = "";
 		let groupHeavyHandles = "";
 		let groupHeavyPoints = "";
+		// let glyphPointsLightX = [];
+		// let glyphPointsHeavyX = [];
+		let pointsLightX = [];
+		let pointsHeavyX = [];
 		for (const contour of contours) {
 			let pointsLight = [];
 			let pointsHeavy = [];
-			let pointsLightX = [];
-			let pointsLightY = [];
-			let pointsHeavyX = [];
-			let pointsHeavyY = [];
+			// let pointsLightY = [];
+			// let pointsHeavyY = [];
 			let pathLight = "";
 			let pathHeavy = "";
 			for (let idx = 0; idx < contour.length; idx++) {
@@ -199,21 +197,12 @@ function inspect(font, references) {
 				pointsLight.push({x: lX, y: lY, type: contour[idx].kind});
 				pointsHeavy.push({x: hX, y: hY, type: contour[idx].kind});
 				pointsLightX.push(lX);
-				pointsLightY.push(lY);
+				// pointsLightY.push(lY);
 				pointsHeavyX.push(hX);
-				pointsHeavyY.push(hY);
+				// pointsHeavyY.push(hY);
 			}
-			let minLightX = min(pointsLightX);
-			let maxLightX = max(pointsLightX);
-			let minLightY = min(pointsLightY);
-			let maxLightY = max(pointsLightY);
-			let minHeavyX = min(pointsHeavyX);
-			let maxHeavyX = max(pointsHeavyX);
-			let minHeavyY = min(pointsHeavyY);
-			let maxHeavyY = max(pointsHeavyY);
-			let svgHeader = `<svg height="100%" viewBox="0 ${safeBottom} ${viewportWidth} ${viewportHeight}" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">`;
-			let len = pointsLight.length - 1;
-			for (let idx = 0; idx <= len; idx++) {
+
+			for (let idx = 0; idx < pointsLight.length; idx++) {
 				let l1 = pointsLight[idx];
 				let h1 = pointsHeavy[idx];
 				if (idx === 0) {
@@ -257,7 +246,23 @@ function inspect(font, references) {
 			groupHeavyFill += `${pathHeavy} z `;
 			groupHeavyStroke += `${pathHeavy} z `;
 		}
+		let horizontalEndLight = originLight(glyph.horizontal.end);
+		let horizontalEndHeavy = originHeavy(glyph.horizontal.end);
+		pointsLightX.push(0, horizontalEndLight);
+		pointsHeavyX.push(0, horizontalEndHeavy);
 		
+		let minLightX = min(...pointsLightX) - 20;
+		let maxLightX = max(...pointsLightX) + 20;
+		// let minLightY = min(pointsLightY);
+		// let maxLightY = max(pointsLightY);
+		let minHeavyX = min(...pointsHeavyX) - 20;
+		let maxHeavyX = max(...pointsHeavyX) + 20;
+		// let minHeavyY = min(pointsHeavyY);
+		// let maxHeavyY = max(pointsHeavyY);
+		let widthLight = abs(minLightX - maxLightX);
+		let widthHeavy = abs(minHeavyX - maxHeavyX);
+		let viewportWidth = 10 + widthLight + 10 + widthHeavy + 10;
+		let svgHeader = `<svg height="100%" viewBox="0 ${safeBottom} ${viewportWidth} ${viewportHeight}" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">`;
 		svgHeader += `
 			<g transform="scale(1, -1) translate(0, -${ascender})">
 				<line class="dotted-rule" x1="0" y1="${safeBottom + 2}" x2="${viewportWidth}" y2="${safeBottom + 2}" />
@@ -267,17 +272,17 @@ function inspect(font, references) {
 				<line class="dotted-rule" x1="0" y1="${capsHeight}" x2="${viewportWidth}" y2="${capsHeight}" />
 				<line class="dotted-rule" x1="0" y1="${ascender}" x2="${viewportWidth}" y2="${ascender}" />
 				<line class="dotted-rule" x1="0" y1="${safeTop - 2}" x2="${viewportWidth}" y2="${safeTop - 2}" />
-				<g transform="translate(10, 0)">
+				<g transform="translate(${abs(minLightX) + 10}, 0)">
 					<line stroke="#FFF6" stroke-width="1" x1="0" y1="${safeBottom}" x2="0" y2="${safeTop}" />
-					<line stroke="#FFF6" stroke-width="1" x1="${widthLight}" y1="${safeBottom}" x2="${widthLight}" y2="${safeTop}" />
+					<line stroke="#FFF6" stroke-width="1" x1="${horizontalEndLight}" y1="${safeBottom}" x2="${horizontalEndLight}" y2="${safeTop}" />
 					<g><path class="contour-fill" d="${groupLightFill}" /></g>
 					<g><path class="contour-stroke" d="${groupLightStroke}" /></g>
 					<g>${groupLightHandles}</g>
 					<g>${groupLightPoints}</g>
 				</g>
-				<g transform="translate(${widthLight + 20}, 0)">
+				<g transform="translate(${widthLight + abs(minHeavyX) + 20}, 0)">
 					<line stroke="#FFF6" stroke-width="1" x1="0" y1="${safeBottom}" x2="0" y2="${safeTop}" />
-					<line stroke="#FFF6" stroke-width="1" x1="${widthHeavy}" y1="${safeBottom}" x2="${widthHeavy}" y2="${safeTop}" />
+					<line stroke="#FFF6" stroke-width="1" x1="${horizontalEndHeavy}" y1="${safeBottom}" x2="${horizontalEndHeavy}" y2="${safeTop}" />
 					<g><path class="contour-fill" d="${groupHeavyFill}" /></g>
 					<g><path class="contour-stroke" d="${groupHeavyStroke}" /></g>
 					<g>${groupHeavyHandles}</g>
@@ -330,15 +335,15 @@ function inspect(font, references) {
 		progressTick(name);
 		if (glyph?.geometry?.contours) checkSingleGlyph(glyph);
 		// count++;
-		if (gIdx % 1000 === 0 || gIdx === len - 1) {
-			currentHtml += `	</div>
+		if (gIdx > 0 && (gIdx % 1000 === 0 || gIdx === len - 1)) {
+			currentHtml += `</div>
 			</body>
 			</html>`;
 			let filename = `inspector-${page}.html`;
 			writeFile(filename, currentHtml, (err) => {
-  if (err) throw err;
-  console.log('The file has been saved!');
-}); 
+				if (err) throw err;
+  				// console.log('The file has been saved!');
+			}); 
 			// writeFile(filename, htmlHeader);
 			page++
 			newHtml();
