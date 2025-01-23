@@ -33,8 +33,15 @@ const htmlHeader = `<!DOCTYPE html>
 			position: fixed;
 			top: 0;
 			left: 0;
+			display: flex;
+			flex-direction: row;
+			justify-content: space-between;
 		}
-		a {
+		.nav-bar-pages, .nav-bar-toggles {
+			display: flex;
+			flex-direction: row;
+		}
+		a, label {
 			width: 28px;
 			position: relative;
 			display: inline-block;
@@ -45,7 +52,13 @@ const htmlHeader = `<!DOCTYPE html>
 			border-radius: 3px;
 			font-family: nunito;
 			text-align: center;
-	}
+			height: 22px;
+			text-decoration: none;
+		}
+		.current {
+			font-weight: 700;
+			background-color: #666;
+		}
 		.wrapper {
 			display: flex;
 			flex-wrap: wrap;
@@ -115,6 +128,22 @@ const htmlHeader = `<!DOCTYPE html>
 			stroke: #FFF;
 			stroke-width: 2;
 			r: 7;
+		}
+		[type="checkbox"]:checked,
+		[type="checkbox"]:not(:checked),
+		[type="radio"]:checked,
+		[type="radio"]:not(:checked){
+			position: absolute;
+			left: -9999px;
+			width: 0;
+			height: 0;
+			visibility: hidden;
+		}
+		.checkbox:not(:checked) + label {
+			filter: saturate(0) brightness(0.7);
+		}
+		.hidden {
+			display: none;
 		}
 	</style>
 </head>
@@ -315,7 +344,9 @@ function inspect(font, references) {
 	let count = 0;
 	let page = 1;
 	function newHtml() {
-		let navbar = `<div class="nav-bar">`;
+		let navbar = `
+		<div class="nav-bar">
+			<div class="nav-bar-pages">`;
 		for (let i = 1; i <= pages; i++) {
 			let button = `<a ${i === page ? 'class="current"': ''}href="inspector-${i}.html">${i}</a>`;
 			navbar += button;
@@ -323,6 +354,30 @@ function inspect(font, references) {
 		navbar += `<a ${page === 1 ? 'class="disabled"': ''}href="inspector-${page - 1}.html">&lt;</a>`;
 		navbar += `<a ${page === pages ? 'class="disabled"': ''}href="inspector-${page + 1}.html">&gt;</a>`;
 		navbar += `</div>`;
+		navbar += `
+		<div class="nav-bar-toggles">
+		<input class="checkbox" type="checkbox" name="togglePoints" id="togglePoints" checked>
+		<label class="for-checkbox" for="togglePoints">
+			<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+				<circle cx="128" cy="128" r="48" fill="#ff0145" stroke="#fff" stroke-width="8"/>
+			</svg>
+		</label>
+		<input class="checkbox" type="checkbox" name="toggleStroke" id="toggleStroke" checked>
+		<label class="for-checkbox" for="toggleStroke">
+			<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+				<rect x="29" y="29" width="198" height="198" rx="24" fill="none" stroke="#fff" stroke-width="8"/>
+			</svg>
+		</label>
+		<input class="checkbox" type="checkbox" name="toggleFill" id="toggleFill" checked>
+		<label class="for-checkbox" for="toggleFill">
+			<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+				<rect x="29" y="29" width="198" height="198" rx="24" fill="#fffdfe" fill-opacity=".7"/>
+			</svg>
+		</label>
+		`;
+		navbar += `</div>`;
+		navbar += `</div>`;
+		
 		currentHtml = htmlHeader;
 		currentHtml += navbar;
 		currentHtml += `<div class="wrapper">`;
@@ -337,6 +392,35 @@ function inspect(font, references) {
 		// count++;
 		if (gIdx > 0 && (gIdx % 1000 === 0 || gIdx === len - 1)) {
 			currentHtml += `</div>
+			<script>
+			let checkboxPoints = document.getElementById('togglePoints');
+			let checkboxStroke = document.getElementById('toggleStroke');
+			let checkboxFill = document.getElementById('toggleFill');
+			checkboxPoints.addEventListener('change', function () {
+				let setting = this.checked;
+				if (!setting) {
+					document.querySelectorAll('.control-vector, .start-point, .corner-point, .control-point').forEach((el) => { el.classList.add('hidden') });
+				} else {
+					document.querySelectorAll('.control-vector, .start-point, .corner-point, .control-point').forEach((el) => { el.classList.remove('hidden') });
+				}
+			});
+			checkboxStroke.addEventListener('change', function () {
+				let setting = this.checked;
+				if (!setting) {
+					document.querySelectorAll('.contour-stroke').forEach((el) => { el.classList.add('hidden') });
+				} else {
+					document.querySelectorAll('.contour-stroke').forEach((el) => { el.classList.remove('hidden') });
+				}
+			});
+			checkboxFill.addEventListener('change', function () {
+				let setting = this.checked;
+				if (!setting) {
+					document.querySelectorAll('.contour-fill').forEach((el) => { el.classList.add('hidden') });
+				} else {
+					document.querySelectorAll('.contour-fill').forEach((el) => { el.classList.remove('hidden') });
+				}
+			});
+			</script>
 			</body>
 			</html>`;
 			let filename = `inspector-${page}.html`;

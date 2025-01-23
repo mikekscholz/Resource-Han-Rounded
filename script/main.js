@@ -31,8 +31,8 @@ for (const [key, value] of Object.entries(specialInstructions)) {
 	references[key] = value;
   }
 const font = readOtf(filename.shs(param.subfamily));
-preProcess(font, references);
-extendShortStroke(font, references);
+// preProcess(font, references);
+// extendShortStroke(font, references);
 // correctGlyphs(font, references);
 // console.log(JSON.stringify(references));
 // roundFont(font, references);
