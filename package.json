@@ -1,9 +1,11 @@
 {
 	"dependencies": {
+		"@svgdotjs/svg.panzoom.js": "^2.1.2",
 		"bezier-js": "^6.1.4",
 		"detect-collisions": "^9.24.0",
 		"ot-builder": "~1.5.1",
 		"otb-ttc-bundle": "~1.5.1",
-		"point-in-polygon-hao": "^1.2.4"
+		"point-in-polygon-hao": "^1.2.4",
+		"svg-pan-zoom": "^3.6.2"
 	}
 }

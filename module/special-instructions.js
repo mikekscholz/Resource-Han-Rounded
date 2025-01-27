@@ -61,6 +61,9 @@ const specialInstructions = {
 	extendIgnoreFirst2Contour: [
 		"uni3220","uni3221","uni3222","uni3223",".gid1916","uni3224","uni3225",".gid1919","uni3226",".gid1921","uni3227",".gid1923",".gid1924","uni3228","uni3229","uni322A","uni322B",".gid1929","uni322C","uni322D","uni322E",".gid1933","uni322F","uni3230","uni3231","uni3232",".gid1938","uni3233",".gid1940","uni3234","uni3235",".gid1943","uni3236","uni3237",".gid1946","uni3238","uni3239","uni323A","uni323B","uni323C",".gid1952","uni323D",".gid1954","uni323E",".gid1956","uni3240",".gid1959","uni3241","uni3242","uni3243",".gid1963"
 	],
+	extendIgnoreContourIdx: {
+		
+	},
 	skipRedundantPoints: {
 		"uni3004": [0],
 		"uni30C1": [0],

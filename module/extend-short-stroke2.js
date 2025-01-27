@@ -498,6 +498,14 @@ function extendShortStroke(font, references) {
 				glyph.geometry.contours.push(contour);
 				continue;
 			}
+			
+			if (name in references.extendIgnoreContourIdx) {
+				const skipContours = references.extendIgnoreContourIdx[name];
+				if (skipContours.includes(idxC1)) {
+					glyph.geometry.contours.push(contour);
+					continue;
+				}
+			}
 			debug && console.log(contour.length);
 			const newContour = [...contour];
 
@@ -739,129 +747,129 @@ function extendShortStroke(font, references) {
 							}
 							
 							// find 横's (horizontal's) right end inside ㇇'s (horizontal + left-falling)
-							if (
-								contour2.length > 10 &&
-								canBeLeftFalling(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5), circularArray(contour2, idxP2 + 6), circularArray(contour2, idxP2 + 7), circularArray(contour2, idxP2 - 3), circularArray(contour2, idxP2 - 2), circularArray(contour2, idxP2 - 1)) &&
-								abs(originLight(horizontalTopRight.y) - originLight(circularArray(contour2, idxP2 + 2).y)) <=1 &&
-								originLight(horizontalTopRight.x) > originLight(circularArray(contour2, idxP2 + 3).x) &&
-								originLight(horizontalTopRight.x) < originLight(circularArray(contour2, idxP2).x)
-							) {
-								const leftFallBottomLeft = circularArray(contour2, idxP2 + 7);
-								const leftFallBottomRight = circularArray(contour2, idxP2 - 3);
-								if (name in references.horizontalLeftFalling === false) {
-									references.horizontalLeftFalling[name] = [];
-								}
-								let refs = references.horizontalLeftFalling[name];
-								let ref = { "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2 };
-								for (let idxC3 = 0; idxC3 < oldContours.length; idxC3++) {
-									if ([idxC1, idxC2].includes(idxC3)) continue;
-									let vertMatched = false;
-									for (let idxP3 = 0; idxP3 < oldContours[idxC3].length; idxP3++) {
-										if (// is top end
-											canBeTopEnd(oldContours[idxC3][idxP3], circularArray(oldContours[idxC3], idxP3 + 1)) &&
-											approxEq(oldContours[idxC3][idxP3].x, circularArray(oldContours[idxC3], idxP3 - 1).x) &&
-											approxEq(circularArray(oldContours[idxC3], idxP3 + 1).x, circularArray(oldContours[idxC3], idxP3 + 2).x)
-										) {
-											const verticalTopRight = oldContours[idxC3][idxP3];
-											const verticalTopLeft = circularArray(oldContours[idxC3], idxP3 + 1);
-											const verticalBottomLeft = circularArray(oldContours[idxC3], idxP3 + 2);
-											const verticalBottomRight = circularArray(oldContours[idxC3], idxP3 - 1);
-											if (
-												originLight(verticalTopRight.y) >= originLight(leftFallBottomRight.y) &&
-												originLight(verticalTopRight.x) >= originLight(leftFallBottomRight.x) &&
-												originLight(verticalBottomRight.y) < originLight(leftFallBottomRight.y) &&
-												originLight(verticalBottomRight.x) >= originLight(leftFallBottomRight.x) &&
-												originLight(verticalTopLeft.y) >= originLight(leftFallBottomLeft.y) &&
-												originLight(verticalTopLeft.x) <= originLight(leftFallBottomLeft.x) &&
-												originLight(verticalBottomLeft.y) < originLight(leftFallBottomLeft.y) &&
-												originLight(verticalBottomLeft.x) <= originLight(leftFallBottomLeft.x) &&
-												originHeavy(verticalTopRight.y) >= originHeavy(leftFallBottomRight.y) &&
-												originHeavy(verticalTopRight.x) >= originHeavy(leftFallBottomRight.x) &&
-												originHeavy(verticalBottomRight.y) < originHeavy(leftFallBottomRight.y) &&
-												originHeavy(verticalBottomRight.x) >= originHeavy(leftFallBottomRight.x) &&
-												originHeavy(verticalTopLeft.y) >= originHeavy(leftFallBottomLeft.y) &&
-												originHeavy(verticalTopLeft.x) <= originHeavy(leftFallBottomLeft.x) &&
-												originHeavy(verticalBottomLeft.y) < originHeavy(leftFallBottomLeft.y) &&
-												originHeavy(verticalBottomLeft.x) <= originHeavy(leftFallBottomLeft.x)
-											) {
-												ref = { "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2, "vertical": idxC3, "verticalTopRight": idxP3 };
-												vertMatched = true;
-												break;
-											}
-										}
-									}
-									if (vertMatched) break;
-								}
-								refs.push(ref);
-								// extended = true;
-								// break;
-							}
+							// if (
+							// 	contour2.length > 10 &&
+							// 	canBeLeftFalling(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5), circularArray(contour2, idxP2 + 6), circularArray(contour2, idxP2 + 7), circularArray(contour2, idxP2 - 3), circularArray(contour2, idxP2 - 2), circularArray(contour2, idxP2 - 1)) &&
+							// 	abs(originLight(horizontalTopRight.y) - originLight(circularArray(contour2, idxP2 + 2).y)) <=1 &&
+							// 	originLight(horizontalTopRight.x) > originLight(circularArray(contour2, idxP2 + 3).x) &&
+							// 	originLight(horizontalTopRight.x) < originLight(circularArray(contour2, idxP2).x)
+							// ) {
+							// 	const leftFallBottomLeft = circularArray(contour2, idxP2 + 7);
+							// 	const leftFallBottomRight = circularArray(contour2, idxP2 - 3);
+							// 	if (name in references.horizontalLeftFalling === false) {
+							// 		references.horizontalLeftFalling[name] = [];
+							// 	}
+							// 	let refs = references.horizontalLeftFalling[name];
+							// 	let ref = { "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2 };
+							// 	for (let idxC3 = 0; idxC3 < oldContours.length; idxC3++) {
+							// 		if ([idxC1, idxC2].includes(idxC3)) continue;
+							// 		let vertMatched = false;
+							// 		for (let idxP3 = 0; idxP3 < oldContours[idxC3].length; idxP3++) {
+							// 			if (// is top end
+							// 				canBeTopEnd(oldContours[idxC3][idxP3], circularArray(oldContours[idxC3], idxP3 + 1)) &&
+							// 				approxEq(oldContours[idxC3][idxP3].x, circularArray(oldContours[idxC3], idxP3 - 1).x) &&
+							// 				approxEq(circularArray(oldContours[idxC3], idxP3 + 1).x, circularArray(oldContours[idxC3], idxP3 + 2).x)
+							// 			) {
+							// 				const verticalTopRight = oldContours[idxC3][idxP3];
+							// 				const verticalTopLeft = circularArray(oldContours[idxC3], idxP3 + 1);
+							// 				const verticalBottomLeft = circularArray(oldContours[idxC3], idxP3 + 2);
+							// 				const verticalBottomRight = circularArray(oldContours[idxC3], idxP3 - 1);
+							// 				if (
+							// 					originLight(verticalTopRight.y) >= originLight(leftFallBottomRight.y) &&
+							// 					originLight(verticalTopRight.x) >= originLight(leftFallBottomRight.x) &&
+							// 					originLight(verticalBottomRight.y) < originLight(leftFallBottomRight.y) &&
+							// 					originLight(verticalBottomRight.x) >= originLight(leftFallBottomRight.x) &&
+							// 					originLight(verticalTopLeft.y) >= originLight(leftFallBottomLeft.y) &&
+							// 					originLight(verticalTopLeft.x) <= originLight(leftFallBottomLeft.x) &&
+							// 					originLight(verticalBottomLeft.y) < originLight(leftFallBottomLeft.y) &&
+							// 					originLight(verticalBottomLeft.x) <= originLight(leftFallBottomLeft.x) &&
+							// 					originHeavy(verticalTopRight.y) >= originHeavy(leftFallBottomRight.y) &&
+							// 					originHeavy(verticalTopRight.x) >= originHeavy(leftFallBottomRight.x) &&
+							// 					originHeavy(verticalBottomRight.y) < originHeavy(leftFallBottomRight.y) &&
+							// 					originHeavy(verticalBottomRight.x) >= originHeavy(leftFallBottomRight.x) &&
+							// 					originHeavy(verticalTopLeft.y) >= originHeavy(leftFallBottomLeft.y) &&
+							// 					originHeavy(verticalTopLeft.x) <= originHeavy(leftFallBottomLeft.x) &&
+							// 					originHeavy(verticalBottomLeft.y) < originHeavy(leftFallBottomLeft.y) &&
+							// 					originHeavy(verticalBottomLeft.x) <= originHeavy(leftFallBottomLeft.x)
+							// 				) {
+							// 					ref = { "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2, "vertical": idxC3, "verticalTopRight": idxP3 };
+							// 					vertMatched = true;
+							// 					break;
+							// 				}
+							// 			}
+							// 		}
+							// 		if (vertMatched) break;
+							// 	}
+							// 	refs.push(ref);
+							// 	// extended = true;
+							// 	// break;
+							// }
 
-							if (
-								contour2.length > 10 &&
-								canBeLeftFalling2(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5), circularArray(contour2, idxP2 + 6), circularArray(contour2, idxP2 + 7), circularArray(contour2, idxP2 - 3), circularArray(contour2, idxP2 - 2), circularArray(contour2, idxP2 - 1))  &&
-								originLight(horizontalTopRight.y) < originLight(circularArray(contour2, idxP2 + 2).y) &&
-								originLight(horizontalTopRight.x) > originLight(circularArray(contour2, idxP2 + 3).x) &&
-								originLight(contour2[idxP2].x) > originLight(horizontalTopRight.x)
-							) {
-								if (name in references.horizontalLeftFalling2 === false) {
-									references.horizontalLeftFalling2[name] = [];
-								}
-								let refs = references.horizontalLeftFalling2[name];
-								refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "horizontalSlope": horizontalBottomSlope, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
+							// if (
+							// 	contour2.length > 10 &&
+							// 	canBeLeftFalling2(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5), circularArray(contour2, idxP2 + 6), circularArray(contour2, idxP2 + 7), circularArray(contour2, idxP2 - 3), circularArray(contour2, idxP2 - 2), circularArray(contour2, idxP2 - 1))  &&
+							// 	originLight(horizontalTopRight.y) < originLight(circularArray(contour2, idxP2 + 2).y) &&
+							// 	originLight(horizontalTopRight.x) > originLight(circularArray(contour2, idxP2 + 3).x) &&
+							// 	originLight(contour2[idxP2].x) > originLight(horizontalTopRight.x)
+							// ) {
+							// 	if (name in references.horizontalLeftFalling2 === false) {
+							// 		references.horizontalLeftFalling2[name] = [];
+							// 	}
+							// 	let refs = references.horizontalLeftFalling2[name];
+							// 	refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "horizontalSlope": horizontalBottomSlope, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
 								
-								// extended = true;
-								// break;
-							}
-							if (
-								contour2.length > 10 &&
-								canBeLeftFalling2b(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5), circularArray(contour2, idxP2 + 6), circularArray(contour2, idxP2 + 7), circularArray(contour2, idxP2 + 8), circularArray(contour2, idxP2 - 3), circularArray(contour2, idxP2 - 2), circularArray(contour2, idxP2 - 1)) &&
-								originLight(horizontalTopRight.y) < originLight(circularArray(contour2, idxP2 + 2).y) &&
-								originLight(horizontalTopRight.x) > originLight(circularArray(contour2, idxP2 + 4).x) &&
-								originLight(contour2[idxP2].x) > originLight(horizontalTopRight.x)
-							) {
-								if (name in references.horizontalLeftFalling2b === false) {
-									references.horizontalLeftFalling2b[name] = [];
-								}
-								let refs = references.horizontalLeftFalling2b[name];
-								refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "horizontalSlope": horizontalBottomSlope, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
+							// 	// extended = true;
+							// 	// break;
+							// }
+							// if (
+							// 	contour2.length > 10 &&
+							// 	canBeLeftFalling2b(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5), circularArray(contour2, idxP2 + 6), circularArray(contour2, idxP2 + 7), circularArray(contour2, idxP2 + 8), circularArray(contour2, idxP2 - 3), circularArray(contour2, idxP2 - 2), circularArray(contour2, idxP2 - 1)) &&
+							// 	originLight(horizontalTopRight.y) < originLight(circularArray(contour2, idxP2 + 2).y) &&
+							// 	originLight(horizontalTopRight.x) > originLight(circularArray(contour2, idxP2 + 4).x) &&
+							// 	originLight(contour2[idxP2].x) > originLight(horizontalTopRight.x)
+							// ) {
+							// 	if (name in references.horizontalLeftFalling2b === false) {
+							// 		references.horizontalLeftFalling2b[name] = [];
+							// 	}
+							// 	let refs = references.horizontalLeftFalling2b[name];
+							// 	refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "horizontalSlope": horizontalBottomSlope, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
 								
-								// extended = true;
-								// break;
-							}
+							// 	// extended = true;
+							// 	// break;
+							// }
 
-							if (
-								contour2.length > 10 &&
-								canBeLeftFalling3(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5), circularArray(contour2, idxP2 + 6), circularArray(contour2, idxP2 - 3), circularArray(contour2, idxP2 - 2), circularArray(contour2, idxP2 - 1)) &&
-								abs(originLight(horizontalTopRight.y) - originLight(circularArray(contour2, idxP2 + 1).y)) <=15 &&
-								originLight(horizontalTopRight.x) - originLight(circularArray(contour2, idxP2 + 2).x) > 0 &&
-								originLight(contour2[idxP2].x) > originLight(horizontalTopRight.x)
-							) {
-								if (name in references.horizontalLeftFalling3 === false) {
-									references.horizontalLeftFalling3[name] = [];
-								}
-								let refs = references.horizontalLeftFalling3[name];
-								refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
+							// if (
+							// 	contour2.length > 10 &&
+							// 	canBeLeftFalling3(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5), circularArray(contour2, idxP2 + 6), circularArray(contour2, idxP2 - 3), circularArray(contour2, idxP2 - 2), circularArray(contour2, idxP2 - 1)) &&
+							// 	abs(originLight(horizontalTopRight.y) - originLight(circularArray(contour2, idxP2 + 1).y)) <=15 &&
+							// 	originLight(horizontalTopRight.x) - originLight(circularArray(contour2, idxP2 + 2).x) > 0 &&
+							// 	originLight(contour2[idxP2].x) > originLight(horizontalTopRight.x)
+							// ) {
+							// 	if (name in references.horizontalLeftFalling3 === false) {
+							// 		references.horizontalLeftFalling3[name] = [];
+							// 	}
+							// 	let refs = references.horizontalLeftFalling3[name];
+							// 	refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
 								
-								// extended = true;
-								// break;
-							}
-							if (
-								contour2.length > 10 &&
-								canBeLeftFalling4(circularArray(contour2, idxP2 - 1), contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4)) &&
-								abs(originLight(horizontalTopRight.y) - originLight(circularArray(contour2, idxP2 + 3).y)) <= 15 &&
-								abs(originLight(horizontalTopRight.x) - originLight(circularArray(contour2, idxP2 + 3).x)) <= 30 &&
-								originLight(circularArray(contour2, idxP2).x) > originLight(horizontalTopRight.x)
-							) {
-								if (name in references.horizontalLeftFalling4 === false) {
-									references.horizontalLeftFalling4[name] = [];
-								}
-								let refs = references.horizontalLeftFalling4[name];
-								refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
+							// 	// extended = true;
+							// 	// break;
+							// }
+							// if (
+							// 	contour2.length > 10 &&
+							// 	canBeLeftFalling4(circularArray(contour2, idxP2 - 1), contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4)) &&
+							// 	abs(originLight(horizontalTopRight.y) - originLight(circularArray(contour2, idxP2 + 3).y)) <= 15 &&
+							// 	abs(originLight(horizontalTopRight.x) - originLight(circularArray(contour2, idxP2 + 3).x)) <= 30 &&
+							// 	originLight(circularArray(contour2, idxP2).x) > originLight(horizontalTopRight.x)
+							// ) {
+							// 	if (name in references.horizontalLeftFalling4 === false) {
+							// 		references.horizontalLeftFalling4[name] = [];
+							// 	}
+							// 	let refs = references.horizontalLeftFalling4[name];
+							// 	refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
 								
-								// extended = true;
-								// break;
-							}
+							// 	// extended = true;
+							// 	// break;
+							// }
 						}
 						if (extended)
 							break;
@@ -881,6 +889,14 @@ function extendShortStroke(font, references) {
 			if (contour.length < 4) {
 				glyph.geometry.contours.push(contour);
 				continue;
+			}
+			
+			if (name in references.extendIgnoreContourIdx) {
+				const skipContours = references.extendIgnoreContourIdx[name];
+				if (skipContours.includes(idxC1)) {
+					glyph.geometry.contours.push(contour);
+					continue;
+				}
 			}
 			
 			const newContour = [...contour];
@@ -1021,6 +1037,14 @@ function extendShortStroke(font, references) {
 			if (contour.length < 4) {
 				glyph.geometry.contours.push(contour);
 				continue;
+			}
+			
+			if (name in references.extendIgnoreContourIdx) {
+				const skipContours = references.extendIgnoreContourIdx[name];
+				if (skipContours.includes(idxC1)) {
+					glyph.geometry.contours.push(contour);
+					continue;
+				}
 			}
 			
 			const newContour = [...contour];
@@ -1189,23 +1213,35 @@ function extendShortStroke(font, references) {
 				continue;
 			}
 			
+			if (name in references.extendIgnoreContourIdx) {
+				const skipContours = references.extendIgnoreContourIdx[name];
+				if (skipContours.includes(idxC1)) {
+					glyph.geometry.contours.push(contour);
+					continue;
+				}
+			}
+			
 			const newContour = [...contour];
 
 			for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
+				const topRightIdx = idxP1;
+				const topLeftIdx = nextNode(contour, topRightIdx);
+				const bottomLeftIdx = nextNode(contour, topLeftIdx);
+				const bottomRightIdx = previousNode(contour, topRightIdx);
 				if (
 					// is top end
-					canBeTopEnd(contour[idxP1], circularArray(contour, idxP1 + 1)) &&
-					approxEq(contour[idxP1].x, circularArray(contour, idxP1 - 1).x, 85) &&
-					approxEq(circularArray(contour, idxP1 + 1).x, circularArray(contour, idxP1 + 2).x, 85)
+					canBeTopEnd(contour[topRightIdx], circularArray(contour, topLeftIdx)) &&
+					approxEq(contour[topRightIdx].x, circularArray(contour, bottomRightIdx).x, 85) &&
+					approxEq(circularArray(contour, topLeftIdx).x, circularArray(contour, bottomLeftIdx).x, 85)
 				) {
-					const topRightIdx = idxP1;
-					const topLeftIdx = circularIndex(contour, idxP1 + 1);
-					const bottomLeftIdx = circularIndex(contour, idxP1 + 2);
-					const bottomRightIdx = circularIndex(contour, idxP1 - 1);
-					const verticalTopRight = contour[idxP1];
-					const verticalTopLeft = circularArray(contour, idxP1 + 1);
-					const verticalBottomLeft = circularArray(contour, idxP1 + 2);
-					const verticalBottomRight = circularArray(contour, idxP1 - 1);
+					// const topRightIdx = idxP1;
+					// const topLeftIdx = circularIndex(contour, idxP1 + 1);
+					// const bottomLeftIdx = circularIndex(contour, idxP1 + 2);
+					// const bottomRightIdx = circularIndex(contour, idxP1 - 1);
+					const verticalTopRight = circularArray(contour, topRightIdx);
+					const verticalTopLeft = circularArray(contour, topLeftIdx);
+					const verticalBottomLeft = circularArray(contour, bottomLeftIdx);
+					const verticalBottomRight = circularArray(contour, bottomRightIdx);
 
 					for (const [idxC2, contour2o] of oldContours.entries()) {
 						// find possible 横s (horizontals)
@@ -1300,20 +1336,34 @@ function extendShortStroke(font, references) {
 	
 	let len = font.glyphs.items.length;
 	let consoleWidth = process.stdout.columns || 150
-	let bar = new ProgressBar('\u001b[38;5;82mextendShortStroke\u001b[0m [2/5] :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+	let bar = new ProgressBar('\u001b[38;5;82mextendShortStroke\u001b[0m [2/5] :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
 	
-	function progressTick(info = "") {
+	function progressTick() {
 		if (len) {
 			var chunk = 1;
 			bar.tick(chunk);
 			if (bar.curr > 0 && bar.curr < len - 2) { 
-				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
 			}
 			if (bar.curr === len - 1) { 
-				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
 			}
 		}
 	}
+	// let bar = new ProgressBar('\u001b[38;5;82mextendShortStroke\u001b[0m [2/5] :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+	
+	// function progressTick(info = "") {
+	// 	if (len) {
+	// 		var chunk = 1;
+	// 		bar.tick(chunk);
+	// 		if (bar.curr > 0 && bar.curr < len - 2) { 
+	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+	// 		}
+	// 		if (bar.curr === len - 1) { 
+	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+	// 		}
+	// 	}
+	// }
 
 	let count = 0;
 	for (const glyph of font.glyphs.items) {

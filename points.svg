@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-<svg width="256" height="256" version="1.1" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
- <circle cx="128" cy="128" r="45.176" fill="#ff0145" stroke="#fff" stroke-width="5.6471"/>
+<svg version="1.1" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+<rect x="0" y="0" width="256" height="256" rx="0" fill="#fff3" stroke-width="8"/>
+	<path d="m4 252C8,192 48,128 128,128 200,128 248,64 252,4" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="8"/>
+	<circle cx="128" cy="128" r="48" fill="#ff0145" stroke="#fff" stroke-width="8"/>
 </svg>

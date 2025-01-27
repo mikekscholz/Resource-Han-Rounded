@@ -603,15 +603,15 @@ function correctGlyphs(font, references) {
 				}
 			}
 		}
-		// if (name in references.horizontalLeftFalling4) {
-		// 	let refs = references.horizontalLeftFalling4[name];
-		// 	for (const ref of refs) {
-		// 		let idxC2 = ref.leftFalling;
-		// 		let idxP2 = ref.leftFallingTopRight;
-		// 		let contour2 = oldContours[idxC2];
-		// 		oldContours[idxC2].splice(-6, 3);
-		// 	}
-		// }
+		if (name in references.horizontalLeftFalling4) {
+			let refs = references.horizontalLeftFalling4[name];
+			for (const ref of refs) {
+				let idxC2 = ref.leftFalling;
+				let idxP2 = ref.leftFallingTopRight;
+				let contour2 = oldContours[idxC2];
+				oldContours[idxC2].splice(-6, 3);
+			}
+		}
 
 		if (name in references.horizontalLeftFalling2b) {
 			let refs = references.horizontalLeftFalling2b[name];
@@ -1086,7 +1086,7 @@ function correctGlyphs(font, references) {
 
 			// fix µ
 			if (["mu","uni03BC"].includes(glyph.name)) {
-				newContour[18] = {
+				newContour[16] = {
 					x: makeVariance(543, 683),
 					y: makeVariance(26, 137),
 					kind: 0,
@@ -1127,10 +1127,10 @@ function correctGlyphs(font, references) {
 
 			// fix Л
 			if (glyph.name == "uni041B") {
-				newContour[20] = {
+				newContour[15] = {
 					x: makeVariance(9, -13),
-					y: makeVariance(originLight(contour[20].y), originHeavy(contour[20].y)),
-					kind: contour[20].kind,
+					y: makeVariance(originLight(contour[15].y), originHeavy(contour[15].y)),
+					kind: contour[15].kind,
 				};
 			}
 
@@ -1145,10 +1145,10 @@ function correctGlyphs(font, references) {
 
 			// fix л
 			if (glyph.name == "uni043B") {
-				newContour[20] = {
+				newContour[17] = {
 					x: makeVariance(15, 6),
-					y: makeVariance(originLight(contour[20].y), originHeavy(contour[20].y)),
-					kind: contour[20].kind,
+					y: makeVariance(originLight(contour[17].y), originHeavy(contour[17].y)),
+					kind: contour[17].kind,
 				};
 			}
 			
@@ -1183,7 +1183,7 @@ function correctGlyphs(font, references) {
 			}
 			
 			// fix Ж and ж
-			if (glyph.name == "uni0416" || glyph.name == "uni0436") {
+			if (glyph.name == "uni0416") {
 				newContour[17] = {
 					x: makeVariance(
 						originLight(contour[17].x) + 20,
@@ -1227,6 +1227,54 @@ function correctGlyphs(font, references) {
 						originHeavy(contour[38].y) + 3
 					),
 					kind: contour[38].kind,
+				};
+				// continue;
+			}
+			// fix Ж and ж
+			if (glyph.name == "uni0436") {
+				newContour[15] = {
+					x: makeVariance(
+						originLight(contour[15].x) + 20,
+						originHeavy(contour[15].x) + 40
+					),
+					y: makeVariance(
+						originLight(contour[15].y),
+						originHeavy(contour[15].y) + 3
+					),
+					kind: contour[15].kind,
+				};
+				newContour[16] = {
+					x: makeVariance(
+						originLight(contour[16].x) + 20,
+						originHeavy(contour[16].x) + 40
+					),
+					y: makeVariance(
+						originLight(contour[16].y) + 2,
+						originHeavy(contour[16].y) + 3
+					),
+					kind: contour[16].kind,
+				};
+				newContour[35] = {
+					x: makeVariance(
+						originLight(contour[35].x) - 20,
+						originHeavy(contour[35].x) - 40
+					),
+					y: makeVariance(
+						originLight(contour[35].y) + 2,
+						originHeavy(contour[35].y) + 3
+					),
+					kind: contour[35].kind,
+				};
+				newContour[36] = {
+					x: makeVariance(
+						originLight(contour[36].x) - 20,
+						originHeavy(contour[36].x) - 40
+					),
+					y: makeVariance(
+						originLight(contour[36].y),
+						originHeavy(contour[36].y) + 3
+					),
+					kind: contour[36].kind,
 				};
 				// continue;
 			}
@@ -1478,102 +1526,102 @@ function correctGlyphs(font, references) {
 			// 	};
 			// }
 
-			function findExtraTopRightIdx(contour, topRightIdx) {
-				for (let i = 0; i < contour.length; i++) {
-					if (
-						circularArray(contour, topRightIdx - i).kind === 0 && 
-						distanceLight(contour[topRightIdx], circularArray(contour, topRightIdx - i)) > 5
-					) {
-						return circularIndex(contour, topRightIdx - i);
-					}
-				}
-			}
+			// function findExtraTopRightIdx(contour, topRightIdx) {
+			// 	for (let i = 0; i < contour.length; i++) {
+			// 		if (
+			// 			circularArray(contour, topRightIdx - i).kind === 0 && 
+			// 			distanceLight(contour[topRightIdx], circularArray(contour, topRightIdx - i)) > 5
+			// 		) {
+			// 			return circularIndex(contour, topRightIdx - i);
+			// 		}
+			// 	}
+			// }
 			
-			for (let idxP = 0; idxP < contour.length; idxP++) {
-				let matched = false;
-				if (
-					// is top end
-					canBeTopEnd(contour[idxP], circularArray(contour, idxP + 1)) &&
-					approxEq(contour[idxP].x, circularArray(contour, idxP - 1).x) &&
-					approxEq(circularArray(contour, idxP + 1).x, circularArray(contour, idxP + 2).x) &&
-					abs(originHeavy(contour[idxP].x) - originHeavy(circularArray(contour, idxP + 1).x)) > 125
-				) {
-					const verticalTopRight = contour[idxP];
-					const verticalTopLeft = circularArray(contour, idxP + 1);
-					const verticalBottomLeftIdx = circularIndex(contour, idxP + 2);
-					// const verticalBottomLeftIdx = 
-					// 							circularArray(contour, idxP + 2).kind === 0 ? circularIndex(contour, idxP + 2) :
-					// 							circularArray(contour, idxP + 3).kind === 0 ? circularIndex(contour, idxP + 3) : circularIndex(contour, idxP + 4);
-												// circularIndex(contour, idxP + 5);
-					const verticalBottomLeft = circularArray(contour, verticalBottomLeftIdx);
-					const verticalBottomRightIdx = findExtraTopRightIdx(contour, idxP);
-					const verticalBottomRight = circularArray(contour, verticalBottomRightIdx);
+			// for (let idxP = 0; idxP < contour.length; idxP++) {
+			// 	let matched = false;
+			// 	if (
+			// 		// is top end
+			// 		canBeTopEnd(contour[idxP], circularArray(contour, idxP + 1)) &&
+			// 		approxEq(contour[idxP].x, circularArray(contour, idxP - 1).x) &&
+			// 		approxEq(circularArray(contour, idxP + 1).x, circularArray(contour, idxP + 2).x) &&
+			// 		abs(originHeavy(contour[idxP].x) - originHeavy(circularArray(contour, idxP + 1).x)) > 125
+			// 	) {
+			// 		const verticalTopRight = contour[idxP];
+			// 		const verticalTopLeft = circularArray(contour, idxP + 1);
+			// 		const verticalBottomLeftIdx = circularIndex(contour, idxP + 2);
+			// 		// const verticalBottomLeftIdx = 
+			// 		// 							circularArray(contour, idxP + 2).kind === 0 ? circularIndex(contour, idxP + 2) :
+			// 		// 							circularArray(contour, idxP + 3).kind === 0 ? circularIndex(contour, idxP + 3) : circularIndex(contour, idxP + 4);
+			// 									// circularIndex(contour, idxP + 5);
+			// 		const verticalBottomLeft = circularArray(contour, verticalBottomLeftIdx);
+			// 		const verticalBottomRightIdx = findExtraTopRightIdx(contour, idxP);
+			// 		const verticalBottomRight = circularArray(contour, verticalBottomRightIdx);
 						
-					// fix tops with extra points too close to right corner preventing rounding
-					if (
-						abs(originLight(verticalTopRight.x) - originLight(verticalBottomRight.x)) <= 5 &&
-						abs(originLight(verticalTopRight.y) - originLight(verticalBottomRight.y)) < 25
-						// abs(originLight(verticalTopRight.y) - originLight(circularArray(contour, idxPP1 - 2).y)) > 30 &&
-						// abs(originLight(verticalBottomRight.x) - originLight(circularArray(contour, idxPP1 - 2).x)) < 10
-					) {
-						const deltaM0 = originLight(verticalTopRight.y) - originLight(verticalBottomRight.y);
-						const deltaM1 = originHeavy(verticalTopRight.y) - originHeavy(verticalBottomRight.y);
-						const diffM0 = deltaM0 < 15 ? 15 - deltaM0 : 0;
-						const diffM1 = deltaM1 < 80 ? 80 - deltaM1 : 0;
-						// console.log("extend points too close right: " + glyph.name);
-						newContour[verticalBottomRightIdx] = {
-							// x: verticalBottomRight.x,
-							x: makeVariance(
-								originLight(verticalTopRight.x),
-								originHeavy(verticalTopRight.x)
-							),
-							y: makeVariance(
-								originLight(verticalBottomRight.y) - diffM0,
-								originHeavy(verticalBottomRight.y) - diffM1
-							),
-							kind: verticalBottomRight.kind,
-						};
-					}
+			// 		// fix tops with extra points too close to right corner preventing rounding
+			// 		if (
+			// 			abs(originLight(verticalTopRight.x) - originLight(verticalBottomRight.x)) <= 5 &&
+			// 			abs(originLight(verticalTopRight.y) - originLight(verticalBottomRight.y)) < 25
+			// 			// abs(originLight(verticalTopRight.y) - originLight(circularArray(contour, idxPP1 - 2).y)) > 30 &&
+			// 			// abs(originLight(verticalBottomRight.x) - originLight(circularArray(contour, idxPP1 - 2).x)) < 10
+			// 		) {
+			// 			const deltaM0 = originLight(verticalTopRight.y) - originLight(verticalBottomRight.y);
+			// 			const deltaM1 = originHeavy(verticalTopRight.y) - originHeavy(verticalBottomRight.y);
+			// 			const diffM0 = deltaM0 < 15 ? 15 - deltaM0 : 0;
+			// 			const diffM1 = deltaM1 < 80 ? 80 - deltaM1 : 0;
+			// 			// console.log("extend points too close right: " + glyph.name);
+			// 			newContour[verticalBottomRightIdx] = {
+			// 				// x: verticalBottomRight.x,
+			// 				x: makeVariance(
+			// 					originLight(verticalTopRight.x),
+			// 					originHeavy(verticalTopRight.x)
+			// 				),
+			// 				y: makeVariance(
+			// 					originLight(verticalBottomRight.y) - diffM0,
+			// 					originHeavy(verticalBottomRight.y) - diffM1
+			// 				),
+			// 				kind: verticalBottomRight.kind,
+			// 			};
+			// 		}
 					
-					// fix tops with extra points too close to left corner preventing rounding
-					if (
-						abs(originLight(verticalTopLeft.x) - originLight(verticalBottomLeft.x)) < 3 &&
-						abs(originLight(verticalTopLeft.y) - originLight(verticalBottomLeft.y)) < 15 &&
-						abs(originHeavy(verticalTopRight.x) - originHeavy(verticalTopLeft.x)) > 125
-						// originLight(verticalTopLeft.x) == originLight(verticalBottomLeft.x) &&
-						// abs(originLight(verticalTopLeft.y) - originLight(verticalBottomLeft.y)) < 30 &&
-						// abs(originLight(verticalTopLeft.y) - originLight(circularArray(contour, idxPP1 + 3).y)) > 30 &&
-						// abs(originLight(verticalBottomLeft.x) - originLight(circularArray(contour, idxPP1 + 3).x)) < 10
-					) {
-						const deltaM0 = originLight(verticalTopLeft.y) - originLight(verticalBottomLeft.y);
-						const deltaM1 = originHeavy(verticalTopLeft.y) - originHeavy(verticalBottomLeft.y);
-						const diffM0 = deltaM0 < 15 ? 15 - deltaM0 : 0;
-						const diffM1 = deltaM1 < 80 ? 80 - deltaM1 : 0;
-						// console.log("extend points too close left: " + glyph.name);
-						newContour[verticalBottomLeftIdx] = {
-							x: makeVariance(
-								originLight(verticalTopLeft.x),
-								originHeavy(verticalTopLeft.x)
-							),
-							y: makeVariance(
-								originLight(verticalBottomLeft.y) - diffM0,
-								originHeavy(verticalBottomLeft.y) - diffM1
-								),
-							kind: verticalBottomLeft.kind,
-						};
-					}
-					matched = true;
-					if (
-						circularArray(contour, idxP - 1).kind === 0 && circularArray(contour, idxP - 2).kind === 2 &&
-						circularArray(contour, idxP - 1).x === circularArray(contour, idxP - 2).x &&
-						circularArray(contour, idxP - 1).y === circularArray(contour, idxP - 2).y
-					) {
-						let degenerated = circularIndex(contour, idxP - 3);
-						newContour.splice(degenerated, 2);
-					}
-				}
-				if (matched) break;
-			}
+			// 		// fix tops with extra points too close to left corner preventing rounding
+			// 		if (
+			// 			abs(originLight(verticalTopLeft.x) - originLight(verticalBottomLeft.x)) < 3 &&
+			// 			abs(originLight(verticalTopLeft.y) - originLight(verticalBottomLeft.y)) < 15 &&
+			// 			abs(originHeavy(verticalTopRight.x) - originHeavy(verticalTopLeft.x)) > 125
+			// 			// originLight(verticalTopLeft.x) == originLight(verticalBottomLeft.x) &&
+			// 			// abs(originLight(verticalTopLeft.y) - originLight(verticalBottomLeft.y)) < 30 &&
+			// 			// abs(originLight(verticalTopLeft.y) - originLight(circularArray(contour, idxPP1 + 3).y)) > 30 &&
+			// 			// abs(originLight(verticalBottomLeft.x) - originLight(circularArray(contour, idxPP1 + 3).x)) < 10
+			// 		) {
+			// 			const deltaM0 = originLight(verticalTopLeft.y) - originLight(verticalBottomLeft.y);
+			// 			const deltaM1 = originHeavy(verticalTopLeft.y) - originHeavy(verticalBottomLeft.y);
+			// 			const diffM0 = deltaM0 < 15 ? 15 - deltaM0 : 0;
+			// 			const diffM1 = deltaM1 < 80 ? 80 - deltaM1 : 0;
+			// 			// console.log("extend points too close left: " + glyph.name);
+			// 			newContour[verticalBottomLeftIdx] = {
+			// 				x: makeVariance(
+			// 					originLight(verticalTopLeft.x),
+			// 					originHeavy(verticalTopLeft.x)
+			// 				),
+			// 				y: makeVariance(
+			// 					originLight(verticalBottomLeft.y) - diffM0,
+			// 					originHeavy(verticalBottomLeft.y) - diffM1
+			// 					),
+			// 				kind: verticalBottomLeft.kind,
+			// 			};
+			// 		}
+			// 		matched = true;
+			// 		if (
+			// 			circularArray(contour, idxP - 1).kind === 0 && circularArray(contour, idxP - 2).kind === 2 &&
+			// 			circularArray(contour, idxP - 1).x === circularArray(contour, idxP - 2).x &&
+			// 			circularArray(contour, idxP - 1).y === circularArray(contour, idxP - 2).y
+			// 		) {
+			// 			let degenerated = circularIndex(contour, idxP - 3);
+			// 			newContour.splice(degenerated, 2);
+			// 		}
+			// 	}
+			// 	if (matched) break;
+			// }
 
 
 			
@@ -1583,20 +1631,34 @@ function correctGlyphs(font, references) {
 	
 	let len = font.glyphs.items.length;
 	let consoleWidth = process.stdout.columns || 150
-	let bar = new ProgressBar('\u001b[38;5;82mcorrectGlyphs\u001b[0m [3/5]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+	let bar = new ProgressBar('\u001b[38;5;82mcorrectGlyphs\u001b[0m [3/5]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
 	
-	function progressTick(info = "") {
+	function progressTick() {
 		if (len) {
 			var chunk = 1;
 			bar.tick(chunk);
 			if (bar.curr > 0 && bar.curr < len - 2) { 
-				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
 			}
 			if (bar.curr === len - 1) { 
-				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
 			}
 		}
 	}
+	// let bar = new ProgressBar('\u001b[38;5;82mcorrectGlyphs\u001b[0m [3/5]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+	
+	// function progressTick(info = "") {
+	// 	if (len) {
+	// 		var chunk = 1;
+	// 		bar.tick(chunk);
+	// 		if (bar.curr > 0 && bar.curr < len - 2) { 
+	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+	// 		}
+	// 		if (bar.curr === len - 1) { 
+	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+	// 		}
+	// 	}
+	// }
 
 	let count = 0;
 	for (const [idxG, glyph] of font.glyphs.items.entries()) {
@@ -1607,7 +1669,7 @@ function correctGlyphs(font, references) {
 			
 		// 	continue;
 		// }
-		progressTick(name);
+		progressTick();
 		if (!references.extendSkip.includes(name)) checkSingleGlyph(glyph, idxG);
 		// count++;
 		// if (count % 1000 == 0) console.log("correctGlyphs:", count, "glyphs processed.");

@@ -33,6 +33,15 @@ function circularIndex(array, index) {
 	return isNaN(idx) ? index : idx;
 }
 
+function angle(line) {
+	let { p1, p2 } = line;
+	let deg = (Math.atan2((p1.x - p2.x), (p1.y - p2.y)) + Math.PI) * 360 / (2 * Math.PI);
+	if (p2.x < p1.x && p2.y > p1.y) return deg - 360;
+	if (p2.x < p1.x && p2.y < p1.y) return deg - 180;
+	if (deg === 360) return 180;
+	return deg;
+}
+
 // function abs(num) {
 // 	return num >= 0 ? num : -num;
 // }
@@ -45,14 +54,6 @@ function preProcess(font, references) {
 	const masterSet = new Ot.Var.MasterSet();
 	masterSet.getOrPush(masterWghtMax);
 	const valueFactory = new Ot.Var.ValueFactory(masterSet);
-	// const os2 = new Ot.Os2.Table(4);
-	// const os2 = new font.;
-	// console.log(font.os2.usWinDescent);
-	// console.log(font.os2.sTypoDescender);
-	// console.log(font.os2.sxHeight);
-	// console.log(font.os2.sCapHeight);
-	// console.log(font.os2.sTypoAscender);
-	// console.log(font.os2.usWinAscent);
 
 	function originLight(point) {
 		return Ot.Var.Ops.originOf(point);
@@ -89,7 +90,164 @@ function preProcess(font, references) {
 		let ydh = abs(y2h - y1h);
 		return sqrt(pow(xdh, 2) + pow(ydh, 2));
 	}
-
+	
+	function canBeRightEnd(bottomRight, topRight) {
+		return bottomRight.kind == 0 && topRight.kind == 0 &&
+			approxEq(bottomRight.x, topRight.x, 20, 54) &&
+			approxEq(distanceLight(topRight, bottomRight), params.strokeWidth.light, 20,) &&
+			// approxEq(originLight(topRight.y) - originLight(bottomRight.y), params.strokeWidth.light, 20,) &&
+			// distanceHeavy(topRight, bottomRight) <= params.strokeWidth.heavy;
+			originHeavy(topRight.y) - originHeavy(bottomRight.y) <= params.strokeWidth.heavy;
+	}
+	
+	function canBeTopEnd(topRight, topLeft) {
+		// console.log(originLight(topRight.x) - originLight(topLeft.x));
+		return topRight.kind == 0 && topLeft.kind == 0 &&
+			approxEq(topRight.y, topLeft.y, 20) &&
+			approxEq(originLight(topRight.x) - originLight(topLeft.x), params.strokeWidth.light, 20,) &&
+			originHeavy(topRight.x) - originHeavy(topLeft.x) <= params.strokeWidth.heavy;
+	}
+	
+	//             1            
+	//             ●            
+	//           .    .         
+	// 3     2 .         .      
+	// ●  .  ●              .  0
+	// 4                       ●
+	// ●                        
+	function canBeLeftFalling(topRight, topPeak, topLeft, flatLeft, downLeft, leftC1, leftC2, bottomLeft, bottomRight, rightC1, rightC2) {
+		return topRight.kind == 0 && topPeak.kind == 0 && topLeft.kind == 0 && flatLeft.kind == 0 && downLeft.kind == 0 &&
+		leftC1.kind == 1 && leftC2.kind == 2 && bottomLeft.kind == 0 && bottomRight.kind == 0 && rightC1.kind == 1 && rightC2.kind == 2 &&
+		originLight(topRight.x) - originLight(topPeak.x) > 0 &&
+		originLight(topPeak.x) - originLight(topLeft.x) > 0 &&
+		originLight(topLeft.x) - originLight(flatLeft.x) > 0 &&
+		originLight(flatLeft.x) - originLight(downLeft.x) == 0 &&
+		originLight(topRight.y) - originLight(topPeak.y) <= 0 &&
+		originLight(topPeak.y) - originLight(topLeft.y) > 0 &&
+		originLight(topLeft.y) - originLight(flatLeft.y) == 0 &&
+		originLight(flatLeft.y) - originLight(downLeft.y) > 0 &&
+		originLight(topRight.y) > originLight(bottomRight.y) &&
+		originLight(topRight.x) > originLight(bottomRight.x) &&
+		originLight(downLeft.y) > originLight(bottomLeft.y) &&
+		originLight(downLeft.x) > originLight(bottomLeft.x);
+	}
+	
+	//            2              
+	//            ●              
+	//         .     .           
+	//      .            .       
+	// 3 .   4               .  1
+	// ●  .  ●                  ●
+	//                         0 
+	//                         ● 
+	function canBeLeftFalling2(topRight, farRight, topPeak, farLeft, topLeft, leftC1, leftC2, bottomLeft, bottomRight, rightC1, rightC2) {
+		return topRight.kind == 0 && farRight.kind == 0 && topPeak.kind == 0 && farLeft.kind == 0 && topLeft.kind == 0 &&
+		leftC1.kind == 1 && leftC2.kind == 2 && bottomLeft.kind == 0 && bottomRight.kind == 0 && rightC1.kind == 1 && rightC2.kind == 2 &&
+		originLight(topRight.x) - originLight(farRight.x) < 0 &&
+		originLight(farRight.x) - originLight(topPeak.x) > 0 &&
+		originLight(topPeak.x) - originLight(farLeft.x) > 0 &&
+		originLight(farLeft.x) - originLight(topLeft.x) < 0 &&
+		originLight(topRight.y) - originLight(farRight.y) < 0 &&
+		originLight(farRight.y) - originLight(topPeak.y) < 0 &&
+		originLight(topPeak.y) - originLight(farLeft.y) > 0 &&
+		abs(originLight(farLeft.y) - originLight(topLeft.y)) <= 2 &&
+		originLight(topRight.y) > originLight(bottomRight.y) &&
+		originLight(topRight.x) > originLight(bottomRight.x) &&
+		originLight(topLeft.y) > originLight(bottomLeft.y) &&
+		originLight(topLeft.x) > originLight(bottomLeft.x);
+	}
+	
+	//            2              
+	//            ●              
+	//      3  .     .           
+	//      ●            .       
+	// 4 .   5               .  1
+	// ●  .  ●                  ●
+	//                         0 
+	//                         ● 
+	function canBeLeftFalling2b(topRight, farRight, topPeak, slopeLeft, farLeft, topLeft, leftC1, leftC2, bottomLeft, bottomRight, rightC1, rightC2) {
+		return topRight.kind == 0 && farRight.kind == 0 && topPeak.kind == 0 && slopeLeft.kind == 0 && farLeft.kind == 0 && topLeft.kind == 0 &&
+		leftC1.kind == 1 && leftC2.kind == 2 && bottomLeft.kind == 0 && bottomRight.kind == 0 && rightC1.kind == 1 && rightC2.kind == 2 &&
+		originLight(topRight.x) - originLight(farRight.x) < 0 &&
+		originLight(farRight.x) - originLight(topPeak.x) > 0 &&
+		originLight(topPeak.x) - originLight(slopeLeft.x) > 0 &&
+		originLight(slopeLeft.x) - originLight(farLeft.x) > 0 &&
+		originLight(farLeft.x) - originLight(topLeft.x) < 0 &&
+		originLight(topRight.y) - originLight(farRight.y) < 0 &&
+		originLight(farRight.y) - originLight(topPeak.y) < 0 &&
+		originLight(topPeak.y) - originLight(slopeLeft.y) > 0 &&
+		originLight(slopeLeft.y) - originLight(farLeft.y) > 0 &&
+		abs(originLight(farLeft.y) - originLight(topLeft.y)) <= 2 &&
+		originLight(topRight.y) > originLight(bottomRight.y) &&
+		originLight(topRight.x) > originLight(bottomRight.x) &&
+		originLight(topLeft.y) > originLight(bottomLeft.y) &&
+		originLight(topLeft.x) > originLight(bottomLeft.x);
+	}
+	
+	//            1              
+	//            ●              
+	//         .     .           
+	//      .            .       
+	// 2 .                   .  0
+	// ●                        ●
+	// ●                         
+	// 3                         
+	function canBeLeftFalling3(topRight, topPeak, topLeft, downLeft, leftC1, leftC2, bottomLeft, bottomRight, rightC1, rightC2) {
+		return topRight.kind == 0 && topPeak.kind == 0 && topLeft.kind == 0 && downLeft.kind == 0 &&
+		leftC1.kind == 1 && leftC2.kind == 2 && bottomLeft.kind == 0 && bottomRight.kind == 0 && rightC1.kind == 1 && rightC2.kind == 2 &&
+		originLight(topRight.x) - originLight(topPeak.x) > 0 &&
+		originLight(topPeak.x) - originLight(topLeft.x) > 0 &&
+		originLight(topLeft.x) - originLight(downLeft.x) === 0 &&
+		originLight(topRight.y) - originLight(topPeak.y) < 0 &&
+		originLight(topPeak.y) - originLight(topLeft.y) > 0 &&
+		originLight(topLeft.y) - originLight(downLeft.y) > 0 &&
+		originLight(topRight.y) > originLight(bottomRight.y) &&
+		originLight(topRight.x) > originLight(bottomRight.x) &&
+		originLight(downLeft.y) > originLight(bottomLeft.y) &&
+		originLight(downLeft.x) > originLight(bottomLeft.x);
+	}
+	
+	//               4               
+	//               ●               
+	//           .        .          
+	//  6   5 .                .    3
+	//  ●   ●                     2 ●
+	//                          1 ○   
+	//                        0 ○     
+	//                        ●       
+	// function canBeLeftFalling4(rightC2, farRight, topPeak, topLeft, flatLeft, leftC1) {
+	// 	return rightC2.kind == 2 && farRight.kind == 0 && topPeak.kind == 0 && topLeft.kind == 0 && flatLeft.kind == 0 && leftC1.kind == 1 &&
+	// 	originLight(rightC2.x) < originLight(farRight.x) &&
+	// 	originLight(rightC2.y) < originLight(farRight.y) &&
+	// 	originLight(farRight.x) > originLight(topPeak.x) &&
+	// 	originLight(farRight.y) < originLight(topPeak.y) &&
+	// 	originLight(topPeak.x) > originLight(topLeft.x) &&
+	// 	originLight(topPeak.y) > originLight(topLeft.y) &&
+	// 	originLight(topLeft.x) > originLight(flatLeft.x) &&
+	// 	abs(originLight(topLeft.y) - originLight(flatLeft.y)) < 3 &&
+	// 	originLight(flatLeft.x) > originLight(leftC1.x) &&
+	// 	originLight(flatLeft.y) > originLight(leftC1.y)
+	// }
+	function canBeLeftFalling4(rightC2, topRight, topRightC1, topRightC2, farRight, topPeak, topLeft, flatLeft, leftC1) {
+		return rightC2.kind == 2 && topRight.kind == 0 && topRightC1.kind == 1 && topRightC2.kind == 2 &&
+		farRight.kind == 0 && topPeak.kind == 0 && topLeft.kind == 0 && flatLeft.kind == 0 && leftC1.kind == 1 &&
+		originLight(rightC2.x) < originLight(topRight.x) &&
+		originLight(rightC2.y) < originLight(topRight.y) &&
+		originLight(topRight.x) < originLight(topRightC1.x) &&
+		originLight(topRight.y) <= originLight(topRightC1.y) &&
+		originLight(topRightC1.x) < originLight(topRightC2.x) &&
+		originLight(topRightC1.y) < originLight(topRightC2.y) &&
+		originLight(topRightC2.x) < originLight(farRight.x) &&
+		originLight(topRightC2.y) < originLight(farRight.y) &&
+		originLight(farRight.x) > originLight(topPeak.x) &&
+		originLight(farRight.y) < originLight(topPeak.y) &&
+		originLight(topPeak.x) > originLight(topLeft.x) &&
+		originLight(topPeak.y) > originLight(topLeft.y) &&
+		originLight(topLeft.x) > originLight(flatLeft.x) &&
+		abs(originLight(topLeft.y) - originLight(flatLeft.y)) < 3 &&
+		originLight(flatLeft.x) > originLight(leftC1.x) &&
+		originLight(flatLeft.y) > originLight(leftC1.y)
+	}
 	function approxEq(a, b, threshold = 5) {
 		if (typeof a == 'number' && typeof b == 'number')
 			return Math.abs(a - b) <= threshold;
@@ -154,7 +312,7 @@ function preProcess(font, references) {
 		
 		glyph.geometry.contours = [];
 		
-		for (const [idxC, contour] of oldContours.entries()) {
+		for (const [idxC1, contour] of oldContours.entries()) {
 			if (contour.length < 4) {
 				glyph.geometry.contours.push(contour);
 				continue;
@@ -197,9 +355,199 @@ function preProcess(font, references) {
 					}
 				}
 			}
+			
+			for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
+				const bottomRightIdx = idxP1;
+				const topRightIdx = nextNode(contour, bottomRightIdx);
+				const topLeftIdx = nextNode(contour, topRightIdx);
+				const bottomLeftIdx = previousNode(contour, bottomRightIdx);
+				// const topLeftIdx = nextNodeIdx(contour, topRightIdx);
+				// const bottomLeftIdx = previousNodeIdx(contour, bottomRightIdx);
+
+				const horizontalAngle = angle(lineLight(circularArray(contour, bottomLeftIdx), circularArray(contour, bottomRightIdx)));
+				const horizontalTopSlope = horizontalSlope(lineLight(circularArray(contour, bottomLeftIdx), circularArray(contour, bottomRightIdx)));
+				const horizontalBottomSlope = horizontalSlope(lineLight(circularArray(contour, bottomLeftIdx), circularArray(contour, bottomRightIdx)));
+				if (
+					// is right end
+					canBeRightEnd(circularArray(contour, bottomRightIdx), circularArray(contour, topRightIdx)) &&
+					approxEq(horizontalTopSlope, horizontalBottomSlope, 0.4) &&
+					originLight(circularArray(contour, bottomRightIdx).x) > originLight(circularArray(contour, bottomLeftIdx).x) &&
+					horizontalBottomSlope < 0.5
+					// approxEq(horizontalTopRight.y, horizontalTopLeft.y, 34, 37)
+					// approxEq(distanceLight(horizontalBottomRight, horizontalTopRight), params.strokeWidth.light, 10) &&
+					// approxEq(distanceLight(horizontalTopLeft, horizontalBottomLeft), params.strokeWidth.light, 10) &&
+				) {
+					const horizontalBottomRight = circularArray(contour, bottomRightIdx);
+					const horizontalTopRight = circularArray(contour, topRightIdx);
+					const horizontalTopLeft = circularArray(contour, topLeftIdx);
+					const horizontalBottomLeft = circularArray(contour, bottomLeftIdx);
+					const horizontalStrokeLight = originLight(horizontalTopRight.y) - originLight(horizontalBottomRight.y);
+					const horizontalStrokeHeavy = originHeavy(horizontalTopRight.y) - originHeavy(horizontalBottomRight.y);
+					for (const [idxC2, contour2] of oldContours.entries()) {
+						let extended = false;
+						let matched = false;
+						for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
+							// find 横's (horizontal's) right end inside ㇇'s (horizontal + left-falling)
+							if (
+								contour2.length > 10 &&
+								canBeLeftFalling(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5), circularArray(contour2, idxP2 + 6), circularArray(contour2, idxP2 + 7), circularArray(contour2, idxP2 - 3), circularArray(contour2, idxP2 - 2), circularArray(contour2, idxP2 - 1)) &&
+								abs(originLight(horizontalTopRight.y) - originLight(circularArray(contour2, idxP2 + 2).y)) <=1 &&
+								originLight(horizontalTopRight.x) > originLight(circularArray(contour2, idxP2 + 3).x) &&
+								originLight(horizontalTopRight.x) < originLight(circularArray(contour2, idxP2).x)
+							) {
+								const leftFallBottomLeft = circularArray(contour2, idxP2 + 7);
+								const leftFallBottomRight = circularArray(contour2, idxP2 - 3);
+								if (name in references.horizontalLeftFalling === false) {
+									references.horizontalLeftFalling[name] = [];
+								}
+								let refs = references.horizontalLeftFalling[name];
+								let ref = { "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2 };
+								for (let idxC3 = 0; idxC3 < oldContours.length; idxC3++) {
+									if ([idxC1, idxC2].includes(idxC3)) continue;
+									let vertMatched = false;
+									for (let idxP3 = 0; idxP3 < oldContours[idxC3].length; idxP3++) {
+										if (// is top end
+											canBeTopEnd(oldContours[idxC3][idxP3], circularArray(oldContours[idxC3], idxP3 + 1)) &&
+											approxEq(oldContours[idxC3][idxP3].x, circularArray(oldContours[idxC3], idxP3 - 1).x) &&
+											approxEq(circularArray(oldContours[idxC3], idxP3 + 1).x, circularArray(oldContours[idxC3], idxP3 + 2).x)
+										) {
+											const verticalTopRight = oldContours[idxC3][idxP3];
+											const verticalTopLeft = circularArray(oldContours[idxC3], idxP3 + 1);
+											const verticalBottomLeft = circularArray(oldContours[idxC3], idxP3 + 2);
+											const verticalBottomRight = circularArray(oldContours[idxC3], idxP3 - 1);
+											if (
+												originLight(verticalTopRight.y) >= originLight(leftFallBottomRight.y) &&
+												originLight(verticalTopRight.x) >= originLight(leftFallBottomRight.x) &&
+												originLight(verticalBottomRight.y) < originLight(leftFallBottomRight.y) &&
+												originLight(verticalBottomRight.x) >= originLight(leftFallBottomRight.x) &&
+												originLight(verticalTopLeft.y) >= originLight(leftFallBottomLeft.y) &&
+												originLight(verticalTopLeft.x) <= originLight(leftFallBottomLeft.x) &&
+												originLight(verticalBottomLeft.y) < originLight(leftFallBottomLeft.y) &&
+												originLight(verticalBottomLeft.x) <= originLight(leftFallBottomLeft.x) &&
+												originHeavy(verticalTopRight.y) >= originHeavy(leftFallBottomRight.y) &&
+												originHeavy(verticalTopRight.x) >= originHeavy(leftFallBottomRight.x) &&
+												originHeavy(verticalBottomRight.y) < originHeavy(leftFallBottomRight.y) &&
+												originHeavy(verticalBottomRight.x) >= originHeavy(leftFallBottomRight.x) &&
+												originHeavy(verticalTopLeft.y) >= originHeavy(leftFallBottomLeft.y) &&
+												originHeavy(verticalTopLeft.x) <= originHeavy(leftFallBottomLeft.x) &&
+												originHeavy(verticalBottomLeft.y) < originHeavy(leftFallBottomLeft.y) &&
+												originHeavy(verticalBottomLeft.x) <= originHeavy(leftFallBottomLeft.x)
+											) {
+												ref = { "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2, "vertical": idxC3, "verticalTopRight": idxP3 };
+												if (name in references.skipRedundantPoints === false) {
+													references.skipRedundantPoints[name] = [];
+												}
+												references.skipRedundantPoints[name].push(idxC3);
+												vertMatched = true;
+												break;
+											}
+										}
+									}
+									if (vertMatched) break;
+								}
+								refs.push(ref);
+								matched = true;
+								// extended = true;
+								// break;
+							}
+
+							if (
+								contour2.length > 10 &&
+								canBeLeftFalling2(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5), circularArray(contour2, idxP2 + 6), circularArray(contour2, idxP2 + 7), circularArray(contour2, idxP2 - 3), circularArray(contour2, idxP2 - 2), circularArray(contour2, idxP2 - 1))  &&
+								originLight(horizontalTopRight.y) < originLight(circularArray(contour2, idxP2 + 2).y) &&
+								originLight(horizontalTopRight.x) > originLight(circularArray(contour2, idxP2 + 3).x) &&
+								originLight(contour2[idxP2].x) > originLight(horizontalTopRight.x)
+							) {
+								if (name in references.horizontalLeftFalling2 === false) {
+									references.horizontalLeftFalling2[name] = [];
+								}
+								let refs = references.horizontalLeftFalling2[name];
+								refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "horizontalSlope": horizontalBottomSlope, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
+								matched = true;
+								// extended = true;
+								// break;
+							}
+							if (
+								contour2.length > 10 &&
+								canBeLeftFalling2b(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5), circularArray(contour2, idxP2 + 6), circularArray(contour2, idxP2 + 7), circularArray(contour2, idxP2 + 8), circularArray(contour2, idxP2 - 3), circularArray(contour2, idxP2 - 2), circularArray(contour2, idxP2 - 1)) &&
+								originLight(horizontalTopRight.y) < originLight(circularArray(contour2, idxP2 + 2).y) &&
+								originLight(horizontalTopRight.x) > originLight(circularArray(contour2, idxP2 + 4).x) &&
+								originLight(contour2[idxP2].x) > originLight(horizontalTopRight.x)
+							) {
+								if (name in references.horizontalLeftFalling2b === false) {
+									references.horizontalLeftFalling2b[name] = [];
+								}
+								let refs = references.horizontalLeftFalling2b[name];
+								refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "horizontalSlope": horizontalBottomSlope, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
+								matched = true;
+								// extended = true;
+								// break;
+							}
+
+							if (
+								contour2.length > 10 &&
+								canBeLeftFalling3(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5), circularArray(contour2, idxP2 + 6), circularArray(contour2, idxP2 - 3), circularArray(contour2, idxP2 - 2), circularArray(contour2, idxP2 - 1)) &&
+								abs(originLight(horizontalTopRight.y) - originLight(circularArray(contour2, idxP2 + 1).y)) <=15 &&
+								originLight(horizontalTopRight.x) - originLight(circularArray(contour2, idxP2 + 2).x) > 0 &&
+								originLight(contour2[idxP2].x) > originLight(horizontalTopRight.x)
+							) {
+								if (name in references.horizontalLeftFalling3 === false) {
+									references.horizontalLeftFalling3[name] = [];
+								}
+								let refs = references.horizontalLeftFalling3[name];
+								refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
+								matched = true;
+								// extended = true;
+								// break;
+							}
+							if (
+								contour2.length > 10 &&
+								canBeLeftFalling4(circularArray(contour2, idxP2 - 4), circularArray(contour2, idxP2 - 3), circularArray(contour2, idxP2 - 2), circularArray(contour2, idxP2 - 1), contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4)) &&
+								abs(originLight(horizontalTopRight.y) - originLight(circularArray(contour2, idxP2 + 3).y)) <= 15 &&
+								abs(originLight(horizontalTopRight.x) - originLight(circularArray(contour2, idxP2 + 3).x)) <= 30 &&
+								originLight(circularArray(contour2, idxP2).x) > originLight(horizontalTopRight.x)
+							) {
+								if (name in references.horizontalLeftFalling4 === false) {
+									references.horizontalLeftFalling4[name] = [];
+								}
+								let refs = references.horizontalLeftFalling4[name];
+								refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
+								matched = true;
+								// extended = true;
+								// break;
+							}
+						}
+						if (extended) break;
+						if (matched) {
+							if (name in references.extendIgnoreContourIdx === false) {
+								references.extendIgnoreContourIdx[name] = [];
+							}
+							references.extendIgnoreContourIdx[name].push(idxC1, idxC2);
+							if (name in references.skipRedundantPoints === false) {
+								references.skipRedundantPoints[name] = [];
+							}
+							references.skipRedundantPoints[name].push(idxC1, idxC2);
+						}
+					}
+				}
+			}
+			glyph.geometry.contours.push(newContour);
+		}
+			
+		oldContours = glyph.geometry.contours;
+		
+		glyph.geometry.contours = [];
+		
+		for (const [idxC1, contour] of oldContours.entries()) {
+			if (contour.length < 4) {
+				glyph.geometry.contours.push(contour);
+				continue;
+			}
+
+			const newContour = [...contour];
 			if (name in references.skipRedundantPoints) {
 				const skipContours = references.skipRedundantPoints[name];
-				if (skipContours.includes(idxC)) {
+				if (skipContours.includes(idxC1)) {
 					glyph.geometry.contours.push(contour);
 					continue;
 				}
@@ -227,6 +575,7 @@ function preProcess(font, references) {
 				let endPoint = circularArray(contour, endIdx);
 				let mainSlope = horizontalSlope(lineLight(startPoint, endPoint));
 				let parentBearing = bearing(lineLight(startPoint, endPoint));
+				let parentLength = distanceLight(startPoint, endPoint);
 				if (abs(mainSlope) > 1) {
 					mainSlope = verticalSlope(lineLight(startPoint, endPoint));
 					vert = true;
@@ -242,6 +591,7 @@ function preProcess(font, references) {
 						let p2 = contour[p2Idx];
 						let p3 = contour[p3Idx];
 						let p4 = contour[p4Idx];
+						let segmentLength = distanceLight(p1, p4);
 						let segmentBearing = bearing(lineLight(p1, p4));
 						let control1Bearing = bearing(lineLight(p1, p2));
 						let control2Bearing = bearing(lineLight(p3, p4));
@@ -250,44 +600,19 @@ function preProcess(font, references) {
 						let c1D = abs(turn(parentBearing, control1Bearing));
 						let c2D = abs(turn(parentBearing, control2Bearing));
 						let cVD = abs(turn(parentBearing, controlVectorBearing));
-						
-						
-						
-						// let s1a = (vert ? verticalSlope(lineLight(startPoint, p1)) : horizontalSlope(lineLight(startPoint, p1))) || mainSlope;
-						// let s1b = (vert ? verticalSlope(lineLight(p1, endPoint)) : horizontalSlope(lineLight(p1, endPoint))) || mainSlope;
-						// let s2a = (vert ? verticalSlope(lineLight(startPoint, p2)) : horizontalSlope(lineLight(startPoint, p2))) || mainSlope;
-						// let s2b = (vert ? verticalSlope(lineLight(p2, endPoint)) : horizontalSlope(lineLight(p2, endPoint))) || mainSlope;
-						// let s3a = (vert ? verticalSlope(lineLight(startPoint, p3)) : horizontalSlope(lineLight(startPoint, p3))) || mainSlope;
-						// let s3b = (vert ? verticalSlope(lineLight(p3, endPoint)) : horizontalSlope(lineLight(p3, endPoint))) || mainSlope;
-						// let s4a = (vert ? verticalSlope(lineLight(startPoint, p4)) : horizontalSlope(lineLight(startPoint, p4))) || mainSlope;
-						// let s4b = (vert ? verticalSlope(lineLight(p4, endPoint)) : horizontalSlope(lineLight(p4, endPoint))) || mainSlope;
-						// let d1a = Math.abs(mainSlope - s1a);
-						// let d1b = Math.abs(mainSlope - s1b);
-						// let d2a = Math.abs(mainSlope - s2a);
-						// let d2b = Math.abs(mainSlope - s2b);
-						// let d3a = Math.abs(mainSlope - s3a);
-						// let d3b = Math.abs(mainSlope - s3b);
-						// let d4a = Math.abs(mainSlope - s4a);
-						// let d4b = Math.abs(mainSlope - s4b);
 						if (p2.kind === 1 && p3.kind === 2 && p4.kind === 0) {
-							// let sC = vert ? verticalSlope(lineLight(p1, p2)) : horizontalSlope(lineLight(p1, p2));
-							// let dC = Math.abs(mainSlope - sC);
-							// if ((d1a < maxSlope / 0.6 || d1b < maxSlope / 2) && (d2a < maxSlope / 1.5 || d2b < maxSlope) && dC < 0.2 && (d3a < maxSlope / 2 || d3b < maxSlope / 2 || distanceLight(p2, p3) === 0)) {
-							if (segD < 11 && (c1D < 11 || distanceLight(p1, p2) === 0) && (c2D < 11 || distanceLight(p3, p4) === 0) && cVD < 11) {
-							// if ((d1a < maxSlope || d1b < maxSlope) && (d2a < maxSlope || d2b < maxSlope) && dC < 0.2 && (d3a < maxSlope || d3b < maxSlope)) {
+							if (segD < 11 && (c1D < 11 || distanceLight(p1, p2) === 0) && (c2D < 11 || distanceLight(p3, p4) === 0) && cVD < 11 && segmentLength < (parentLength / 6)) {
+								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length && p1Idx > startIdx) redundantPoints.push(p1Idx);
 								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length) redundantPoints.push(p2Idx);
 								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length) redundantPoints.push(p3Idx);
 								if (!redundantPoints.includes(p4Idx) && p4Idx !== 0 && p4Idx < contour.length && p4Idx < endIdx) redundantPoints.push(p4Idx);
 							}
-						// } else if (p1.kind === 0 && p2.kind === 1 && p3.kind === 2) {
-						// 	let sC = vert ? verticalSlope(lineLight(p2, p3)) : horizontalSlope(lineLight(p2, p3));
-						// 	let dC = Math.abs(mainSlope - sC);
-						// 	if ((d1a < maxSlope / 2 || d1b < maxSlope / 2) && (d2a < maxSlope || d2b < maxSlope / 2 || distanceLight(p1, p2) === 0) && dC < 0.2 && (d3a < maxSlope / 2 || d3b < maxSlope / 0.8)) {
-						// 	// if ((d1a < maxSlope || d1b < maxSlope) && (d2a < maxSlope || d2b < maxSlope) && dC < 0.2 && (d3a < maxSlope || d3b < maxSlope)) {
-						// 		if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length) redundantPoints.push(p1Idx);
-						// 		if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length) redundantPoints.push(p2Idx);
-						// 		if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length && p3Idx < endIdx) redundantPoints.push(p3Idx);
-						// 	}
+							if (segD < 5 && (c1D < 5 || distanceLight(p1, p2) === 0) && (c2D < 5 || distanceLight(p3, p4) === 0) && cVD < 5) {
+								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length && p1Idx > startIdx) redundantPoints.push(p1Idx);
+								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length) redundantPoints.push(p2Idx);
+								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length) redundantPoints.push(p3Idx);
+								if (!redundantPoints.includes(p4Idx) && p4Idx !== 0 && p4Idx < contour.length && p4Idx < endIdx) redundantPoints.push(p4Idx);
+							}
 						}
 						
 					}
@@ -303,7 +628,7 @@ function preProcess(font, references) {
 					let d1 = Math.abs(mainSlope - s1);
 					let d2 = Math.abs(mainSlope - s2);
 					let d3 = Math.abs(mainSlope - s3);
-					if (c1.kind === 1 && c2.kind === 2 && d1 < 0.04 && d2 < 0.04 && d3 < 0.04) {
+					if (c1.kind === 1 && c2.kind === 2 && d1 < 0.02 && d2 < 0.02 && d3 < 0.02) {
 						if (!redundantPoints.includes(c1Idx) && c1Idx !== 0 && c1Idx < contour.length) redundantPoints.push(c1Idx);
 						if (!redundantPoints.includes(c2Idx) && c2Idx !== 0 && c2Idx < contour.length) redundantPoints.push(c2Idx);
 					}
@@ -328,20 +653,34 @@ function preProcess(font, references) {
 	
 	let len = font.glyphs.items.length;
 	let consoleWidth = process.stdout.columns || 150
-	let bar = new ProgressBar('\u001b[38;5;82mpreProcessing\u001b[0m [1/5]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+	let bar = new ProgressBar('\u001b[38;5;82mpreProcessing\u001b[0m [1/5]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
 	
-	function progressTick(info = "") {
+	function progressTick() {
 		if (len) {
 			var chunk = 1;
 			bar.tick(chunk);
 			if (bar.curr > 0 && bar.curr < len - 2) { 
-				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
 			}
 			if (bar.curr === len - 1) { 
-				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
 			}
 		}
 	}
+	// let bar = new ProgressBar('\u001b[38;5;82mpreProcessing\u001b[0m [1/5]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+	
+	// function progressTick(info = "") {
+	// 	if (len) {
+	// 		var chunk = 1;
+	// 		bar.tick(chunk);
+	// 		if (bar.curr > 0 && bar.curr < len - 2) { 
+	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+	// 		}
+	// 		if (bar.curr === len - 1) { 
+	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+	// 		}
+	// 	}
+	// }
 
 	let count = 0;
 	for (const glyph of font.glyphs.items) {
