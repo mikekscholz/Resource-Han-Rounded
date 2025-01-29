@@ -64,6 +64,7 @@ const specialInstructions = {
 	extendIgnoreContourIdx: {
 		
 	},
+	leftFallingCorrections: [],
 	skipRedundantPoints: {
 		"uni3004": [0],
 		"uni30C1": [0],

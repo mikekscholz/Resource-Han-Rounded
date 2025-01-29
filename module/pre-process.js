@@ -527,6 +527,7 @@ function preProcess(font, references) {
 								references.skipRedundantPoints[name] = [];
 							}
 							references.skipRedundantPoints[name].push(idxC1, idxC2);
+							if (!references.leftFallingCorrections.includes(name)) references.leftFallingCorrections.push(name);
 						}
 					}
 				}
@@ -581,7 +582,7 @@ function preProcess(font, references) {
 					vert = true;
 				}
 				let innerPoints = (endIdx - startIdx) - 1;
-				if (innerPoints > 3 && innerPoints < 10) {
+				if (innerPoints > 2 && innerPoints < 10) {
 					for (let idx = startIdx; idx < endIdx - 1; idx++) {
 						let p1Idx = circularIndex(contour, idx);
 						let p2Idx = circularIndex(contour, idx + 1);
@@ -600,6 +601,14 @@ function preProcess(font, references) {
 						let c1D = abs(turn(parentBearing, control1Bearing));
 						let c2D = abs(turn(parentBearing, control2Bearing));
 						let cVD = abs(turn(parentBearing, controlVectorBearing));
+						if (glyph.name === 'A') {
+							console.log('\n');
+							console.log('startPoint', startPoint, 'endPoint', endPoint);
+							console.log('segmentBearing ' + segmentBearing)
+							console.log('control1Bearing ' + control1Bearing)
+							console.log('control2Bearing ' + control2Bearing)
+							console.log('controlVectorBearing ' + controlVectorBearing)
+						}
 						if (p2.kind === 1 && p3.kind === 2 && p4.kind === 0) {
 							if (segD < 11 && (c1D < 11 || distanceLight(p1, p2) === 0) && (c2D < 11 || distanceLight(p3, p4) === 0) && cVD < 11 && segmentLength < (parentLength / 6)) {
 								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length && p1Idx > startIdx) redundantPoints.push(p1Idx);
@@ -607,7 +616,19 @@ function preProcess(font, references) {
 								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length) redundantPoints.push(p3Idx);
 								if (!redundantPoints.includes(p4Idx) && p4Idx !== 0 && p4Idx < contour.length && p4Idx < endIdx) redundantPoints.push(p4Idx);
 							}
-							if (segD < 5 && (c1D < 5 || distanceLight(p1, p2) === 0) && (c2D < 5 || distanceLight(p3, p4) === 0) && cVD < 5) {
+							if (segD < 3 && (c1D < 3 || distanceLight(p1, p2) === 0) && (c2D < 3 || distanceLight(p3, p4) === 0) && cVD < 3) {
+								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length && p1Idx > startIdx) redundantPoints.push(p1Idx);
+								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length) redundantPoints.push(p2Idx);
+								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length) redundantPoints.push(p3Idx);
+								if (!redundantPoints.includes(p4Idx) && p4Idx !== 0 && p4Idx < contour.length && p4Idx < endIdx) redundantPoints.push(p4Idx);
+							}
+							if (segD < 5 && (c1D < 1 || distanceLight(p1, p2) === 0) && (c2D < 5 || distanceLight(p3, p4) === 0) && cVD < 3) {
+								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length && p1Idx > startIdx) redundantPoints.push(p1Idx);
+								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length) redundantPoints.push(p2Idx);
+								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length) redundantPoints.push(p3Idx);
+								if (!redundantPoints.includes(p4Idx) && p4Idx !== 0 && p4Idx < contour.length && p4Idx < endIdx) redundantPoints.push(p4Idx);
+							}
+							if (segD < 5 && (c1D < 5 || distanceLight(p1, p2) === 0) && (c2D < 1 || distanceLight(p3, p4) === 0) && cVD < 3) {
 								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length && p1Idx > startIdx) redundantPoints.push(p1Idx);
 								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length) redundantPoints.push(p2Idx);
 								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length) redundantPoints.push(p3Idx);
@@ -635,13 +656,13 @@ function preProcess(font, references) {
 				}
 			}
 
+			if (glyph.name === 'A') {
+				console.log('\n');
+				console.log(glyph.name);
+				console.log('corners ' + corners)
+				console.log('redundantPoints: ' + redundantPoints);
+			}
 			if (redundantPoints.length > 0) {
-				if (glyph.name === 'braceleft') {
-					console.log('\n');
-					console.log(glyph.name);
-					console.log('corners ' + corners)
-					console.log('redundantPoints: ' + redundantPoints);
-				}
 				redundantPoints.reverse();
 				for (const i of redundantPoints) {
 					newContour.splice(i, 1);

@@ -884,7 +884,8 @@ function inspect(font, references) {
 		currentHtml += `<div class="wrapper">`;
 	}
 	newHtml();
-	for (const [idxG, glyph] of font.glyphs.items.entries()) {
+	let idxG = 0;
+	for (const glyph of font.glyphs.items) {
 		const name = glyph.name;
 
 		// console.log(name);
@@ -1278,6 +1279,7 @@ function inspect(font, references) {
 			page++
 			newHtml();
 		};
+		if (glyph?.geometry?.contours) idxG++;
 	}
 
 	// let filename = glyph.name + ".svg";
