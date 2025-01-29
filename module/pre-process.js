@@ -558,8 +558,8 @@ function preProcess(font, references) {
 			for (let i = 0; i < contour.length; i++) {
 				let curr = contour[i];
 				if (curr.kind !== 0) continue;
-				let prev = contour[previousNode(contour, i, true)];
-				let next = contour[nextNode(contour, i, true)];
+				let prev = contour[previousNode(contour, i, false)];
+				let next = contour[nextNode(contour, i, false)];
 				let bear1 = bearing(lineLight(prev, curr));
 				let bear2 = bearing(lineLight(curr, next));
 				let rotation = Math.abs(turn(bear1, bear2));

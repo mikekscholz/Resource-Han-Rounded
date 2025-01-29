@@ -902,20 +902,24 @@ function extendShortStroke(font, references) {
 			const newContour = [...contour];
 
 			for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
+				const bottomLeftIdx = idxP1;
+				const bottomRightIdx = nextNode(contour, bottomLeftIdx);
+				const topRightIdx = nextNode(contour, bottomRightIdx);
+				const topLeftIdx = previousNode(contour, bottomLeftIdx)
 				if (
 					// is bottom end
-					canBeBottomEnd(contour[idxP1], circularArray(contour, idxP1 + 1)) &&
-					approxEq(contour[idxP1].x, circularArray(contour, idxP1 - 1).x, 450) &&
-					approxEq(circularArray(contour, idxP1 + 1).x, circularArray(contour, idxP1 + 2).x, 450)
+					canBeBottomEnd(contour[bottomLeftIdx], circularArray(contour, bottomRightIdx)) &&
+					approxEq(contour[bottomLeftIdx].x, circularArray(contour, topLeftIdx).x, 450) &&
+					approxEq(circularArray(contour, bottomRightIdx).x, circularArray(contour, topRightIdx).x, 450)
 				) {
-					const bottomLeftIdx = circularIndex(contour, idxP1);
-					const bottomRightIdx = circularIndex(contour, idxP1 + 1);
-					const topRightIdx = circularIndex(contour, idxP1 + 2);
-					const topLeftIdx = circularIndex(contour, idxP1 - 1);
-					const verticalBottomLeft = circularArray(contour, idxP1);
-					const verticalBottomRight = circularArray(contour, idxP1 + 1);
-					const verticalTopRight = circularArray(contour, idxP1 + 2);
-					const verticalTopLeft = circularArray(contour, idxP1 - 1);
+					// const bottomLeftIdx = circularIndex(contour, idxP1);
+					// const bottomRightIdx = circularIndex(contour, idxP1 + 1);
+					// const topRightIdx = circularIndex(contour, idxP1 + 2);
+					// const topLeftIdx = circularIndex(contour, idxP1 - 1);
+					const verticalBottomLeft = circularArray(contour, bottomLeftIdx);
+					const verticalBottomRight = circularArray(contour, bottomRightIdx);
+					const verticalTopRight = circularArray(contour, topRightIdx);
+					const verticalTopLeft = circularArray(contour, topLeftIdx);
 
 					for (const [idxC2, contour2o] of oldContours.entries()) {
 						// find possible 横s (horizontals)
@@ -1050,21 +1054,25 @@ function extendShortStroke(font, references) {
 			const newContour = [...contour];
 
 			for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
+				const topLeftIdx = idxP1;
+				const bottomLeftIdx = nextNode(contour, topLeftIdx);
+				const bottomRightIdx = nextNode(contour, bottomLeftIdx);
+				const topRightIdx = previousNode(contour, topLeftIdx);
 				if (
 					// is left end
-					canBeLeftEnd(contour[idxP1], circularArray(contour, idxP1 + 1)) &&
-					approxEq(contour[idxP1].y, circularArray(contour, idxP1 - 1).y) &&
-					approxEq(circularArray(contour, idxP1 + 1).y, circularArray(contour, idxP1 + 2).y) &&
-					originLight(circularArray(contour, idxP1 + 2).x) > originLight(circularArray(contour, idxP1 + 1).x)
+					canBeLeftEnd(contour[topLeftIdx], circularArray(contour, bottomLeftIdx)) &&
+					approxEq(contour[topLeftIdx].y, circularArray(contour, topRightIdx).y) &&
+					approxEq(circularArray(contour, bottomLeftIdx).y, circularArray(contour, bottomRightIdx).y) &&
+					originLight(circularArray(contour, bottomRightIdx).x) > originLight(circularArray(contour, bottomLeftIdx).x)
 				) {
-					const topLeftIdx = idxP1;
-					const bottomLeftIdx = circularIndex(contour, idxP1 + 1);
-					const bottomRightIdx = circularIndex(contour, idxP1 + 2);
-					const topRightIdx = circularIndex(contour, idxP1 - 1);
-					const horizontalTopLeft = contour[idxP1];
-					const horizontalBottomLeft = circularArray(contour, idxP1 + 1);
-					const horizontalBottomRight = circularArray(contour, idxP1 + 2);
-					const horizontalTopRight = circularArray(contour, idxP1 - 1);
+					// const topLeftIdx = idxP1;
+					// const bottomLeftIdx = circularIndex(contour, idxP1 + 1);
+					// const bottomRightIdx = circularIndex(contour, idxP1 + 2);
+					// const topRightIdx = circularIndex(contour, idxP1 - 1);
+					const horizontalTopLeft = contour[topLeftIdx];
+					const horizontalBottomLeft = circularArray(contour, bottomLeftIdx);
+					const horizontalBottomRight = circularArray(contour, bottomRightIdx);
+					const horizontalTopRight = circularArray(contour, topRightIdx);
 					const horizontalStrokeLight = originLight(horizontalTopLeft.y) - originLight(horizontalBottomLeft.y);
 					const horizontalStrokeHeavy = originHeavy(horizontalTopLeft.y) - originHeavy(horizontalBottomLeft.y);
 					debug && console.log(`is left end - idxC1: ${idxC1}, idxP1: ${idxP1}`);

@@ -121,68 +121,74 @@ const htmlHeader = /*html*/`
 		}
 		.dotted-rule {
 			stroke: #FFF3;
-			stroke-dasharray: 10 10;
-			stroke-width: 2;
+			stroke-dasharray: 10px 10px;
+			stroke-width: 2px;
 			stroke-linecap: round;
 			stroke-linejoin: round;
 		}
 		.control-vector {
 			stroke: #FFF;
-			stroke-dasharray: 15 5;
-			stroke-width: 1;
+			stroke-dasharray: 15px 5px;
+			stroke-width: 1px;
 			stroke-linecap: round;
 			stroke-linejoin: round;
 		}
 		.start-point {
 			fill: #0cf;
 			stroke: #FFF;
-			stroke-width: 2;
-			r: 8;
+			stroke-width: 2px;
+			r: 8px;
+			paint-order: stroke;
 		}
 		.corner-point {
 			fill: rgb(255, 0, 64);
 			stroke: #FFF;
-			stroke-width: 2;
-			r: 8;
+			stroke-width: 2px;
+			r: 8px;
+			paint-order: stroke;
 		}
 		.control-point {
 			fill: #9F0;
 			stroke: #FFF;
-			stroke-width: 2;
-			r: 7;
+			stroke-width: 2px;
+			r: 7px;
+			paint-order: stroke;
 		}
 		#dialogGlyphContainer .contour-stroke {
-			stroke-width: calc(3 / var(--dialog-scale));
+			stroke-width: calc(3px / var(--dialog-scale));
 			display: var(--dialog-toggle-stroke);
 		}
 		#dialogGlyphContainer .dotted-rule {
-			stroke-dasharray: calc(10 / var(--dialog-scale)) calc(10 / var(--dialog-scale));
-			stroke-width: calc(2 / var(--dialog-scale));
+			stroke-dasharray: calc(10px / var(--dialog-scale)) calc(10px / var(--dialog-scale));
+			stroke-width: calc(2px / var(--dialog-scale));
 			display: var(--dialog-toggle-horizontal);
 		}
 		#dialogGlyphContainer .vertical-rule {
-			stroke-width: calc(2 / var(--dialog-scale));
+			stroke-width: calc(2px / var(--dialog-scale));
 			display: var(--dialog-toggle-vertical);
 		}
 		#dialogGlyphContainer .control-vector {
-			stroke-dasharray: calc(15 / var(--dialog-scale)) calc(5 / var(--dialog-scale));
-			stroke-width: calc(1 / var(--dialog-scale));
+			stroke-dasharray: calc(15px / var(--dialog-scale)) calc(5px / var(--dialog-scale));
+			stroke-width: calc(1px / var(--dialog-scale));
 			display: var(--dialog-toggle-points);
 		}
 		#dialogGlyphContainer .start-point {
-			stroke-width: calc(3 / var(--dialog-scale));
-			r: calc(6 / var(--dialog-scale));
+			stroke-width: calc(2px / var(--dialog-scale));
+			r: calc(6px / var(--dialog-scale));
 			display: var(--dialog-toggle-points);
+			paint-order: stroke;
 		}
 		#dialogGlyphContainer .corner-point {
-			stroke-width: calc(3 / var(--dialog-scale));
-			r: calc(6 / var(--dialog-scale));
+			stroke-width: calc(2px / var(--dialog-scale));
+			r: calc(6px / var(--dialog-scale));
 			display: var(--dialog-toggle-points);
+			paint-order: stroke;
 		}
 		#dialogGlyphContainer .control-point {
-			stroke-width: calc(3 / var(--dialog-scale));
-			r: calc(6 / var(--dialog-scale));
+			stroke-width: calc(2px / var(--dialog-scale));
+			r: calc(6px / var(--dialog-scale));
 			display: var(--dialog-toggle-points);
+			paint-order: stroke;
 		}
 		[type="checkbox"]:checked,
 		[type="checkbox"]:not(:checked),
@@ -534,15 +540,17 @@ const htmlHeader = /*html*/`
 			display: flex;
 			align-items: center;
 			justify-content: space-between;
-			height: 30px;
+			height: 36px;
 			padding: 0 0 0 10px;
-			/* margin-bottom: 30px; */
 			color: #ffffff;
-			background-color: #555555;
+			background-color: #666;
+			overflow: hidden;
 		}
-
+		
 		.dialog-header p {
-			font-size: 15px;
+			font-size: 16px;
+			font-weight: 500;
+			width: 250px;
 		}
 		#dialogGlyphContainer {
 			max-height: 100%;
@@ -566,11 +574,24 @@ const htmlHeader = /*html*/`
 		
 		.dialog-toggles {
 			display: flex;
-			gap: 5px;
+			gap: 1px;
+			padding: 1px 0 1px 0;
+			height: 30px;
+			align-items: center;
+			overflow: hidden;
+		}
+
+		.dialog-toggles label {
+			border-radius: 0;
+		}
+
+		.dialog-toggles button {
+			font-weight: 700;
+			width: 40px;
 		}
 		.close-button {
 			width: 40px;
-			height: 30px;
+			height: 36px;
 			font-size: 25px;
 			font-weight: bold;
 			background-color: #898989;
@@ -578,7 +599,9 @@ const htmlHeader = /*html*/`
 			border: none;
 			border-radius: 0;
 		}
-
+		.spacer {
+			width: 10px;
+		}
 		.close-button:hover {
 			color: #ffffff;
 			font-weight: bold;
@@ -876,8 +899,9 @@ function inspect(font, references) {
 				<div class="dialog-header">
 					<p id="dialogTitle">Modal Dialog</p>
 					<div class="dialog-toggles">
-						<button id="dialogGlyphPrev">&lt;</button>
-						<button id="dialogGlyphNext">&gt;</button>
+						<button id="dialogGlyphPrev">&lt;&lt;</button>
+						<button id="dialogGlyphNext">&gt;&gt;</button>
+						<div class="spacer"></div>
 						<input class="checkbox" type="checkbox" name="toggleDialogVerticalRules" id="toggleDialogVerticalRules" checked>
 						<label class="for-checkbox" for="toggleDialogVerticalRules">
 							<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
