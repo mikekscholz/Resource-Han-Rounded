@@ -563,6 +563,7 @@ const htmlHeader = /*html*/`
 			width: 100%;
 		}
 		dialog#glyphDialog {
+			background-color: #1c1c1c;
 			height: 90vh;
 			padding: 0;
 			width: auto;

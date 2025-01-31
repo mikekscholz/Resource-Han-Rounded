@@ -93,11 +93,11 @@ function preProcess(font, references) {
 	
 	function canBeRightEnd(bottomRight, topRight) {
 		return bottomRight.kind == 0 && topRight.kind == 0 &&
-			approxEq(bottomRight.x, topRight.x, 20, 54) &&
+			approxEq(bottomRight.x, topRight.x, 50, 75) &&
 			approxEq(distanceLight(topRight, bottomRight), params.strokeWidth.light, 20,) &&
 			// approxEq(originLight(topRight.y) - originLight(bottomRight.y), params.strokeWidth.light, 20,) &&
 			// distanceHeavy(topRight, bottomRight) <= params.strokeWidth.heavy;
-			originHeavy(topRight.y) - originHeavy(bottomRight.y) <= params.strokeWidth.heavy;
+			distanceHeavy(topRight, bottomRight) <= params.strokeWidth.heavy;
 	}
 	
 	function canBeTopEnd(topRight, topLeft) {
@@ -166,18 +166,19 @@ function preProcess(font, references) {
 	//                         0 
 	//                         ● 
 	function canBeLeftFalling2b(topRight, farRight, topPeak, slopeLeft, farLeft, topLeft, leftC1, leftC2, bottomLeft, bottomRight, rightC1, rightC2) {
+	// function canBeLeftFalling2b(topRight, farRight, topPeak, slopeLeft, farLeft, topLeft) {
 		return topRight.kind == 0 && farRight.kind == 0 && topPeak.kind == 0 && slopeLeft.kind == 0 && farLeft.kind == 0 && topLeft.kind == 0 &&
 		leftC1.kind == 1 && leftC2.kind == 2 && bottomLeft.kind == 0 && bottomRight.kind == 0 && rightC1.kind == 1 && rightC2.kind == 2 &&
-		originLight(topRight.x) - originLight(farRight.x) < 0 &&
-		originLight(farRight.x) - originLight(topPeak.x) > 0 &&
-		originLight(topPeak.x) - originLight(slopeLeft.x) > 0 &&
-		originLight(slopeLeft.x) - originLight(farLeft.x) > 0 &&
-		originLight(farLeft.x) - originLight(topLeft.x) < 0 &&
-		originLight(topRight.y) - originLight(farRight.y) < 0 &&
-		originLight(farRight.y) - originLight(topPeak.y) < 0 &&
-		originLight(topPeak.y) - originLight(slopeLeft.y) > 0 &&
-		originLight(slopeLeft.y) - originLight(farLeft.y) > 0 &&
-		abs(originLight(farLeft.y) - originLight(topLeft.y)) <= 2 &&
+		originLight(topRight.x) < originLight(farRight.x) &&
+		originLight(farRight.x) > originLight(topPeak.x) &&
+		originLight(topPeak.x) > originLight(slopeLeft.x) &&
+		originLight(slopeLeft.x) > originLight(farLeft.x) &&
+		originLight(farLeft.x) < originLight(topLeft.x) &&
+		originLight(topRight.y) < originLight(farRight.y) &&
+		originLight(farRight.y) < originLight(topPeak.y) &&
+		originLight(topPeak.y) > originLight(slopeLeft.y) &&
+		originLight(slopeLeft.y) > originLight(farLeft.y) &&
+		abs(originLight(farLeft.y) - originLight(topLeft.y)) <= 4 &&
 		originLight(topRight.y) > originLight(bottomRight.y) &&
 		originLight(topRight.x) > originLight(bottomRight.x) &&
 		originLight(topLeft.y) > originLight(bottomLeft.y) &&
@@ -365,14 +366,15 @@ function preProcess(font, references) {
 				// const bottomLeftIdx = previousNodeIdx(contour, bottomRightIdx);
 
 				const horizontalAngle = angle(lineLight(circularArray(contour, bottomLeftIdx), circularArray(contour, bottomRightIdx)));
-				const horizontalTopSlope = horizontalSlope(lineLight(circularArray(contour, bottomLeftIdx), circularArray(contour, bottomRightIdx)));
+				const horizontalTopSlope = horizontalSlope(lineLight(circularArray(contour, topLeftIdx), circularArray(contour, topRightIdx)));
 				const horizontalBottomSlope = horizontalSlope(lineLight(circularArray(contour, bottomLeftIdx), circularArray(contour, bottomRightIdx)));
 				if (
 					// is right end
 					canBeRightEnd(circularArray(contour, bottomRightIdx), circularArray(contour, topRightIdx)) &&
 					approxEq(horizontalTopSlope, horizontalBottomSlope, 0.4) &&
-					originLight(circularArray(contour, bottomRightIdx).x) > originLight(circularArray(contour, bottomLeftIdx).x) &&
-					horizontalBottomSlope < 0.5
+					originLight(circularArray(contour, bottomRightIdx).x) > originLight(circularArray(contour, bottomLeftIdx).x)
+					//  &&
+					// horizontalBottomSlope < 0.5
 					// approxEq(horizontalTopRight.y, horizontalTopLeft.y, 34, 37)
 					// approxEq(distanceLight(horizontalBottomRight, horizontalTopRight), params.strokeWidth.light, 10) &&
 					// approxEq(distanceLight(horizontalTopLeft, horizontalBottomLeft), params.strokeWidth.light, 10) &&
@@ -469,6 +471,7 @@ function preProcess(font, references) {
 							}
 							if (
 								contour2.length > 10 &&
+								// canBeLeftFalling2b(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5)) &&
 								canBeLeftFalling2b(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5), circularArray(contour2, idxP2 + 6), circularArray(contour2, idxP2 + 7), circularArray(contour2, idxP2 + 8), circularArray(contour2, idxP2 - 3), circularArray(contour2, idxP2 - 2), circularArray(contour2, idxP2 - 1)) &&
 								originLight(horizontalTopRight.y) < originLight(circularArray(contour2, idxP2 + 2).y) &&
 								originLight(horizontalTopRight.x) > originLight(circularArray(contour2, idxP2 + 4).x) &&
