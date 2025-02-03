@@ -4,7 +4,7 @@ const { Ot } = require("ot-builder");
 const ProgressBar = require('./node-progress');
 const { base60, bearing, horizontalSlope, roundTo, turn, verticalSlope } = require("./util");
 const { abs, ceil, floor, max, min, pow, round, sqrt, trunc } = Math;
-const { writeFile } = require("node:fs");
+const { writeFile, mkdirSync } = require("node:fs");
 const path = require("path");
 const fsp = require("fs/promises");
 // const writeFile = async(filename, data, increment = 0) => {
@@ -34,19 +34,28 @@ const htmlHeader = /*html*/`
 			--dialog-toggle-horizontal: revert;
 			--dialog-toggle-vertical: revert;
 			--dialog-toggle-points: revert;
+			--dialog-toggle-handles: revert;
+			--dialog-contour-fill: 0.1;
+			--contour-fill: 0.1;
+			--toggle-stroke: revert;
+			--toggle-horizontal: revert;
+			--toggle-vertical: revert;
+			--toggle-points: revert;
+			--toggle-handles: revert;
 		}
 		body {
 			background-color: #1c1c1c;
 			font-family: Nunito;
+			margin: 0 4px 0 4px;
 		}
 		.nav-bar {
-			background-color: #2226;
-			backdrop-filter: blur(6px);
-			width: 100%;
+			background-color: #666;
 			height: 40px;
 			position: fixed;
 			top: 0;
 			left: 0;
+			right: 0;
+			padding: 0 5px;
 			display: flex;
 			flex-direction: row;
 			justify-content: space-between;
@@ -72,8 +81,10 @@ const htmlHeader = /*html*/`
 		}
 		.current {
 			font-weight: 700;
-			background-color: #666;
+			background-color: #222;
 			text-decoration: underline;
+			text-decoration-thickness: 2px;
+			text-underline-offset: 4px;
 		}
 		.wrapper {
 			display: flex;
@@ -108,16 +119,18 @@ const htmlHeader = /*html*/`
 			height: 20px;
 		}
 		.contour-fill {
-			fill:   #FFFFFF26;
+			fill:   #FFFFFF;
 			fill-rule: nonzero;
 			stroke: none;
+			opacity: var(--contour-fill);
 		}
 		.contour-stroke {
 			fill: none;
-			stroke: #FFF;
+			stroke: #d4d4d4;
 			stroke-width: 3px;
 			stroke-linecap: round;
 			stroke-linejoin: round;
+			display: var(--toggle-stroke);
 		}
 		.dotted-rule {
 			stroke: #FFF3;
@@ -125,6 +138,10 @@ const htmlHeader = /*html*/`
 			stroke-width: 2px;
 			stroke-linecap: round;
 			stroke-linejoin: round;
+			display: var(--toggle-horizontal);
+		}
+		.vertical-rule {
+			display: var(--toggle-vertical);
 		}
 		.control-vector {
 			stroke: #FFF;
@@ -132,27 +149,31 @@ const htmlHeader = /*html*/`
 			stroke-width: 1px;
 			stroke-linecap: round;
 			stroke-linejoin: round;
+			display: var(--toggle-handles);
 		}
 		.start-point {
-			fill: #0cf;
-			stroke: #FFF;
-			stroke-width: 2px;
+			fill: #00d9ff;
+			stroke: #7decff;
+			stroke-width: 3px;
 			r: 8px;
 			paint-order: stroke;
+			display: var(--toggle-points);
 		}
 		.corner-point {
-			fill: rgb(255, 0, 64);
-			stroke: #FFF;
-			stroke-width: 2px;
+			fill: #ec003b;
+			stroke: #ff5f5f;
+			stroke-width: 3px;
 			r: 8px;
 			paint-order: stroke;
+			display: var(--toggle-points);
 		}
 		.control-point {
-			fill: #9F0;
-			stroke: #FFF;
-			stroke-width: 2px;
+			fill: #90e900;
+			stroke: #cfff82;
+			stroke-width: 3px;
 			r: 7px;
 			paint-order: stroke;
+			display: var(--toggle-handles);
 		}
 		#dialogGlyphContainer .contour-stroke {
 			stroke-width: calc(3px / var(--dialog-scale));
@@ -170,25 +191,28 @@ const htmlHeader = /*html*/`
 		#dialogGlyphContainer .control-vector {
 			stroke-dasharray: calc(15px / var(--dialog-scale)) calc(5px / var(--dialog-scale));
 			stroke-width: calc(1px / var(--dialog-scale));
-			display: var(--dialog-toggle-points);
+			display: var(--dialog-toggle-handles);
 		}
 		#dialogGlyphContainer .start-point {
-			stroke-width: calc(2px / var(--dialog-scale));
-			r: calc(6px / var(--dialog-scale));
+			stroke-width: calc(3px / var(--dialog-scale));
+			r: calc(5px / var(--dialog-scale));
 			display: var(--dialog-toggle-points);
 			paint-order: stroke;
 		}
 		#dialogGlyphContainer .corner-point {
-			stroke-width: calc(2px / var(--dialog-scale));
-			r: calc(6px / var(--dialog-scale));
+			stroke-width: calc(3px / var(--dialog-scale));
+			r: calc(5px / var(--dialog-scale));
 			display: var(--dialog-toggle-points);
 			paint-order: stroke;
 		}
 		#dialogGlyphContainer .control-point {
-			stroke-width: calc(2px / var(--dialog-scale));
-			r: calc(6px / var(--dialog-scale));
-			display: var(--dialog-toggle-points);
+			stroke-width: calc(3px / var(--dialog-scale));
+			r: calc(4px / var(--dialog-scale));
+			display: var(--dialog-toggle-handles);
 			paint-order: stroke;
+		}
+		#dialogGlyphContainer .contour-fill {
+			opacity: var(--dialog-contour-fill);
 		}
 		[type="checkbox"]:checked,
 		[type="checkbox"]:not(:checked),
@@ -201,7 +225,7 @@ const htmlHeader = /*html*/`
 			visibility: hidden;
 		}
 		.checkbox:not(:checked) + label {
-			filter: saturate(0) brightness(0.7);
+			filter: saturate(0.6) brightness(0.7);
 		}
 		.hidden {
 			display: none;
@@ -370,7 +394,7 @@ const htmlHeader = /*html*/`
 		}
 		button, a.download-button {
 			align-items: center;
-			align-self: flex-end;
+			/* align-self: flex-end; */
 			background-color: var(--input-bg);
 			border: 1px solid var(--form-outline-color);
 			border-radius: var(--form-radius);
@@ -534,13 +558,13 @@ const htmlHeader = /*html*/`
 		}
 		dialog::backdrop {
 			background-color: #12121290;
-			backdrop-filter: blur(3px);
+			backdrop-filter: blur(4px);
 		}
 		.dialog-header {
 			display: flex;
 			align-items: center;
 			justify-content: space-between;
-			height: 36px;
+			height: 40px;
 			padding: 0 0 0 10px;
 			color: #ffffff;
 			background-color: #666;
@@ -575,15 +599,15 @@ const htmlHeader = /*html*/`
 		
 		.dialog-toggles {
 			display: flex;
-			gap: 1px;
+			gap: 5px;
 			padding: 1px 0 1px 0;
-			height: 30px;
+			height: 40px;
 			align-items: center;
 			overflow: hidden;
 		}
 
 		.dialog-toggles label {
-			border-radius: 0;
+			/* border-radius: 0; */
 		}
 
 		.dialog-toggles button {
@@ -592,7 +616,7 @@ const htmlHeader = /*html*/`
 		}
 		.close-button {
 			width: 40px;
-			height: 36px;
+			height: 40px;
 			font-size: 25px;
 			font-weight: bold;
 			background-color: #898989;
@@ -607,6 +631,12 @@ const htmlHeader = /*html*/`
 			color: #ffffff;
 			font-weight: bold;
 			background-color: #FF0030;
+		}
+		
+		.disabled {
+			background-color: #222;
+			opacity: 0.5;
+			pointer-events: none;
 		}
 	</style>
 </head>
@@ -633,7 +663,7 @@ function circularIndex(array, index) {
 // 	return num >= 0 ? num : -num;
 // }
 
-function inspect(font, references) {
+function inspect(font, references, subfamily) {
 	const dimWght = font.fvar.axes[0].dim;
 	const instanceShsWghtMax = new Map([[dimWght, 1]]);
 	const masterDimWghtMax = { dim: dimWght, min: 0, peak: 1, max: 1 };
@@ -700,14 +730,26 @@ function inspect(font, references) {
 				if (idxP === 0) {
 					pathLight += `M ${l1.x}, ${l1.y}`;
 					pathHeavy += `M ${h1.x}, ${h1.y}`;
-					groupLightPoints += `<circle class="start-point" cx="${l1.x}" cy="${l1.y}" r="5"><title>contour${idxC} node${idxP}</title></circle>`;
-					groupHeavyPoints += `<circle class="start-point" cx="${h1.x}" cy="${h1.y}" r="5"><title>contour${idxC} node${idxP}</title></circle>`;
+					groupLightPoints += /*svg*/ `
+						<circle class="start-point" cx="${l1.x}" cy="${l1.y}" r="5">
+							<title>contour${idxC} node${idxP}\n${l1.x}, ${l1.y}</title>
+						</circle>`;
+					groupHeavyPoints += /*svg*/ `
+						<circle class="start-point" cx="${h1.x}" cy="${h1.y}" r="5">
+							<title>contour${idxC} node${idxP}\n${h1.x}, ${h1.y}</title>
+						</circle>`;
 				} else if (idxP > 0 && l1.type === 0) {
 					pathLight += `L ${l1.x}, ${l1.y}`;
 					pathHeavy += `L ${h1.x}, ${h1.y}`;
 					if (pointsLight[0].x !== l1.x || pointsLight[0].y !== l1.y) {
-						groupLightPoints += `<circle class="corner-point" cx="${l1.x}" cy="${l1.y}" r="5"><title>contour${idxC} node${idxP}</title></circle>`;
-						groupHeavyPoints += `<circle class="corner-point" cx="${h1.x}" cy="${h1.y}" r="5"><title>contour${idxC} node${idxP}</title></circle>`;
+						groupLightPoints += /*svg*/ `
+							<circle class="corner-point" cx="${l1.x}" cy="${l1.y}" r="5">
+								<title>contour${idxC} node${idxP}\n${l1.x}, ${l1.y}</title>
+							</circle>`;
+						groupHeavyPoints += /*svg*/ `
+							<circle class="corner-point" cx="${h1.x}" cy="${h1.y}" r="5">
+								<title>contour${idxC} node${idxP}\n${h1.x}, ${h1.y}</title>
+							</circle>`;
 					}
 				} else if (l1.type === 1) {
 					let l0 = pointsLight[idxP - 1];
@@ -718,18 +760,36 @@ function inspect(font, references) {
 					let h3 = circularArray(pointsHeavy, idxP + 2);
 					pathLight += `C ${l1.x}, ${l1.y} ${l2.x}, ${l2.y} ${l3.x}, ${l3.y}`;
 					pathHeavy += `C ${h1.x}, ${h1.y} ${h2.x}, ${h2.y} ${h3.x}, ${h3.y}`;
-					groupLightPoints += `<circle class="control-point" cx="${l1.x}" cy="${l1.y}" r="4"><title>contour${idxC} node${idxP}</title></circle>`;
-					groupHeavyPoints += `<circle class="control-point" cx="${h1.x}" cy="${h1.y}" r="4"><title>contour${idxC} node${idxP}</title></circle>`;
-					groupLightPoints += `<circle class="control-point" cx="${l2.x}" cy="${l2.y}" r="4"><title>contour${idxC} node${idxP + 1}</title></circle>`;
-					groupHeavyPoints += `<circle class="control-point" cx="${h2.x}" cy="${h2.y}" r="4"><title>contour${idxC} node${idxP + 1}</title></circle>`;
+					groupLightPoints += /*svg*/ `
+						<circle class="control-point" cx="${l1.x}" cy="${l1.y}" r="4">
+							<title>contour${idxC} node${idxP}\n${l1.x}, ${l1.y}</title>
+						</circle>`;
+					groupHeavyPoints += /*svg*/ `
+						<circle class="control-point" cx="${h1.x}" cy="${h1.y}" r="4">
+							<title>contour${idxC} node${idxP}\n${h1.x}, ${h1.y}</title>
+						</circle>`;
+					groupLightPoints += /*svg*/ `
+						<circle class="control-point" cx="${l2.x}" cy="${l2.y}" r="4">
+							<title>contour${idxC} node${idxP + 1}\n${l2.x}, ${l2.y}</title>
+						</circle>`;
+					groupHeavyPoints += /*svg*/ `
+						<circle class="control-point" cx="${h2.x}" cy="${h2.y}" r="4">
+							<title>contour${idxC} node${idxP + 1}\n${h2.x}, ${h2.y}</title>
+						</circle>`;
 					if (pointsLight[0].x !== l3.x || pointsLight[0].y !== l3.y) {
-						groupLightPoints += `<circle class="corner-point" cx="${l3.x}" cy="${l3.y}" r="5"><title>contour${idxC} node${idxP + 2}</title></circle>`;
-						groupHeavyPoints += `<circle class="corner-point" cx="${h3.x}" cy="${h3.y}" r="5"><title>contour${idxC} node${idxP + 2}</title></circle>`;
+						groupLightPoints += /*svg*/ `
+							<circle class="corner-point" cx="${l3.x}" cy="${l3.y}" r="5">
+								<title>contour${idxC} node${idxP + 2}\n${l3.x}, ${l3.y}</title>
+							</circle>`;
+						groupHeavyPoints += /*svg*/ `
+							<circle class="corner-point" cx="${h3.x}" cy="${h3.y}" r="5">
+								<title>contour${idxC} node${idxP + 2}\n${h3.x}, ${h3.y}</title>
+							</circle>`;
 					}
-					groupLightHandles += `<line class="control-vector" x1="${l0.x}" y1="${l0.y}" x2="${l1.x}" y2="${l1.y}" />`;
-					groupHeavyHandles += `<line class="control-vector" x1="${h0.x}" y1="${h0.y}" x2="${h1.x}" y2="${h1.y}" />`;
-					groupLightHandles += `<line class="control-vector" x1="${l2.x}" y1="${l2.y}" x2="${l3.x}" y2="${l3.y}" />`;
-					groupHeavyHandles += `<line class="control-vector" x1="${h2.x}" y1="${h2.y}" x2="${h3.x}" y2="${h3.y}" />`;
+					groupLightHandles += /*svg*/ `<line class="control-vector" x1="${l0.x}" y1="${l0.y}" x2="${l1.x}" y2="${l1.y}" />`;
+					groupHeavyHandles += /*svg*/ `<line class="control-vector" x1="${h0.x}" y1="${h0.y}" x2="${h1.x}" y2="${h1.y}" />`;
+					groupLightHandles += /*svg*/ `<line class="control-vector" x1="${l2.x}" y1="${l2.y}" x2="${l3.x}" y2="${l3.y}" />`;
+					groupHeavyHandles += /*svg*/ `<line class="control-vector" x1="${h2.x}" y1="${h2.y}" x2="${h3.x}" y2="${h3.y}" />`;
 					idxP += 2;
 				}
 			}
@@ -754,8 +814,8 @@ function inspect(font, references) {
 		let widthLight = abs(minLightX - maxLightX);
 		let widthHeavy = abs(minHeavyX - maxHeavyX);
 		let viewportWidth = 10 + widthLight + 10 + widthHeavy + 10;
-		let svgHeader = `<svg height="100%" viewBox="0 ${safeBottom} ${viewportWidth} ${viewportHeight}" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" data-glyph-idx="${idxG}" data-glyph-name="${glyph.name}">`;
-		svgHeader += `
+		let svgHeader = /*svg*/ `
+		<svg height="100%" viewBox="0 ${safeBottom} ${viewportWidth} ${viewportHeight}" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" data-glyph-idx="${idxG}" data-glyph-name="${glyph.name}">
 			<g transform="scale(1, -1) translate(0, -${ascender})">
 				<line class="dotted-rule" x1="0" y1="${safeBottom + 2}" x2="${viewportWidth}" y2="${safeBottom + 2}" />
 				<line class="dotted-rule" x1="0" y1="${descender}" x2="${viewportWidth}" y2="${descender}" />
@@ -782,12 +842,12 @@ function inspect(font, references) {
 				</g>
 			</g>
 		</svg>`;
-		currentHtml += `<div class="glyph-wrap"><div class="glyph">${svgHeader}</div><span class="glyph-label">${glyph.name}</span></div>`;
+		currentHtml += /*html*/ `<div class="glyph-wrap"><div class="glyph">${svgHeader}</div><span class="glyph-label">${glyph.name}</span></div>`;
 	}
 
 	let len = font.glyphs.items.length;
 	let consoleWidth = process.stdout.columns - 10 || 150
-	let bar = new ProgressBar('\u001b[38;5;82mmakingPreview\u001b[0m [1/5]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete: '\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+	let bar = new ProgressBar('\u001b[38;5;82mmakingPreview\u001b[0m [6/6]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete: '\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
 	// let bar = new ProgressBar('\u001b[38;5;82mmakingPreview\u001b[0m [1/5]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete: '\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
 
 	function progressTick() {
@@ -815,21 +875,54 @@ function inspect(font, references) {
 	// 	}
 	// }
 
-	let pages = Math.ceil(len / 1000);
+	let pages = Math.ceil(len / 500);
 	let currentHtml;
 	let count = 0;
 	let page = 1;
+	function getPageList(totalPages, page, maxLength) {
+		if (maxLength < 5) throw "maxLength must be at least 5";
+	
+		function range(start, end) {
+			return Array.from(Array(end - start + 1), (_, i) => i + start);
+		}
+	
+		var sideWidth = maxLength < 20 ? 1 : 2;
+		var leftWidth = (maxLength - sideWidth * 2 - 3) >> 1;
+		var rightWidth = (maxLength - sideWidth * 2 - 2) >> 1;
+		if (totalPages <= maxLength) {
+			// no breaks in list
+			return range(1, totalPages);
+		}
+		if (page <= maxLength - sideWidth - 1 - rightWidth) {
+			// no break on left of page
+			return range(1, maxLength - sideWidth - 1)
+				.concat(0, range(totalPages - sideWidth + 1, totalPages));
+		}
+		if (page >= totalPages - sideWidth - 1 - rightWidth) {
+			// no break on right of page
+			return range(1, sideWidth)
+				.concat(0, range(totalPages - sideWidth - 1 - rightWidth - leftWidth, totalPages));
+		}
+		// Breaks on both sides
+		return range(1, sideWidth)
+			.concat(0, range(page - leftWidth, page + rightWidth),
+				0, range(totalPages - sideWidth + 1, totalPages));
+	}
 	function newHtml() {
+		let pagination = getPageList(pages, page, 10);
 		let navbar = `
 		<div class="nav-bar">
-			<div class="nav-bar-pages">`;
-		for (let i = 1; i <= pages; i++) {
-			let button = `<a ${i === page ? 'class="current"' : ''}href="inspector-${i}.html">${i}</a>`;
-			navbar += button;
+			<div class="nav-bar-pages">
+			<a ${page === 1 ? 'class="disabled"' : ''}href="page-${page - 1}.html">&lt;</a>`;
+		for (let i of pagination) {
+			if (i === 0) {
+				navbar += '...';
+			} else {
+			navbar += `<a ${i === page ? 'class="current"' : ''}href="page-${i}.html">${i}</a>`;
+			}
 		}
 		navbar += /*html*/`
-					<a ${page === 1 ? 'class="disabled"' : ''}href="inspector-${page - 1}.html">&lt;</a>
-					<a ${page === pages ? 'class="disabled"' : ''}href="inspector-${page + 1}.html">&gt;</a>
+					<a ${page === pages ? 'class="disabled"' : ''}href="page-${page + 1}.html">&gt;</a>
 				</div>
 				<div class="nav-bar-toggles">
 					<span style="color: var(--textcolor)">Zoom</span>
@@ -838,7 +931,7 @@ function inspect(font, references) {
 						<button class="minus"><svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" height="10px" fill="#FFFFFF"><path d="m50 206h412c28 0 50 22 50 50s-22 50-50 50h-412c-28 0-50-22-50-50s22-50 50-50z"/></svg></button>
 						<button class="plus"><svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" height="10px" fill="#FFFFFF"><path d="m256 0c-28 0-50 22-50 50v156h-156c-28 0-50 22-50 50s22 50 50 50h156v156c0 28 22 50 50 50s50-22 50-50v-156h156c28 0 50-22 50-50s-22-50-50-50h-156v-156c0-28-22-50-50-50z"/></svg></button>
 					</div>
-					<input class="checkbox" type="checkbox" name="toggleVerticalRules" id="toggleVerticalRules" checked>
+					<input class="checkbox" type="checkbox" name="toggleVerticalRules" id="toggleVerticalRules" checked/>
 					<label class="for-checkbox" for="toggleVerticalRules">
 						<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
 						<line stroke="#FFF" stroke-width="8" x1="4" y1="4" x2="4" y2="252" stroke-linecap="round"/>
@@ -846,7 +939,7 @@ function inspect(font, references) {
 							<path d="m110 55.3h36l53.6 143.2h-34.4l-11-32h-52.4l-11 32h-34.4zm34.2 82.8-10.4-30-4.8-17.6h-2l-4.8 17.6-10.4 30z" fill="#fff"/>
 						</svg>
 					</label>
-					<input class="checkbox" type="checkbox" name="toggleHorizontalRules" id="toggleHorizontalRules" checked>
+					<input class="checkbox" type="checkbox" name="toggleHorizontalRules" id="toggleHorizontalRules" checked/>
 					<label class="for-checkbox" for="toggleHorizontalRules">
 						<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
 						<line stroke="#FFF" stroke-width="8" x1="4" y1="4" x2="252" y2="4" stroke-linecap="round"/>
@@ -857,25 +950,43 @@ function inspect(font, references) {
 						<path d="m110 55.3h36l53.6 143.2h-34.4l-11-32h-52.4l-11 32h-34.4zm34.2 82.8-10.4-30-4.8-17.6h-2l-4.8 17.6-10.4 30z" fill="#fff"/>
 						</svg>
 					</label>
-					<input class="checkbox" type="checkbox" name="togglePoints" id="togglePoints" checked>
+					<input class="checkbox" type="checkbox" name="togglePoints" id="togglePoints" checked/>
 					<label class="for-checkbox" for="togglePoints">
-						<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
-							<path d="m4 252C8,192 48,128 128,128 200,128 248,64 252,4" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="8"/>
-							<circle cx="128" cy="128" r="48" fill="#ff0145" stroke="#fff" stroke-width="8"/>
-						</svg>
+					<svg version="1.1" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+						<path d="m5 96L160 96L160 251" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="10"/>
+						<circle cx="160" cy="96" r="48" fill="#ec003b" stroke="#ff5f5f" stroke-width="10"/>
+					</svg>
 					</label>
-					<input class="checkbox" type="checkbox" name="toggleStroke" id="toggleStroke" checked>
+					<input class="checkbox" type="checkbox" name="toggleHandles" id="toggleHandles" checked/>
+					<label class="for-checkbox" for="toggleHandles">
+					<svg version="1.1" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+						<path d="m5 251L192 64" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="10" stroke-dasharray="30px 30px"/>
+						<circle cx="192" cy="64" r="48" fill="#90e900" stroke="#cfff82" stroke-width="10"/>
+					</svg>
+					</label>
+					<input class="checkbox" type="checkbox" name="toggleStroke" id="toggleStroke" checked/>
 					<label class="for-checkbox" for="toggleStroke">
 						<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
 							<rect x="29" y="29" width="198" height="198" rx="24" fill="none" stroke="#fff" stroke-width="8"/>
 						</svg>
 					</label>
-					<input class="checkbox" type="checkbox" name="toggleFill" id="toggleFill" checked>
+					<span style="color: var(--textcolor)">Fill</span>
+					<div class="form-group shrink grow-0 stepper">
+						<input class="form-control virtual-keyboard number-keyboard w-unset mt-0" id="fillOpacity" type="text" data-decimals="0" data-step="10" data-min="0" data-max="100" value="10" size="2" autocomplete="off" spellcheck="false" />
+						<button class="minus"><svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" height="10px" fill="#FFFFFF"><path d="m50 206h412c28 0 50 22 50 50s-22 50-50 50h-412c-28 0-50-22-50-50s22-50 50-50z"/></svg></button>
+						<button class="plus"><svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" height="10px" fill="#FFFFFF"><path d="m256 0c-28 0-50 22-50 50v156h-156c-28 0-50 22-50 50s22 50 50 50h156v156c0 28 22 50 50 50s50-22 50-50v-156h156c28 0 50-22 50-50s-22-50-50-50h-156v-156c0-28-22-50-50-50z"/></svg></button>
+					</div>
+					<!--<button id="toggleFill">
+						<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+							<rect x="29" y="29" width="198" height="198" rx="24" fill="#fffdfe" fill-opacity=".7"/>
+						</svg>
+					</button>-->
+					<!--<input class="checkbox" type="checkbox" name="toggleFill" id="toggleFill" checked/>
 					<label class="for-checkbox" for="toggleFill">
 						<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
 							<rect x="29" y="29" width="198" height="198" rx="24" fill="#fffdfe" fill-opacity=".7"/>
 						</svg>
-					</label>
+					</label>-->
 				</div>
 			</div>
 		`;
@@ -894,17 +1005,17 @@ function inspect(font, references) {
 		// progressTick(name);
 		if (glyph?.geometry?.contours) checkSingleGlyph(glyph, idxG);
 		// count++;
-		if (idxG > 0 && (idxG % 1000 === 0 || idxG === len - 1)) {
+		if (idxG > 0 && (idxG % 500 === 0 || idxG === len - 1)) {
 			currentHtml += /*html*/`
 			</div>
 			<dialog class="modal" id="glyphDialog">
 				<div class="dialog-header">
 					<p id="dialogTitle">Modal Dialog</p>
 					<div class="dialog-toggles">
-						<button id="dialogGlyphPrev">&lt;&lt;</button>
-						<button id="dialogGlyphNext">&gt;&gt;</button>
+						<button id="dialogGlyphPrev">&lt;</button>
+						<button id="dialogGlyphNext">&gt;</button>
 						<div class="spacer"></div>
-						<input class="checkbox" type="checkbox" name="toggleDialogVerticalRules" id="toggleDialogVerticalRules" checked>
+						<input class="checkbox" type="checkbox" name="toggleDialogVerticalRules" id="toggleDialogVerticalRules" checked/>
 						<label class="for-checkbox" for="toggleDialogVerticalRules">
 							<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
 							<line stroke="#FFF" stroke-width="8" x1="4" y1="4" x2="4" y2="252" stroke-linecap="round"/>
@@ -912,7 +1023,7 @@ function inspect(font, references) {
 								<path d="m110 55.3h36l53.6 143.2h-34.4l-11-32h-52.4l-11 32h-34.4zm34.2 82.8-10.4-30-4.8-17.6h-2l-4.8 17.6-10.4 30z" fill="#fff"/>
 							</svg>
 						</label>
-						<input class="checkbox" type="checkbox" name="toggleDialogHorizontalRules" id="toggleDialogHorizontalRules" checked>
+						<input class="checkbox" type="checkbox" name="toggleDialogHorizontalRules" id="toggleDialogHorizontalRules" checked/>
 						<label class="for-checkbox" for="toggleDialogHorizontalRules">
 							<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
 							<line stroke="#FFF" stroke-width="8" x1="4" y1="4" x2="252" y2="4" stroke-linecap="round"/>
@@ -923,31 +1034,50 @@ function inspect(font, references) {
 							<path d="m110 55.3h36l53.6 143.2h-34.4l-11-32h-52.4l-11 32h-34.4zm34.2 82.8-10.4-30-4.8-17.6h-2l-4.8 17.6-10.4 30z" fill="#fff"/>
 							</svg>
 						</label>
-						<input class="checkbox" type="checkbox" name="toggleDialogPoints" id="toggleDialogPoints" checked>
+						<input class="checkbox" type="checkbox" name="toggleDialogPoints" id="toggleDialogPoints" checked/>
 						<label class="for-checkbox" for="toggleDialogPoints">
-							<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
-								<path d="m4 252C8,192 48,128 128,128 200,128 248,64 252,4" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="8"/>
-								<circle cx="128" cy="128" r="48" fill="#ff0145" stroke="#fff" stroke-width="8"/>
-							</svg>
+							<svg version="1.1" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+							<path d="m5 96L160 96L160 251" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="10"/>
+							<circle cx="160" cy="96" r="48" fill="#c70032" stroke="#ff004c" stroke-width="10"/>
+						</svg>
 						</label>
-						<input class="checkbox" type="checkbox" name="toggleDialogStroke" id="toggleDialogStroke" checked>
+						<input class="checkbox" type="checkbox" name="toggleDialogHandles" id="toggleDialogHandles" checked/>
+						<label class="for-checkbox" for="toggleDialogHandles">
+						<svg version="1.1" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+							<path d="m5 251L192 64" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="10" stroke-dasharray="30px 30px"/>
+							<circle cx="192" cy="64" r="48" fill="#85d800" stroke="#9dff00" stroke-width="10"/>
+						</svg>
+						</label>
+						<input class="checkbox" type="checkbox" name="toggleDialogStroke" id="toggleDialogStroke" checked/>
 						<label class="for-checkbox" for="toggleDialogStroke">
 							<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
 								<rect x="29" y="29" width="198" height="198" rx="24" fill="none" stroke="#fff" stroke-width="8"/>
 							</svg>
 						</label>
-						<input class="checkbox" type="checkbox" name="toggleDialogFill" id="toggleDialogFill" checked>
+						<span style="color: var(--textcolor)">Fill</span>
+						<div class="form-group shrink grow-0 stepper">
+							<input class="form-control virtual-keyboard number-keyboard w-unset mt-0" id="dialogfillOpacity" type="text" data-decimals="0" data-step="10" data-min="0" data-max="100" value="10" size="2" autocomplete="off" spellcheck="false" />
+							<button class="minus"><svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" height="10px" fill="#FFFFFF"><path d="m50 206h412c28 0 50 22 50 50s-22 50-50 50h-412c-28 0-50-22-50-50s22-50 50-50z"/></svg></button>
+							<button class="plus"><svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" height="10px" fill="#FFFFFF"><path d="m256 0c-28 0-50 22-50 50v156h-156c-28 0-50 22-50 50s22 50 50 50h156v156c0 28 22 50 50 50s50-22 50-50v-156h156c28 0 50-22 50-50s-22-50-50-50h-156v-156c0-28-22-50-50-50z"/></svg></button>
+						</div>
+						<!--<input class="checkbox" type="checkbox" name="toggleDialogFill"  checked/>
+						<button id="toggleDialogFill">
+							<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+								<rect x="29" y="29" width="198" height="198" rx="24" fill="#fffdfe" fill-opacity=".7"/>
+							</svg>
+						</button>-->
+						<!--<input class="checkbox" type="checkbox" name="toggleDialogFill" id="toggleDialogFill" checked/>
 						<label class="for-checkbox" for="toggleDialogFill">
 							<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
 								<rect x="29" y="29" width="198" height="198" rx="24" fill="#fffdfe" fill-opacity=".7"/>
 							</svg>
-						</label>
+						</label>-->
 					</div>
 					<button class="close-modal close-button" id="closeGlyphDialog" autofocus>&times;</button>
 				</div>
 				<div id="dialogGlyphContainer" data-zoom-on-wheel="max-scale: 20;" data-pan-on-drag></div>
 			</dialog>
-			<script src="./svg-pan-zoom.js"></script>
+			${'<script>var svgPanZoomContainer=function(e){"use strict";const t=(e,t)=>{const n=new DOMMatrix(t.style.transform);return[n.a,e.scrollLeft-n.e,e.scrollTop-n.f]},n=(e,t,n,o,i)=>{const l=Math.round(Math.max(o,0)),r=Math.round(Math.max(i,0));t.setAttribute("transform",t.style.transform=`matrix(${n},0,0,${n},${l-o},${r-i})`),t.style.margin=0,e.scrollLeft=l,e.scrollTop=r,e.scrollLeft!==l&&(t.style.marginRight=`${l}px`,e.scrollLeft=l),e.scrollTop!==r&&(t.style.marginBottom=`${r}px`,e.scrollTop=r)},o=e=>{const t={};if(e)for(const n of e.split(";")){const e=n.indexOf(":");t[n.slice(0,e).trim().replace(/[a-zA-Z0-9_]-[a-z]/g,(e=>e[0]+e[2].toUpperCase()))]=n.slice(e+1).trim()}return t},i=(e,t)=>{const n=e?.closest(`[${t}]`);return n instanceof HTMLElement?[n,o(n.getAttribute(t))]:[]},l=(e,o,i)=>{const l=e.firstElementChild,[r,a,s]=t(e,l);n(e,l,r,a+o,s+i)},r=e=>t(e,e.firstElementChild)[0],a=(e,o,i={})=>{const l=((e,t,n)=>e<t?t:e>n?n:e)(o,i.minScale||1,i.maxScale||10),r=i.origin,a=e.firstElementChild,[s,c,m]=t(e,a);if(l===s)return;const d=l/s-1,u=a.getBoundingClientRect(),f=(r&&r.clientX||0)-u.left,v=(r&&r.clientY||0)-u.top;n(e,a,l,c+d*f,m+d*v)},s=(e,t,n)=>a(e,r(e)*t,n);var c;return c={button:"left"},addEventListener("mousedown",(e=>{if(0!==e.button&&2!==e.button)return;const[t,n]=i(e.target,"data-pan-on-drag");if(!t||!n||!((e,t,n)=>(!t.modifier||e.getModifierState(t.modifier))&&e.button===("right"===(t.button||n.button)?2:0))(e,n,c))return;e.preventDefault();let o=e.clientX*window.devicePixelRatio,r=e.clientY*window.devicePixelRatio;const a=e=>{l(t,o-e.clientX*window.devicePixelRatio,r-e.clientY*window.devicePixelRatio),o=e.clientX*window.devicePixelRatio,r=e.clientY*window.devicePixelRatio,e.preventDefault()},s=e=>e.preventDefault(),m=()=>{removeEventListener("mouseup",m),removeEventListener("mousemove",a),setTimeout((()=>removeEventListener("contextmenu",s)))};addEventListener("mouseup",m),addEventListener("mousemove",a),addEventListener("contextmenu",s)})),((e,t,n={})=>{n.noEmitStyle||((document.head||document.body||document.documentElement).appendChild(document.createElement("style")).textContent=`[${e}]{overflow:scroll}[${e}]>:first-child{width:100%;height:100%;vertical-align:middle;transform-origin:0 0}`),addEventListener("wheel",(n=>{const[o,l]=i(n.target,e);if(o instanceof HTMLElement){const e=+l.zoomAmount||t.zoomAmount;s(o,(1+e)**-n.deltaY,{origin:n,minScale:+l.minScale||t.minScale,maxScale:+l.maxScale||t.maxScale}),n.preventDefault()}}),{passive:!1}),addEventListener("resize",(()=>{const t=document.querySelectorAll(`[${e}]`);for(let n=0;n<t.length;n++){const i=t[n];if(i instanceof HTMLElement){const t=o(i.getAttribute(e));s(i,1,t)}}}))})("data-zoom-on-wheel",{minScale:1,maxScale:10,zoomAmount:.002}),e.getScale=r,e.pan=l,e.resetScale=e=>{const t=e.firstElementChild;t.style.margin=e.scrollLeft=e.scrollTop=0,t.removeAttribute("transform"),t.style.transform=""},e.setScale=a,e.zoom=s,Object.defineProperty(e,"__esModule",{value:!0}),e}({});</script>'}
 			<script>
 				const { pan, zoom, getScale, setScale, resetScale } = svgPanZoomContainer;
 			</script>
@@ -970,9 +1100,16 @@ function inspect(font, references) {
 				let checkboxHorizontal = document.getElementById('toggleHorizontalRules');
 				let checkboxVertical = document.getElementById('toggleVerticalRules');
 				let checkboxPoints = document.getElementById('togglePoints');
+				let checkboxHandles = document.getElementById('toggleHandles');
 				let checkboxStroke = document.getElementById('toggleStroke');
-				let checkboxFill = document.getElementById('toggleFill');
+				let inputFill = document.getElementById('fillOpacity');
 				let zoomSize = document.getElementById('zoomSize');
+				// let dottedRules = document.querySelectorAll('.wrapper .dotted-rule');
+				// let verticalRules = document.querySelectorAll('.wrapper .vertical-rule');
+				// let cornerPoints = document.querySelectorAll('.wrapper .start-point, .wrapper .corner-point');
+				// let controlPoints = document.querySelectorAll('.wrapper .control-vector, .wrapper .control-point');
+				// let contourStrokes = document.querySelectorAll('.wrapper .contour-stroke');
+				// let contourFills = document.querySelectorAll('.wrapper .contour-fill');
 				
 				// function setParams() {
 				// 	let horizontalRules = checkboxHorizontal.checked;
@@ -987,43 +1124,158 @@ function inspect(font, references) {
 				checkboxHorizontal.addEventListener('change', function () {
 					let setting = this.checked;
 					if (!setting) {
-						document.querySelectorAll('.dotted-rule').forEach((el) => { el.classList.add('hidden') });
+						cssVariableSet('--toggle-horizontal', 'none');
 					} else {
-						document.querySelectorAll('.dotted-rule').forEach((el) => { el.classList.remove('hidden') });
+						cssVariableSet('--toggle-horizontal', 'revert');
 					}
 				});
 				checkboxVertical.addEventListener('change', function () {
 					let setting = this.checked;
 					if (!setting) {
-						document.querySelectorAll('.vertical-rule').forEach((el) => { el.classList.add('hidden') });
+						cssVariableSet('--toggle-vertical', 'none');
 					} else {
-						document.querySelectorAll('.vertical-rule').forEach((el) => { el.classList.remove('hidden') });
+						cssVariableSet('--toggle-vertical', 'revert');
 					}
 				});
 				checkboxPoints.addEventListener('change', function () {
 					let setting = this.checked;
 					if (!setting) {
-						document.querySelectorAll('.control-vector, .start-point, .corner-point, .control-point').forEach((el) => { el.classList.add('hidden') });
+						cssVariableSet('--toggle-points', 'none');
 					} else {
-						document.querySelectorAll('.control-vector, .start-point, .corner-point, .control-point').forEach((el) => { el.classList.remove('hidden') });
+						cssVariableSet('--toggle-points', 'revert');
+					}
+				});
+				checkboxHandles.addEventListener('change', function () {
+					let setting = this.checked;
+					if (!setting) {
+						cssVariableSet('--toggle-handles', 'none');
+					} else {
+						cssVariableSet('--toggle-handles', 'revert');
 					}
 				});
 				checkboxStroke.addEventListener('change', function () {
 					let setting = this.checked;
 					if (!setting) {
-						document.querySelectorAll('.contour-stroke').forEach((el) => { el.classList.add('hidden') });
+						cssVariableSet('--toggle-stroke', 'none');
 					} else {
-						document.querySelectorAll('.contour-stroke').forEach((el) => { el.classList.remove('hidden') });
+						cssVariableSet('--toggle-stroke', 'revert');
 					}
 				});
-				checkboxFill.addEventListener('change', function () {
+
+				let checkboxDialogHorizontal = document.getElementById('toggleDialogHorizontalRules');
+				let checkboxDialogVertical = document.getElementById('toggleDialogVerticalRules');
+				let checkboxDialogPoints = document.getElementById('toggleDialogPoints');
+				let checkboxDialogHandles = document.getElementById('toggleDialogHandles');
+				let checkboxDialogStroke = document.getElementById('toggleDialogStroke');
+				let inputDialogFill = document.getElementById('dialogfillOpacity');
+				checkboxDialogHorizontal.addEventListener('change', function () {
 					let setting = this.checked;
 					if (!setting) {
-						document.querySelectorAll('.contour-fill').forEach((el) => { el.classList.add('hidden') });
+						cssVariableSet('--dialog-toggle-horizontal', 'none');
 					} else {
-						document.querySelectorAll('.contour-fill').forEach((el) => { el.classList.remove('hidden') });
+						cssVariableSet('--dialog-toggle-horizontal', 'revert');
 					}
 				});
+				checkboxDialogVertical.addEventListener('change', function () {
+					let setting = this.checked;
+					if (!setting) {
+						cssVariableSet('--dialog-toggle-vertical', 'none');
+					} else {
+						cssVariableSet('--dialog-toggle-vertical', 'revert');
+					}
+				});
+				checkboxDialogPoints.addEventListener('change', function () {
+					let setting = this.checked;
+					if (!setting) {
+						cssVariableSet('--dialog-toggle-points', 'none');
+					} else {
+						cssVariableSet('--dialog-toggle-points', 'revert');
+					}
+				});
+				checkboxDialogHandles.addEventListener('change', function () {
+					let setting = this.checked;
+					if (!setting) {
+						cssVariableSet('--dialog-toggle-handles', 'none');
+					} else {
+						cssVariableSet('--dialog-toggle-handles', 'revert');
+					}
+				});
+				checkboxDialogStroke.addEventListener('change', function () {
+					let setting = this.checked;
+					if (!setting) {
+						cssVariableSet('--dialog-toggle-stroke', 'none');
+					} else {
+						cssVariableSet('--dialog-toggle-stroke', 'revert');
+					}
+				});
+				
+				function inputDialogFillHandler() {
+					let setting = this.value / 100;
+					if (setting) {
+						cssVariableSet('--dialog-contour-fill', setting);
+					}
+				}
+				
+				inputDialogFill.addEventListener('change', inputDialogFillHandler);
+				inputDialogFill.addEventListener('input', inputDialogFillHandler);
+				
+				function inputFillHandler() {
+					let setting = this.value / 100;
+					if (setting) {
+						cssVariableSet('--contour-fill', setting);
+					}
+				}
+				
+				inputFill.addEventListener('change', inputFillHandler);
+				inputFill.addEventListener('input', inputFillHandler);
+				
+				function zoomSizeHandler() {
+					let setting = this.value;
+					if (setting) {
+						cssVariableSet('--glyph-size', setting + 'px');
+					}
+				}
+				
+				zoomSize.addEventListener('change', zoomSizeHandler);
+				zoomSize.addEventListener('input', zoomSizeHandler);
+				
+				window.addEventListener("click", function(e) {
+					var href = e.target.getAttribute("href");
+					if(href) {
+						let horizontalRules = checkboxHorizontal.checked;
+						let verticalRules = checkboxVertical.checked;
+						let points = checkboxPoints.checked;
+						let handles = checkboxHandles.checked;
+						let stroke = checkboxStroke.checked;
+						let fill = inputFill.value;
+						let zoom = zoomSize.value;
+						let params = '?hr=' + horizontalRules + '&vr=' + verticalRules + '&p=' + points + '&h=' + handles + '&s=' + stroke + '&f=' + fill + '&zoom=' + zoom;
+						location.href = href + params;
+						e.preventDefault();
+					}
+				});
+				
+				window.addEventListener("DOMContentLoaded", (event) => {
+					let urlSearch = document.location.search;
+					if (urlSearch) {
+						let params = new URLSearchParams(urlSearch);
+						checkboxHorizontal.checked = Bool(params.get('hr'));
+						checkboxHorizontal.dispatchEvent(new Event('change'));
+						checkboxVertical.checked = Bool(params.get('vr'));
+						checkboxVertical.dispatchEvent(new Event('change'));
+						checkboxPoints.checked = Bool(params.get('p'));
+						checkboxPoints.dispatchEvent(new Event('change'));
+						checkboxHandles.checked = Bool(params.get('h'));
+						checkboxHandles.dispatchEvent(new Event('change'));
+						checkboxStroke.checked = Bool(params.get('s'));
+						checkboxStroke.dispatchEvent(new Event('change'));
+						inputFill.value = params.get('f');
+						inputFill.dispatchEvent(new Event('change'));
+						zoomSize.value = params.get('zoom');
+						zoomSize.dispatchEvent(new Event('change'));
+					}
+				});
+				
 				var intervalIdStepper, timeoutIdStepper;
 
 				function stepperPlus(input) {
@@ -1111,46 +1363,7 @@ function inspect(font, references) {
 					el.addEventListener('click', stepperUpHandler);
 				});
 				
-				zoomSize.addEventListener('change', function () {
-					let setting = this.value;
-					if (setting) {
-						cssVariableSet('--glyph-size', setting + 'px');
-					}
-				});
-				
-				window.addEventListener("click", function(e) {
-					var href = e.target.getAttribute("href");
-					if(href) {
-						let horizontalRules = checkboxHorizontal.checked;
-						let verticalRules = checkboxVertical.checked;
-						let points = checkboxPoints.checked;
-						let stroke = checkboxStroke.checked;
-						let fill = checkboxFill.checked;
-						let zoom = zoomSize.value;
-						let params = '?hr=' + horizontalRules + '&vr=' + verticalRules + '&p=' + points + '&s=' + stroke + '&f=' + fill + '&zoom=' + zoom;
-						location.href = href + params;
-						e.preventDefault();
-					}
-				});
-				
-				window.addEventListener("DOMContentLoaded", (event) => {
-					let urlSearch = document.location.search;
-					if (urlSearch) {
-						let params = new URLSearchParams(urlSearch);
-						checkboxHorizontal.checked = Bool(params.get('hr'));
-						checkboxHorizontal.dispatchEvent(new Event('change'));
-						checkboxVertical.checked = Bool(params.get('vr'));
-						checkboxVertical.dispatchEvent(new Event('change'));
-						checkboxPoints.checked = Bool(params.get('p'));
-						checkboxPoints.dispatchEvent(new Event('change'));
-						checkboxStroke.checked = Bool(params.get('s'));
-						checkboxStroke.dispatchEvent(new Event('change'));
-						checkboxFill.checked = Bool(params.get('f'));
-						checkboxFill.dispatchEvent(new Event('change'));
-						zoomSize.value = params.get('zoom');
-						zoomSize.dispatchEvent(new Event('change'));
-					}
-				});
+
 				
 				let glyphDialog = document.getElementById('glyphDialog');
 				let dialogGlyphContainer = document.getElementById('dialogGlyphContainer');
@@ -1221,57 +1434,15 @@ function inspect(font, references) {
 					if (next) setDialogGlyph(next);
 				}); 
 
-				let checkboxDialogHorizontal = document.getElementById('toggleDialogHorizontalRules');
-				let checkboxDialogVertical = document.getElementById('toggleDialogVerticalRules');
-				let checkboxDialogPoints = document.getElementById('toggleDialogPoints');
-				let checkboxDialogStroke = document.getElementById('toggleDialogStroke');
-				let checkboxDialogFill = document.getElementById('toggleDialogFill');
-				checkboxDialogHorizontal.addEventListener('change', function () {
-					let setting = this.checked;
-					if (!setting) {
-						cssVariableSet('--dialog-toggle-horizontal', 'none');
-					} else {
-						cssVariableSet('--dialog-toggle-horizontal', 'revert');
-					}
-				});
-				checkboxDialogVertical.addEventListener('change', function () {
-					let setting = this.checked;
-					if (!setting) {
-						cssVariableSet('--dialog-toggle-vertical', 'none');
-					} else {
-						cssVariableSet('--dialog-toggle-vertical', 'revert');
-					}
-				});
-				checkboxDialogPoints.addEventListener('change', function () {
-					let setting = this.checked;
-					if (!setting) {
-						cssVariableSet('--dialog-toggle-points', 'none');
-					} else {
-						cssVariableSet('--dialog-toggle-points', 'revert');
-					}
-				});
-				checkboxDialogStroke.addEventListener('change', function () {
-					let setting = this.checked;
-					if (!setting) {
-						cssVariableSet('--dialog-toggle-stroke', 'none');
-					} else {
-						cssVariableSet('--dialog-toggle-stroke', 'revert');
-					}
-				});
-				checkboxDialogFill.addEventListener('change', function () {
-					let setting = this.checked;
-					if (!setting) {
-						cssVariableSet('--dialog-toggle-fill', 'none');
-					} else {
-						cssVariableSet('--dialog-toggle-fill', 'revert');
-					}
-				});
+
 				
 			</script>
 			</body>
 			</html>
 			`;
-			let filename = `inspector-${page}.html`;
+			let outputDir = `/mnt/c/Users/Michael/ResourceHanRounded/Inspect-${subfamily}`;
+			mkdirSync(outputDir, { recursive: true });
+			let filename = `${outputDir}/page-${page}.html`;
 			writeFile(filename, currentHtml, (err) => {
 				if (err) throw err;
 				// console.log('The file has been saved!');

@@ -18,12 +18,12 @@ const writeFile = async(filename, data, increment = 0) => {
 
 // based on measurement of SHS
 const params = {
-	strokeWidth: { light: 29, heavy: 162 },
+	strokeWidth: { light: 35, heavy: 175 },
 };
 
 function circularArray(array, index) {
 	var length = array && array.length;
-	var idx = Math.abs(length + index % length) % length;
+	var idx = abs(length + index % length) % length;
 	return array[isNaN(idx) ? index : idx];
 }
 
@@ -94,7 +94,7 @@ function preProcess(font, references) {
 	function canBeRightEnd(bottomRight, topRight) {
 		return bottomRight.kind == 0 && topRight.kind == 0 &&
 			approxEq(bottomRight.x, topRight.x, 50, 75) &&
-			approxEq(distanceLight(topRight, bottomRight), params.strokeWidth.light, 20,) &&
+			approxEq(distanceLight(topRight, bottomRight), params.strokeWidth.light, 30) &&
 			// approxEq(originLight(topRight.y) - originLight(bottomRight.y), params.strokeWidth.light, 20,) &&
 			// distanceHeavy(topRight, bottomRight) <= params.strokeWidth.heavy;
 			distanceHeavy(topRight, bottomRight) <= params.strokeWidth.heavy;
@@ -165,10 +165,10 @@ function preProcess(font, references) {
 	// ●  .  ●                  ●
 	//                         0 
 	//                         ● 
-	function canBeLeftFalling2b(topRight, farRight, topPeak, slopeLeft, farLeft, topLeft, leftC1, leftC2, bottomLeft, bottomRight, rightC1, rightC2) {
-	// function canBeLeftFalling2b(topRight, farRight, topPeak, slopeLeft, farLeft, topLeft) {
+	// function canBeLeftFalling2b(topRight, farRight, topPeak, slopeLeft, farLeft, topLeft, leftC1, leftC2, bottomLeft, bottomRight, rightC1, rightC2) {
+	function canBeLeftFalling2b(topRight, farRight, topPeak, slopeLeft, farLeft, topLeft) {
 		return topRight.kind == 0 && farRight.kind == 0 && topPeak.kind == 0 && slopeLeft.kind == 0 && farLeft.kind == 0 && topLeft.kind == 0 &&
-		leftC1.kind == 1 && leftC2.kind == 2 && bottomLeft.kind == 0 && bottomRight.kind == 0 && rightC1.kind == 1 && rightC2.kind == 2 &&
+		// leftC1.kind == 1 && leftC2.kind == 2 && bottomLeft.kind == 0 && bottomRight.kind == 0 && rightC1.kind == 1 && rightC2.kind == 2 &&
 		originLight(topRight.x) < originLight(farRight.x) &&
 		originLight(farRight.x) > originLight(topPeak.x) &&
 		originLight(topPeak.x) > originLight(slopeLeft.x) &&
@@ -177,12 +177,14 @@ function preProcess(font, references) {
 		originLight(topRight.y) < originLight(farRight.y) &&
 		originLight(farRight.y) < originLight(topPeak.y) &&
 		originLight(topPeak.y) > originLight(slopeLeft.y) &&
-		originLight(slopeLeft.y) > originLight(farLeft.y) &&
-		abs(originLight(farLeft.y) - originLight(topLeft.y)) <= 4 &&
-		originLight(topRight.y) > originLight(bottomRight.y) &&
-		originLight(topRight.x) > originLight(bottomRight.x) &&
-		originLight(topLeft.y) > originLight(bottomLeft.y) &&
-		originLight(topLeft.x) > originLight(bottomLeft.x);
+		originLight(slopeLeft.y) > originLight(farLeft.y) 
+		// &&
+		// abs(originLight(farLeft.y) - originLight(topLeft.y)) <= 4 
+		// &&
+		// originLight(topRight.y) > originLight(bottomRight.y) &&
+		// originLight(topRight.x) > originLight(bottomRight.x) &&
+		// originLight(topLeft.y) > originLight(bottomLeft.y) &&
+		// originLight(topLeft.x) > originLight(bottomLeft.x);
 	}
 	
 	//            1              
@@ -249,18 +251,18 @@ function preProcess(font, references) {
 		originLight(flatLeft.x) > originLight(leftC1.x) &&
 		originLight(flatLeft.y) > originLight(leftC1.y)
 	}
-	function approxEq(a, b, threshold = 5) {
+	function approxEq(a, b, threshold = 5, thresholdHeavy = false) {
 		if (typeof a == 'number' && typeof b == 'number')
-			return Math.abs(a - b) <= threshold;
-		return Math.abs(originLight(a) - originLight(b)) <= threshold &&
-			Math.abs(originHeavy(a) - originHeavy(b)) <= threshold;
+			return abs(a - b) <= threshold;
+		return abs(originLight(a) - originLight(b)) <= threshold &&
+			abs(originHeavy(a) - originHeavy(b)) <= (thresholdHeavy || threshold);
 	}
 
 	function isBetween(a, x, b) {
-		return originLight(a) <= originLight(x) &&
-			originLight(x) <= originLight(b) + 2 &&
-			originHeavy(a) <= originHeavy(x) &&
-			originHeavy(x) <= originHeavy(b) + 2;
+		return (originLight(a) - 2) <= originLight(x) &&
+			originLight(x) <= (originLight(b) + 2) &&
+			(originHeavy(a) - 2) <= originHeavy(x) &&
+			originHeavy(x) <= (originHeavy(b) + 2);
 	}
 
 	function makeVariance(valueDefault, valueWghtMax) {
@@ -319,6 +321,26 @@ function preProcess(font, references) {
 				continue;
 			}
 
+			// fix all 人's starting on midpoint of horizontal line and start on corner
+			if (contour.length === 22) {
+				const tlefty = originLight(contour[1].y);
+				const tcentery = originLight(contour[0].y);
+				const trighty = originLight(contour[21].y);
+				const tleftx = originLight(contour[1].x);
+				const tcenterx = originLight(contour[0].x);
+				const trightx = originLight(contour[21].x);
+				if (
+					tlefty === tcentery && 
+					tcentery === trighty && 
+					tleftx < tcenterx && 
+					tcenterx < trightx && 
+					trightx - tleftx < 40
+				) {
+					// console.log("corrected 人: " + glyph.name);
+					contour.shift();
+				}
+			}
+
 			const newContour = [...contour];
 
 			for (let idx = 0; idx < contour.length; idx++) {
@@ -326,7 +348,7 @@ function preProcess(font, references) {
 					circularArray(contour, idx).kind === 0 &&
 					circularArray(contour, idx - 1).kind === 0 &&
 					circularArray(contour, idx - 2).kind === 0 &&
-					Math.abs(originLight(circularArray(contour, idx).x) - originLight(circularArray(contour, idx - 1).x)) <= 1 &&
+					abs(originLight(circularArray(contour, idx).x) - originLight(circularArray(contour, idx - 1).x)) <= 1 &&
 					originLight(circularArray(contour, idx - 1).x) < originLight(circularArray(contour, idx - 2).x) &&
 					originLight(circularArray(contour, idx).y) < originLight(circularArray(contour, idx - 1).y) &&
 					originLight(circularArray(contour, idx - 1).y) < originLight(circularArray(contour, idx - 2).y)
@@ -337,7 +359,7 @@ function preProcess(font, references) {
 						for (let idx2 = 0; idx2 < contour2.length; idx2++) {
 							if (
 								originLight(contour[idx].x) === originLight(contour2[idx2].x) &&
-								Math.abs(originLight(contour[idx].y) - originLight(contour2[idx2].y)) <= 1
+								abs(originLight(contour[idx].y) - originLight(contour2[idx2].y)) <= 1
 							) {
 								let targetPoint = circularArray(contour2, idx2 - 2).kind === 0 ? circularArray(contour2, idx2 - 2) : circularArray(contour2, idx2 - 3).kind === 0 ? circularArray(contour2, idx2 - 3) :
 								circularArray(contour2, idx2 - 4).kind === 0 ? circularArray(contour2, idx2 - 4) : 
@@ -371,7 +393,7 @@ function preProcess(font, references) {
 				if (
 					// is right end
 					canBeRightEnd(circularArray(contour, bottomRightIdx), circularArray(contour, topRightIdx)) &&
-					approxEq(horizontalTopSlope, horizontalBottomSlope, 0.4) &&
+					approxEq(horizontalTopSlope, horizontalBottomSlope, 0.8) &&
 					originLight(circularArray(contour, bottomRightIdx).x) > originLight(circularArray(contour, bottomLeftIdx).x)
 					//  &&
 					// horizontalBottomSlope < 0.5
@@ -379,7 +401,7 @@ function preProcess(font, references) {
 					// approxEq(distanceLight(horizontalBottomRight, horizontalTopRight), params.strokeWidth.light, 10) &&
 					// approxEq(distanceLight(horizontalTopLeft, horizontalBottomLeft), params.strokeWidth.light, 10) &&
 				) {
-					const horizontalBottomRight = circularArray(contour, bottomRightIdx);
+					const horizontalBottomRight = contour[bottomRightIdx];
 					const horizontalTopRight = circularArray(contour, topRightIdx);
 					const horizontalTopLeft = circularArray(contour, topLeftIdx);
 					const horizontalBottomLeft = circularArray(contour, bottomLeftIdx);
@@ -469,6 +491,13 @@ function preProcess(font, references) {
 								// extended = true;
 								// break;
 							}
+							let lfI0 = idxP2;
+							let lfI1 = nextNode(contour2, lfI0)
+							let lfI2 = nextNode(contour2, lfI1)
+							let lfI3 = nextNode(contour2, lfI2)
+							let lfI4 = nextNode(contour2, lfI3)
+							let lfI5 = nextNode(contour2, lfI4)
+							let lfI6 = nextNode(contour2, lfI5)
 							if (
 								contour2.length > 10 &&
 								// canBeLeftFalling2b(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5)) &&
@@ -566,8 +595,8 @@ function preProcess(font, references) {
 				let next = contour[nextNode(contour, i, false)];
 				let bear1 = bearing(lineLight(prev, curr));
 				let bear2 = bearing(lineLight(curr, next));
-				let rotation = Math.abs(turn(bear1, bear2));
-				if (rotation >= 20 && rotation <= 150 && !corners.includes(i)) corners.push(i);
+				let rotation = abs(turn(bear1, bear2));
+				if (rotation >= 25 && rotation <= 150 && !corners.includes(i)) corners.push(i);
 			}
 			for (let kIdx = 0; kIdx < corners.length; kIdx++) {
 				let vert = false;
@@ -604,16 +633,8 @@ function preProcess(font, references) {
 						let c1D = abs(turn(parentBearing, control1Bearing));
 						let c2D = abs(turn(parentBearing, control2Bearing));
 						let cVD = abs(turn(parentBearing, controlVectorBearing));
-						if (glyph.name === 'A') {
-							console.log('\n');
-							console.log('startPoint', startPoint, 'endPoint', endPoint);
-							console.log('segmentBearing ' + segmentBearing)
-							console.log('control1Bearing ' + control1Bearing)
-							console.log('control2Bearing ' + control2Bearing)
-							console.log('controlVectorBearing ' + controlVectorBearing)
-						}
 						if (p2.kind === 1 && p3.kind === 2 && p4.kind === 0) {
-							if (segD < 11 && (c1D < 11 || distanceLight(p1, p2) === 0) && (c2D < 11 || distanceLight(p3, p4) === 0) && cVD < 11 && segmentLength < (parentLength / 6)) {
+							if (segD < 11 && (c1D < 11 || distanceLight(p1, p2) === 0) && (c2D < 11 || distanceLight(p3, p4) === 0) && cVD < 11 && segmentLength < (parentLength / 4)) {
 								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length && p1Idx > startIdx) redundantPoints.push(p1Idx);
 								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length) redundantPoints.push(p2Idx);
 								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length) redundantPoints.push(p3Idx);
@@ -625,13 +646,23 @@ function preProcess(font, references) {
 								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length) redundantPoints.push(p3Idx);
 								if (!redundantPoints.includes(p4Idx) && p4Idx !== 0 && p4Idx < contour.length && p4Idx < endIdx) redundantPoints.push(p4Idx);
 							}
-							if (segD < 5 && (c1D < 1 || distanceLight(p1, p2) === 0) && (c2D < 5 || distanceLight(p3, p4) === 0) && cVD < 3) {
+							if (segD < 8 && (c1D < 2 || distanceLight(p1, p2) === 0) && (c2D < 12 || distanceLight(p3, p4) === 0) && cVD < 4 && segmentLength < (parentLength / 3)) {
 								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length && p1Idx > startIdx) redundantPoints.push(p1Idx);
 								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length) redundantPoints.push(p2Idx);
 								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length) redundantPoints.push(p3Idx);
 								if (!redundantPoints.includes(p4Idx) && p4Idx !== 0 && p4Idx < contour.length && p4Idx < endIdx) redundantPoints.push(p4Idx);
 							}
-							if (segD < 5 && (c1D < 5 || distanceLight(p1, p2) === 0) && (c2D < 1 || distanceLight(p3, p4) === 0) && cVD < 3) {
+							if (segD < 20 && (c1D < 4 || distanceLight(p1, p2) === 0) && ((c2D < 20 && c2D > 10) || distanceLight(p3, p4) === 0) && cVD < 15 && p4Idx === endIdx && innerPoints > 5) {
+								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length && p1Idx > startIdx) redundantPoints.push(p1Idx);
+								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length) redundantPoints.push(p2Idx);
+								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length) redundantPoints.push(p3Idx);
+							}
+							if (distanceHeavy(p1, p4) < 100 && (c1D < 30 || distanceLight(p1, p2) === 0) && (c2D < 20 || distanceLight(p3, p4) === 0) && cVD < 15 && p1Idx === startIdx && innerPoints > 5) {
+								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length) redundantPoints.push(p2Idx);
+								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length) redundantPoints.push(p3Idx);
+								if (!redundantPoints.includes(p4Idx) && p4Idx !== 0 && p4Idx < contour.length && p4Idx < endIdx) redundantPoints.push(p4Idx);
+							}
+							if (segD < 8 && (c1D < 14 || distanceLight(p1, p2) === 0) && (c2D < 2 || distanceLight(p3, p4) === 0) && cVD < 4 && segmentLength < (parentLength / 3)) {
 								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length && p1Idx > startIdx) redundantPoints.push(p1Idx);
 								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length) redundantPoints.push(p2Idx);
 								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length) redundantPoints.push(p3Idx);
@@ -649,21 +680,24 @@ function preProcess(font, references) {
 					let s1 = (vert ? verticalSlope(lineLight(startPoint, c1)) : horizontalSlope(lineLight(startPoint, c1))) || mainSlope;
 					let s2 = (vert ? verticalSlope(lineLight(startPoint, c2)) : horizontalSlope(lineLight(startPoint, c2))) || mainSlope;
 					let s3 = (vert ? verticalSlope(lineLight(c1, c2)) : horizontalSlope(lineLight(c1, c2))) || mainSlope;
-					let d1 = Math.abs(mainSlope - s1);
-					let d2 = Math.abs(mainSlope - s2);
-					let d3 = Math.abs(mainSlope - s3);
+					let d1 = abs(mainSlope - s1);
+					let d2 = abs(mainSlope - s2);
+					let d3 = abs(mainSlope - s3);
 					if (c1.kind === 1 && c2.kind === 2 && d1 < 0.02 && d2 < 0.02 && d3 < 0.02) {
 						if (!redundantPoints.includes(c1Idx) && c1Idx !== 0 && c1Idx < contour.length) redundantPoints.push(c1Idx);
 						if (!redundantPoints.includes(c2Idx) && c2Idx !== 0 && c2Idx < contour.length) redundantPoints.push(c2Idx);
 					}
 				}
 			}
-
-			if (glyph.name === 'A') {
-				console.log('\n');
-				console.log(glyph.name);
-				console.log('corners ' + corners)
-				console.log('redundantPoints: ' + redundantPoints);
+			for (let i = 0; i < contour.length; i++) {
+				let curr = contour[i];
+				if (curr.kind !== 0) continue;
+				let prev = contour[previousNode(contour, i, false)];
+				let next = contour[nextNode(contour, i, false)];
+				let bear1 = bearing(lineLight(prev, curr));
+				let bear2 = bearing(lineLight(curr, next));
+				let rotation = abs(turn(bear1, bear2));
+				if (rotation >= 25 && rotation <= 150 && !corners.includes(i)) corners.push(i);
 			}
 			if (redundantPoints.length > 0) {
 				redundantPoints.reverse();
@@ -677,7 +711,7 @@ function preProcess(font, references) {
 	
 	let len = font.glyphs.items.length;
 	let consoleWidth = process.stdout.columns || 150
-	let bar = new ProgressBar('\u001b[38;5;82mpreProcessing\u001b[0m [1/5]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+	let bar = new ProgressBar('\u001b[38;5;82mpreProcessing\u001b[0m [1/6]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
 	
 	function progressTick() {
 		if (len) {
@@ -709,9 +743,9 @@ function preProcess(font, references) {
 	let count = 0;
 	for (const glyph of font.glyphs.items) {
 		const name = glyph.name;
-		if (name === "uni20DD") {
-			console.log(JSON.stringify(glyph));
-		}
+		// if (name === "uni20DD") {
+		// 	console.log(JSON.stringify(glyph));
+		// }
 		// if (glyph?.geometry?.contours) {
 		// 	let data = JSON.stringify(glyph.geometry.contours);
 		// 	let filename = `/home/mike/Resource-Han-Rounded/replacements/${name}.json`;

@@ -6,7 +6,7 @@ const path = require("path");
 const { FontIo, Ot } = require("ot-builder");
 
 async function writeFile(filename, data, increment = 0) {
-	const name = `/mnt/c/Users/Michael/${path.basename(filename, path.extname(filename))}${ increment ? "(" + increment + ")" : ""}${path.extname(filename)}`;
+	const name = `/mnt/c/Users/Michael/ResourceHanRounded/${path.basename(filename, path.extname(filename))}${ increment ? "(" + increment + ")" : ""}${path.extname(filename)}`;
 	// const name = `${path.dirname(filename)}/${path.basename(filename, path.extname(filename))}${ increment ? "(" + increment + ")" : ""}${path.extname(filename)}`;
 	return await fsp.writeFile(name, data, { encoding: 'utf8', flag: 'wx' }).catch(async ex => {
 		if (ex.code === "EEXIST") return await writeFile(filename, data, increment += 1)

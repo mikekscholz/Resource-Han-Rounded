@@ -296,6 +296,21 @@ function correctGlyphs(font, references) {
 		return valueFactory.create(valueDefault, [[masterWghtMax, valueWghtMax - valueDefault]]);
 	}
 	
+	function setCustomRadius(glyphName, contourIdx, radiusMin, radiusMax, force = false) {
+		if (glyphName in references.customRadiusList === false) {
+			references.customRadiusList[glyphName] = [];
+		}
+		let refArray = references.customRadiusList[glyphName];
+		let objIndex = refArray.findIndex((obj) => obj["idx"] === contourIdx);
+		if (objIndex === -1) {
+			refArray.push({light: radiusMin, heavy: radiusMax, idx: contourIdx});
+		} else {
+			let ref = refArray[objIndex];
+			if (radiusMin > ref.light || force) ref.light = radiusMin;
+			if (radiusMax > ref.heavy || force) ref.heavy = radiusMax;
+		}
+	}
+	
 	// function reverseContour(contour) {
 	// 	let newContour = contour;
 	// 	newContour.reverse();
@@ -366,23 +381,24 @@ function correctGlyphs(font, references) {
 					originHeavy(oldContours[i + 1][0].x) - originHeavy(oldContours[i][0].x) > 0 &&
 					originHeavy(oldContours[i + 1][0].x) - originHeavy(oldContours[i][0].x) < 60
 				) {
-					// const m0x1 = originLight(oldContours[i][0].x);
-					// const m0x2 = originLight(circularArray(oldContours[i + 1], -1).x);
-					const m0x1 = (originLight(oldContours[i + 1][0].x) + originLight(oldContours[i][0].x)) /2;
-					const m0x2 = (originLight(circularArray(oldContours[i + 1], -1).x) + originLight(circularArray(oldContours[i], -1).x)) /2;
+					const m0x1 = originLight(oldContours[i][0].x);
+					const m0x2 = originLight(circularArray(oldContours[i + 1], -1).x);
+					// const m0x1 = (originLight(oldContours[i + 1][0].x) + originLight(oldContours[i][0].x)) /2;
+					// const m0x2 = (originLight(circularArray(oldContours[i + 1], -1).x) + originLight(circularArray(oldContours[i], -1).x)) /2;
 					const m0w = abs(m0x1 - m0x2);
 					const m0h = m0w / 2;
 					const m0y = originLight(oldContours[i][0].y) - originLight(oldContours[i][1].y);
 					const m0v = m0y < m0h ? m0h - m0y : 0;
-					// const m1x1 = originHeavy(oldContours[i][0].x);
-					// const m1x2 = originHeavy(circularArray(oldContours[i + 1], -1).x);
-					const m1x1 = (originHeavy(oldContours[i + 1][0].x) + originHeavy(oldContours[i][0].x)) /2;
-					const m1x2 = (originHeavy(circularArray(oldContours[i + 1], -1).x) + originHeavy(circularArray(oldContours[i], -1).x)) /2;
+					const m1x1 = originHeavy(oldContours[i][0].x);
+					const m1x2 = originHeavy(circularArray(oldContours[i + 1], -1).x);
+					// const m1x1 = (originHeavy(oldContours[i + 1][0].x) + originHeavy(oldContours[i][0].x)) /2;
+					// const m1x2 = (originHeavy(circularArray(oldContours[i + 1], -1).x) + originHeavy(circularArray(oldContours[i], -1).x)) /2;
 					const m1w = abs(m1x1 - m1x2);
 					const m1h = m1w / 2;
 					const m1y = originHeavy(oldContours[i][0].y) - originHeavy(oldContours[i][1].y);
 					const m1v = m1y < m1h ? m1h - m1y : 0;
-					
+					setCustomRadius(glyph.name, i, m0h, m1h, true);
+					setCustomRadius(glyph.name, i + 1, m0h, m1h, true);
 					oldContours[i][0] = {
 						x: makeVariance(m0x1, m1x1),
 						y: makeVariance(originLight(oldContours[i][0].y), originHeavy(oldContours[i][0].y)),
@@ -662,25 +678,7 @@ function correctGlyphs(font, references) {
 				glyph.geometry.contours.push(contour);
 				continue;
 			}
-			// fix all 人's starting on midpoint of horizontal line and start on corner
-			if (contour.length === 22) {
-				const tlefty = originLight(contour[1].y);
-				const tcentery = originLight(contour[0].y);
-				const trighty = originLight(contour[21].y);
-				const tleftx = originLight(contour[1].x);
-				const tcenterx = originLight(contour[0].x);
-				const trightx = originLight(contour[21].x);
-				if (
-					tlefty === tcentery && 
-					tcentery === trighty && 
-					tleftx < tcenterx && 
-					tcenterx < trightx && 
-					trightx - tleftx < 40
-				) {
-					// console.log("corrected 人: " + glyph.name);
-					contour.shift();
-				}
-			}
+
 			
 			const newContour = [...contour];
 
@@ -1022,16 +1020,7 @@ function correctGlyphs(font, references) {
 			if (["uni24EB", "uni24EC", "uni24ED", "uni24EE", "uni24EF", "uni24F0", "uni24F1", "uni24F2", "uni24F3", "uni24F4", "uni24FF", "uni2776", "uni2777","uni2778", "uni2779", "uni277A", "uni277B", "uni277C", "uni277D", "uni277E", "uni277F"].includes(glyph.name)) {
 				newContour.reverseContour();
 			}
-			
-			// fix 〕〞
-			if (["uni3015", "uni301E"].includes(glyph.name)) {
-				newContour.reverseContour();
-			}
-			
-			// fix ㄟ ㇝
-			if (["uni311F", "uni31DD"].includes(glyph.name)) {
-				newContour.reverseContour();
-			}
+
 			
 			// fix horns (Ơ ơ Ư ư)
 			if (["Ohorn","ohorn","Uhorn","uhorn","uni1EDA","uni1EDB","uni1EDC","uni1EDD","uni1EDE","uni1EDF","uni1EE0","uni1EE1","uni1EE2","uni1EE3","uni1EE8","uni1EE9","uni1EEA","uni1EEB","uni1EEC","uni1EED","uni1EEE","uni1EEF","uni1EF0","uni1EF1"].includes(glyph.name) && idxC === 0) {
@@ -1071,7 +1060,7 @@ function correctGlyphs(font, references) {
 			}
 
 			// fix ι
-			if (glyph.name === "iota" && idxC === 0) {
+			if ((glyph.name === "iota" || glyph.name === "l") && idxC === 0) {
 				newContour[3] = {
 					x: makeVariance(originLight(contour[3].x), originHeavy(contour[3].x) + 19),
 					y: makeVariance(originLight(contour[3].y), originHeavy(contour[3].y)),
@@ -1182,7 +1171,7 @@ function correctGlyphs(font, references) {
 				// continue;
 			}
 			
-			// fix Ж and ж
+			// fix Ж
 			if (glyph.name == "uni0416") {
 				newContour[17] = {
 					x: makeVariance(
@@ -1230,7 +1219,8 @@ function correctGlyphs(font, references) {
 				};
 				// continue;
 			}
-			// fix Ж and ж
+			
+			// fix ж
 			if (glyph.name == "uni0436") {
 				newContour[17] = {
 					x: makeVariance(
@@ -1278,14 +1268,57 @@ function correctGlyphs(font, references) {
 				};
 				// continue;
 			}
+			// fix ⊊⊋
+			if ((glyph.name === "uni228A" || glyph.name === "uni228B") && idxC === 1) {
+				newContour[3] = {
+					x: makeVariance(
+						originLight(contour[3].x),
+						originHeavy(contour[3].x) + 34
+					),
+					y: makeVariance(
+						originLight(contour[3].y),
+						originHeavy(contour[3].y) + 18
+					),
+					kind: contour[3].kind,
+				};
+				newContour[4] = {
+					x: makeVariance(
+						originLight(contour[4].x),
+						originHeavy(contour[4].x) + 34
+					),
+					y: makeVariance(
+						originLight(contour[4].y),
+						originHeavy(contour[4].y) + 18
+					),
+					kind: contour[4].kind,
+				};
+				newContour[9] = {
+					x: makeVariance(
+						originLight(contour[9].x),
+						originHeavy(contour[9].x) - 34
+					),
+					y: makeVariance(
+						originLight(contour[9].y),
+						originHeavy(contour[9].y) - 18
+					),
+					kind: contour[9].kind,
+				};
+				newContour[10] = {
+					x: makeVariance(
+						originLight(contour[10].x),
+						originHeavy(contour[10].x) - 34
+					),
+					y: makeVariance(
+						originLight(contour[10].y),
+						originHeavy(contour[10].y) - 18
+					),
+					kind: contour[10].kind,
+				};
+				// continue;
+			}
 
 			// fix ↸
 			if (glyph.name == "uni21B8" && idxC === 1) {
-				newContour.reverseContour();
-			}
-
-			// fix 〥
-			if (glyph.name == "uni3025") {
 				newContour.reverseContour();
 			}
 
@@ -1300,7 +1333,7 @@ function correctGlyphs(font, references) {
 					newContour.splice(5, 1);
 				}
 			}
-			
+
 			// fix ⎱
 			if (glyph.name == "uni23B1") {
 				newContour.reverseContour();
@@ -1310,13 +1343,28 @@ function correctGlyphs(font, references) {
 			// if (["uni24EB","uni24EC","uni24ED","uni24EE","uni24EF","uni24F0","uni24F1","uni24F2","uni24F3","uni24F4"].includes(glyph.name)) {
 			// 	newContour.reverseContour();
 			// }
-			
+
 			// fix ➡ ⬅ ⬆ ⬇
 			if (["uni27A1","uni2B05","uni2B06","uni2B07"].includes(glyph.name)) {
 				newContour.splice(7, 1);
 				newContour.splice(5, 1);
 			}
-			
+
+			// fix 〕〞
+			if (["uni3015", "uni301E"].includes(glyph.name)) {
+				newContour.reverseContour();
+			}
+
+			// fix 〥
+			if (glyph.name == "uni3025") {
+				newContour.reverseContour();
+			}
+
+			// fix ㄟ ㇝
+			if (["uni311F", "uni31DD"].includes(glyph.name)) {
+				newContour.reverseContour();
+			}
+
 			// fix ㇍
 			if (glyph.name == "uni31CD" && idxC === 1) {
 				newContour[2] = {
@@ -1325,7 +1373,35 @@ function correctGlyphs(font, references) {
 					kind: contour[2].kind,
 				};
 			}
-			
+
+			// fix ㇋
+			if (glyph.name == "uni31CB" && idxC === 1) {
+				newContour[0] = {
+					x: makeVariance(494,461),
+					y: makeVariance(503,534),
+					kind: 0,
+				};
+				newContour[1] = {
+					x: makeVariance(475,379),
+					y: makeVariance(474,397),
+					kind: 0,
+				};
+			}
+
+			// fix ㇋
+			if (glyph.name == "uni31E1" && idxC === 0) {
+				newContour[0] = {
+					x: makeVariance(568,500),
+					y: makeVariance(467,516),
+					kind: 0,
+				};
+				newContour[1] = {
+					x: makeVariance(556,446),
+					y: makeVariance(436,376),
+					kind: 0,
+				};
+			}
+
 			// fix ㈤
 			if (glyph.name == "uni3224" && idxC === 3) {
 				newContour[0] = {
@@ -1339,6 +1415,25 @@ function correctGlyphs(font, references) {
 					kind: contour[1].kind,
 				};
 			}
+
+			// fix ㈧
+			if (glyph.name == "uni3227" && idxC === 2) {
+				newContour[2] = {
+					x: makeVariance(616, 664),
+					y: makeVariance(originLight(contour[2].y), originHeavy(contour[2].y)),
+					kind: contour[2].kind,
+				};
+			}
+
+			// fix ㈧
+			if (glyph.name == ".gid1924" && idxC === 2) {
+				newContour[2] = {
+					x: makeVariance(599, 670),
+					y: makeVariance(originLight(contour[2].y), originHeavy(contour[2].y)),
+					kind: contour[2].kind,
+				};
+			}
+
 			// fix ㈤
 			if ((glyph.name === "uni323C" && idxC === 10) || (glyph.name === ".gid1952" && idxC === 9)) {
 				newContour[0] = {
@@ -1362,6 +1457,7 @@ function correctGlyphs(font, references) {
 					kind: contour[3].kind,
 				};
 			}
+
 			// fix ㈤
 			if ((glyph.name === "uni3243" && idxC === 4) || (glyph.name === ".gid1963" && idxC === 4)) {
 				newContour[0] = {
@@ -1385,11 +1481,34 @@ function correctGlyphs(font, references) {
 					kind: contour[3].kind,
 				};
 			}
-			
+
+			// fix ㊇
+			if (glyph.name === "uni3287" && idxC === 2) {
+				newContour[2] = {
+					x: makeVariance(612, 662),
+					y: makeVariance(originLight(contour[2].y), originHeavy(contour[2].y)),
+					kind: contour[2].kind,
+				};
+			}
+
+			// fix ㊬
+			if ((glyph.name === "uni32AC" || glyph.name ===".gid2097") && idxC === 4) {
+				newContour[0] = {
+					x: makeVariance(originLight(contour[0].x), originHeavy(contour[0].x)),
+					y: makeVariance(originLight(contour[0].y), 500),
+					kind: 0,
+				};
+				newContour[3] = {
+					x: makeVariance(originLight(contour[3].x), originHeavy(contour[3].x)),
+					y: makeVariance(originLight(contour[3].y), 500),
+					kind: 0,
+				};
+			}
+
 			if (["uni32C0","uni3359","uni33E0"].includes(glyph.name) && idxC === 0) {
 				newContour.reverseContour();
 			}
-			
+
 			// fix 㰤
 			if (glyph.name == "uni3C24" || glyph.name == "uni3C2D") {
 				if (contour.length === 12) {
@@ -1429,10 +1548,7 @@ function correctGlyphs(font, references) {
 				}
 			}
 
-			if (
-				(glyph.name == "uni4925" && idxC === 4) ||
-				(glyph.name == "uni49CB" && idxC === 4)
-			 ) {
+			if ((glyph.name == "uni4925" && idxC === 4) || (glyph.name == "uni49CB" && idxC === 4)) {
 				newContour[10] = {
 					x: makeVariance(originLight(contour[10].x), originHeavy(contour[10].x) + 20),
 					y: makeVariance(originLight(contour[10].y), originHeavy(contour[10].y) - 20),
@@ -1445,9 +1561,8 @@ function correctGlyphs(font, references) {
 				};
 				newContour.splice(11,2);
 			}
-			if (
-				(glyph.name == "uni4AB8" && idxC === 4)
-			 ) {
+
+			if (glyph.name == "uni4AB8" && idxC === 4) {
 				newContour[6] = {
 					x: makeVariance(originLight(contour[6].x), originHeavy(contour[6].x)),
 					y: makeVariance(originLight(contour[6].y), originHeavy(contour[6].y) - 60),
@@ -1460,9 +1575,8 @@ function correctGlyphs(font, references) {
 				};
 				newContour.splice(7,2);
 			}
-			if (
-				(glyph.name == "uni4AFB" && idxC === 5)
-			 ) {
+
+			if (glyph.name == "uni4AFB" && idxC === 5) {
 				newContour[6] = {
 					x: makeVariance(originLight(contour[6].x), originHeavy(contour[6].x) + 30),
 					y: makeVariance(originLight(contour[6].y), originHeavy(contour[6].y)),
@@ -1475,56 +1589,6 @@ function correctGlyphs(font, references) {
 				};
 				newContour.splice(7,2);
 			}
-			// if (glyph.name == "uni3030") {
-			// 	newContour[50] = {
-			// 		x: makeVariance(
-			// 			originLight(contour[50].x) - 18,
-			// 			originHeavy(contour[50].x) - 48
-			// 		),
-			// 		y: contour[50].y,
-			// 		kind: contour[50].kind,
-			// 	};
-			// 	newContour[0] = {
-			// 		x: makeVariance(
-			// 			originLight(contour[0].x) - 18,
-			// 			originHeavy(contour[0].x) - 48
-			// 		),
-			// 		y: contour[0].y,
-			// 		kind: contour[0].kind,
-			// 	};
-			// 	newContour[1] = {
-			// 		x: makeVariance(
-			// 			originLight(contour[1].x) - 18,
-			// 			originHeavy(contour[1].x) - 48
-			// 		),
-			// 		y: contour[1].y,
-			// 		kind: contour[1].kind,
-			// 	};
-			// 	newContour[24] = {
-			// 		x: makeVariance(
-			// 			originLight(contour[24].x) + 18,
-			// 			originHeavy(contour[24].x) + 48
-			// 		),
-			// 		y: contour[24].y,
-			// 		kind: contour[24].kind,
-			// 	};
-			// 	newContour[25] = {
-			// 		x: makeVariance(
-			// 			originLight(contour[25].x) + 18,
-			// 			originHeavy(contour[25].x) + 48
-			// 		),
-			// 		y: contour[25].y,
-			// 		kind: contour[25].kind,
-			// 	};
-			// 	newContour[26] = {
-			// 		x: makeVariance(
-			// 			originLight(contour[26].x) + 18,
-			// 			originHeavy(contour[26].x) + 48
-			// 		),
-			// 		y: contour[26].y,
-			// 		kind: contour[26].kind,
-			// 	};
-			// }
 
 			function findExtraTopRightIdx(contour, topRightIdx) {
 				for (let i = 0; i < contour.length; i++) {
@@ -1587,7 +1651,8 @@ function correctGlyphs(font, references) {
 					if (
 						abs(originLight(verticalTopLeft.x) - originLight(verticalBottomLeft.x)) < 3 &&
 						abs(originLight(verticalTopLeft.y) - originLight(verticalBottomLeft.y)) < 15 &&
-						abs(originHeavy(verticalTopRight.x) - originHeavy(verticalTopLeft.x)) > 125
+						abs(originHeavy(verticalTopRight.x) - originHeavy(verticalTopLeft.x)) > 125 &&
+						verticalBottomLeft.kind === 0
 						// originLight(verticalTopLeft.x) == originLight(verticalBottomLeft.x) &&
 						// abs(originLight(verticalTopLeft.y) - originLight(verticalBottomLeft.y)) < 30 &&
 						// abs(originLight(verticalTopLeft.y) - originLight(circularArray(contour, idxPP1 + 3).y)) > 30 &&
@@ -1631,7 +1696,7 @@ function correctGlyphs(font, references) {
 	
 	let len = font.glyphs.items.length;
 	let consoleWidth = process.stdout.columns || 150
-	let bar = new ProgressBar('\u001b[38;5;82mcorrectGlyphs\u001b[0m [3/5]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+	let bar = new ProgressBar('\u001b[38;5;82mcorrectGlyphs\u001b[0m [3/6]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
 	
 	function progressTick() {
 		if (len) {

@@ -3,7 +3,7 @@
 const { Ot } = require("ot-builder");
 const ProgressBar = require('./node-progress');
 const { base60, bearing, horizontalSlope, roundTo, turn, verticalSlope } = require("./util");
-const { abs, ceil, floor, pow, round, sqrt, trunc } = Math;
+const { abs, ceil, floor, pow, round, sqrt, trunc, max } = Math;
 
 // const { System } = require("detect-collisions");
 // const system = new System();
@@ -481,6 +481,21 @@ function extendShortStroke(font, references) {
 		}
 		return pointsArr;
 	}
+	
+	function setCustomRadius(glyphName, contourIdx, radiusMin, radiusMax) {
+		if (glyphName in references.customRadiusList === false) {
+			references.customRadiusList[glyphName] = [];
+		}
+		let refArray = references.customRadiusList[glyphName];
+		let objIndex = refArray.findIndex((obj) => obj["idx"] === contourIdx);
+		if (objIndex === -1) {
+			refArray.push({light: radiusMin, heavy: radiusMax, idx: contourIdx});
+		} else {
+			let ref = refArray[objIndex];
+			if (radiusMin > ref.light) ref.light = radiusMin;
+			if (radiusMax > ref.heavy) ref.heavy = radiusMax;
+		}
+	}
 
 	function checkSingleGlyph(glyph) {
 		if (!glyph.geometry || !glyph.geometry.contours)
@@ -537,6 +552,7 @@ function extendShortStroke(font, references) {
 					const horizontalBottomLeft = circularArray(contour, bottomLeftIdx);
 					const horizontalStrokeLight = originLight(horizontalTopRight.y) - originLight(horizontalBottomRight.y);
 					const horizontalStrokeHeavy = originHeavy(horizontalTopRight.y) - originHeavy(horizontalBottomRight.y);
+					setCustomRadius(name, idxC1, distanceLight(horizontalBottomRight, horizontalTopRight) / 2, distanceHeavy(horizontalBottomRight, horizontalTopRight) / 2);
 					for (const [idxC2, contour2] of oldContours.entries()) {
 						// find possible 竖s (verticals)
 						if (contour2 == contour || contour2.length < 4) continue;
@@ -921,6 +937,7 @@ function extendShortStroke(font, references) {
 					const verticalTopRight = circularArray(contour, topRightIdx);
 					const verticalTopLeft = circularArray(contour, topLeftIdx);
 
+					setCustomRadius(name, idxC1, distanceLight(verticalBottomLeft, verticalBottomRight) / 2, distanceHeavy(verticalBottomLeft, verticalBottomRight) / 2);
 					for (const [idxC2, contour2o] of oldContours.entries()) {
 						// find possible 横s (horizontals)
 						if (contour2o == contour || contour2o.length < 4) continue;
@@ -1075,6 +1092,8 @@ function extendShortStroke(font, references) {
 					const horizontalTopRight = circularArray(contour, topRightIdx);
 					const horizontalStrokeLight = originLight(horizontalTopLeft.y) - originLight(horizontalBottomLeft.y);
 					const horizontalStrokeHeavy = originHeavy(horizontalTopLeft.y) - originHeavy(horizontalBottomLeft.y);
+					
+					setCustomRadius(name, idxC1, distanceLight(horizontalBottomLeft, horizontalTopLeft) / 2, distanceHeavy(horizontalBottomLeft, horizontalTopLeft) / 2);
 					debug && console.log(`is left end - idxC1: ${idxC1}, idxP1: ${idxP1}`);
 					for (const [idxC2, contour2] of oldContours.entries()) {
 						// find possible 竖s (verticals)
@@ -1250,7 +1269,21 @@ function extendShortStroke(font, references) {
 					const verticalTopLeft = circularArray(contour, topLeftIdx);
 					const verticalBottomLeft = circularArray(contour, bottomLeftIdx);
 					const verticalBottomRight = circularArray(contour, bottomRightIdx);
-
+					
+					const verticalBottomLeftCorner = circularArray(contour, nextNode(contour, topLeftIdx, true));
+					const verticalBottomRightCorner = circularArray(contour, previousNode(contour, topRightIdx, true));
+					let topLight = distanceLight(verticalTopRight, verticalTopLeft);
+					let bottomLight = distanceLight(verticalBottomRightCorner, verticalBottomLeftCorner);
+					let topHeavy = distanceHeavy(verticalTopRight, verticalTopLeft);
+					let bottomHeavy = distanceHeavy(verticalBottomRightCorner, verticalBottomLeftCorner);
+					let heavyRadius;
+					if (abs(topLight - bottomLight) < 12) {
+						heavyRadius = max(topHeavy, bottomHeavy) / 2
+					} else {
+						heavyRadius = topHeavy / 2
+					}
+					
+					setCustomRadius(name, idxC1, topLight / 2, heavyRadius);
 					for (const [idxC2, contour2o] of oldContours.entries()) {
 						// find possible 横s (horizontals)
 						if (contour2o == contour || contour2o.length < 4) continue;
@@ -1344,7 +1377,7 @@ function extendShortStroke(font, references) {
 	
 	let len = font.glyphs.items.length;
 	let consoleWidth = process.stdout.columns || 150
-	let bar = new ProgressBar('\u001b[38;5;82mextendShortStroke\u001b[0m [2/5] :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+	let bar = new ProgressBar('\u001b[38;5;82mextendShortStroke\u001b[0m [2/6] :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
 	
 	function progressTick() {
 		if (len) {
@@ -1377,13 +1410,13 @@ function extendShortStroke(font, references) {
 	for (const glyph of font.glyphs.items) {
 		const name = glyph.name;
 		// console.log(name);
-		// if (["uni31E1"].includes(name)) {
-		// 	debug = true;
-		// 	console.log(" ");
-		// 	console.log(name);
-		// } else {
-		// 	debug = false;
-		// }
+		if (["uni36E6"].includes(name)) {
+			debug = true;
+			console.log(" ");
+			console.log(name);
+		} else {
+			debug = false;
+		}
 		progressTick(name);
 		if (!references.extendSkip.includes(name)) checkSingleGlyph(glyph);
 		// count++;
