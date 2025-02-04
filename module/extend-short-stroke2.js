@@ -1,6 +1,7 @@
 "use strict";
 
 const { Ot } = require("ot-builder");
+const inside = require("point-in-polygon-hao");
 const ProgressBar = require('./node-progress');
 const { base60, bearing, horizontalSlope, roundTo, turn, verticalSlope } = require("./util");
 const { abs, ceil, floor, pow, round, sqrt, trunc, max } = Math;
@@ -46,6 +47,19 @@ function angle(line) {
 //      │     │
 //
 function extendShortStroke(font, references) {
+	
+	const polygon = [
+		[
+		  [1, 1],
+		  [1, 2],
+		  [2, 2],
+		  [2, 1],
+		  [1, 1]
+		]
+	  ];
+	  
+	  console.log(inside([ 1.5, 1.5 ], polygon))
+	  
 	const dimWght = font.fvar.axes[0].dim;
 	const instanceShsWghtMax = new Map([[dimWght, 1]]);
 	const masterDimWghtMax = { dim: dimWght, min: 0, peak: 1, max: 1 };
@@ -462,38 +476,66 @@ function extendShortStroke(font, references) {
 		return [{x: originLight(p1.x), y: originLight(p1.y)},{x: originLight(p2.x), y: originLight(p2.y)}];
 	}
 	
-	function contourPointsLight(contour) {
+	function contour2GeoJsonLight(contour) {
 		let pointsArr = [];
+		let j = contour.length - 1;
 		for (let i = 0; i < contour.length; i++) {
 			let x = originLight(contour[i].x);
 			let y = originLight(contour[i].y);
-			pointsArr.push({ x, y });
+			pointsArr.push([ x, y ]);
+		}
+		if (
+			pointsArr[0][0] !== pointsArr[j][0] ||
+			pointsArr[0][1] !== pointsArr[j][1]
+		) {
+			pointsArr = [...pointsArr, pointsArr[0]];
 		}
 		return pointsArr;
 	}
 	
-	function contourPointsHeavy(contour) {
+	function contour2GeoJsonHeavy(contour) {
 		let pointsArr = [];
+		let j = contour.length - 1;
 		for (let i = 0; i < contour.length; i++) {
 			let x = originHeavy(contour[i].x);
 			let y = originHeavy(contour[i].y);
-			pointsArr.push({ x, y });
+			pointsArr.push([ x, y ]);
+		}
+		if (
+			pointsArr[0][0] !== pointsArr[j][0] ||
+			pointsArr[0][1] !== pointsArr[j][1]
+		) {
+			pointsArr = [...pointsArr, pointsArr[0]];
 		}
 		return pointsArr;
 	}
 	
-	function setCustomRadius(glyphName, contourIdx, radiusMin, radiusMax) {
+	function point2GeoJsonLight(point) {
+		let x = originLight(point.x);
+		let y = originLight(point.y);
+		return [ x, y ];
+	}
+	
+	function point2GeoJsonHeavy(point) {
+		let x = originHeavy(point.x);
+		let y = originHeavy(point.y);
+		return [ x, y ];
+	}
+	
+	function setCustomRadius(glyphName, idx, radiusMin, radiusMax) {
+		let light = radiusMin.toFixed(1);
+		let heavy = radiusMax.toFixed(1);
 		if (glyphName in references.customRadiusList === false) {
 			references.customRadiusList[glyphName] = [];
 		}
 		let refArray = references.customRadiusList[glyphName];
-		let objIndex = refArray.findIndex((obj) => obj["idx"] === contourIdx);
+		let objIndex = refArray.findIndex((obj) => obj["idx"] === idx);
 		if (objIndex === -1) {
-			refArray.push({light: radiusMin, heavy: radiusMax, idx: contourIdx});
+			refArray.push({light, heavy, idx});
 		} else {
 			let ref = refArray[objIndex];
-			if (radiusMin > ref.light) ref.light = radiusMin;
-			if (radiusMax > ref.heavy) ref.heavy = radiusMax;
+			if (light > ref.light) ref.light = light;
+			if (heavy > ref.heavy) ref.heavy = heavy;
 		}
 	}
 
@@ -513,7 +555,10 @@ function extendShortStroke(font, references) {
 				glyph.geometry.contours.push(contour);
 				continue;
 			}
-			
+						if (name === "uni4B67") {
+							console.log(idxC1);
+							console.log(contour);
+						}
 			if (name in references.extendIgnoreContourIdx) {
 				const skipContours = references.extendIgnoreContourIdx[name];
 				if (skipContours.includes(idxC1)) {
@@ -558,6 +603,13 @@ function extendShortStroke(font, references) {
 						if (contour2 == contour || contour2.length < 4) continue;
 						if (references.extendIgnoreLast2Contour.includes(name) && [circularIndex(oldContours, -1), circularIndex(oldContours, -2)].includes(idxC2)) continue;
 						if (references.extendIgnoreFirst2Contour.includes(name) && [0, 1].includes(idxC2)) continue;
+						if (name in references.extendIgnoreContourIdx) {
+							const skipContours = references.extendIgnoreContourIdx[name];
+							if (skipContours.includes(idxC2)) {
+								glyph.geometry.contours.push(contour);
+								continue;
+							}
+						}
 						// {
 						// 	let last1Idx = oldContours.length - 1;
 						// 	let last2Idx = oldContours.length - 2;
@@ -943,6 +995,15 @@ function extendShortStroke(font, references) {
 						if (contour2o == contour || contour2o.length < 4) continue;
 						if (references.extendIgnoreLast2Contour.includes(name) && [circularIndex(oldContours, -1), circularIndex(oldContours, -2)].includes(idxC2)) continue;
 						if (references.extendIgnoreFirst2Contour.includes(name) && [0, 1].includes(idxC2)) continue;
+						if (name in references.extendIgnoreContourIdx) {
+							const skipContours = references.extendIgnoreContourIdx[name];
+							if (skipContours.includes(idxC2)) {
+								glyph.geometry.contours.push(contour);
+								continue;
+							}
+						}
+						let polygon = [];
+						polygon.push(contour2GeoJsonLight(contour2o));
 						let contour2 = contour2o.filter((point) => point.kind === 0);
 						let extended = false;
 						for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
@@ -974,7 +1035,9 @@ function extendShortStroke(font, references) {
 									// and 竖's (vertical's) bottom inside 横's (horizontal's) left end
 									// originLight(horizontalTopLeft.x) <= originLight(verticalBottomLeft.x) &&
 									isBetween(horizontalTopLeft.x, verticalBottomLeft.x, horizontalTopRight.x) &&
-									isBetween(horizontalBottomLeft.y, verticalBottomLeft.y, horizontalTopLeft.y)
+									isBetween(horizontalBottomLeft.y, verticalBottomLeft.y, horizontalTopLeft.y) &&
+									inside(point2GeoJsonLight(verticalBottomLeft), polygon) &&
+									inside(point2GeoJsonLight(verticalBottomRight), polygon)
 								) {
 									let isCorner = (abs(originLight(horizontalBottomLeft.x) - originLight(verticalBottomLeft.x)) < 30) || (abs(originLight(horizontalBottomRight.x) - originLight(verticalBottomRight.x)) < 30);
 									let horizontalBottomSlopeLight = horizontalSlope(lineLight(horizontalBottomLeft, horizontalBottomRight));
@@ -1100,6 +1163,13 @@ function extendShortStroke(font, references) {
 						if (contour2 == contour || contour2.length < 4) continue;
 						if (references.extendIgnoreLast2Contour.includes(name) && [circularIndex(oldContours, -1), circularIndex(oldContours, -2)].includes(idxC2)) continue;
 						if (references.extendIgnoreFirst2Contour.includes(name) && [0, 1].includes(idxC2)) continue;
+						if (name in references.extendIgnoreContourIdx) {
+							const skipContours = references.extendIgnoreContourIdx[name];
+							if (skipContours.includes(idxC2)) {
+								glyph.geometry.contours.push(contour);
+								continue;
+							}
+						}
 						for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
 							if (
 								// is top end
@@ -1289,6 +1359,15 @@ function extendShortStroke(font, references) {
 						if (contour2o == contour || contour2o.length < 4) continue;
 						if (references.extendIgnoreLast2Contour.includes(name) && [circularIndex(oldContours, -1), circularIndex(oldContours, -2)].includes(idxC2)) continue;
 						if (references.extendIgnoreFirst2Contour.includes(name) && [0, 1].includes(idxC2)) continue;
+						if (name in references.extendIgnoreContourIdx) {
+							const skipContours = references.extendIgnoreContourIdx[name];
+							if (skipContours.includes(idxC2)) {
+								glyph.geometry.contours.push(contour);
+								continue;
+							}
+						}
+						let polygon = [];
+						polygon.push(contour2GeoJsonLight(contour2o));
 						let contour2 = contour2o.filter((point) => point.kind === 0);
 						let extended = false;
 						for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
@@ -1313,7 +1392,9 @@ function extendShortStroke(font, references) {
 									// ├╌╌╌┤────
 									// │   │
 									isBetween(horizontalTopLeft.x, verticalBottomRight.x, horizontalTopRight.x) &&
-									isBetween(horizontalBottomLeft.y, verticalTopLeft.y, horizontalTopRight.y)
+									isBetween(horizontalBottomLeft.y, verticalTopLeft.y, horizontalTopRight.y) &&
+									inside(point2GeoJsonLight(verticalTopRight), polygon) &&
+									inside(point2GeoJsonLight(verticalTopLeft), polygon)
 								) {
 									let isCorner = (abs(originLight(horizontalTopLeft.x) - originLight(verticalTopLeft.x)) <= 30) || (abs(originLight(horizontalTopRight.x) - originLight(verticalTopRight.x)) < 30);
 									// let isCorner = true;
@@ -1330,7 +1411,8 @@ function extendShortStroke(font, references) {
 									let horizontalBottomSlopeHeavy = horizontalSlope({p1: {x: hBLXHeavy, y: hBLYHeavy}, p2: {x: hBRXHeavy, y: hBRYHeavy}});
 									let distanceLight = originLight(verticalTopLeft.x) - hBLXLight;
 									let distanceHeavy = originHeavy(verticalTopLeft.x) - hBLXHeavy;
-									let yOffsetL = isCorner ? 0 : (distanceLight * horizontalBottomSlopeLight) + (horizontalBottomSlopeLight === 0 ? 20 : 8);
+									let yOffsetL = isCorner ? 0 : (distanceLight * horizontalBottomSlopeLight) + 30;
+									// let yOffsetL = isCorner ? 0 : (distanceLight * horizontalBottomSlopeLight) + (horizontalBottomSlopeLight === 0 ? 20 : 8);
 									let yOffsetH = isCorner ? 0 : (distanceHeavy * horizontalBottomSlopeHeavy) + 80;
 									let rightDistance = abs(originLight(verticalTopRight.x) - originLight(horizontalTopRight.x));
 									let leftDistance = abs(originLight(verticalTopLeft.x) - originLight(horizontalTopLeft.x));
@@ -1410,13 +1492,13 @@ function extendShortStroke(font, references) {
 	for (const glyph of font.glyphs.items) {
 		const name = glyph.name;
 		// console.log(name);
-		if (["uni36E6"].includes(name)) {
-			debug = true;
-			console.log(" ");
-			console.log(name);
-		} else {
-			debug = false;
-		}
+		// if (["uni36E6"].includes(name)) {
+		// 	debug = true;
+		// 	console.log(" ");
+		// 	console.log(name);
+		// } else {
+		// 	debug = false;
+		// }
 		progressTick(name);
 		if (!references.extendSkip.includes(name)) checkSingleGlyph(glyph);
 		// count++;

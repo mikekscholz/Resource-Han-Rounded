@@ -315,11 +315,23 @@ function preProcess(font, references) {
 		
 		glyph.geometry.contours = [];
 		
-		for (const [idxC1, contour] of oldContours.entries()) {
+		for (let [idxC1, contour] of oldContours.entries()) {
 			if (contour.length < 4) {
 				glyph.geometry.contours.push(contour);
 				continue;
 			}
+			
+			// if (
+			// 	originLight(contour[0].x) !== originLight(circularArray(contour, -1).x) &&
+			// 	originLight(contour[0].y) !== originLight(circularArray(contour, -1).y) &&
+			// 	originHeavy(contour[0].x) !== originHeavy(circularArray(contour, -1).x) &&
+			// 	originHeavy(contour[0].y) !== originHeavy(circularArray(contour, -1).y)
+			// ) {
+			// 	console.log(name);
+			// 	contour = [...contour, contour[0]]; // the last end point may be omitted
+			// }
+			
+			// if (name === "uni4B67") console.log(contour);
 
 			// fix all 人's starting on midpoint of horizontal line and start on corner
 			if (contour.length === 22) {
@@ -743,9 +755,9 @@ function preProcess(font, references) {
 	let count = 0;
 	for (const glyph of font.glyphs.items) {
 		const name = glyph.name;
-		// if (name === "uni20DD") {
-		// 	console.log(JSON.stringify(glyph));
-		// }
+		if (name === "A") {
+			console.log(JSON.stringify(glyph));
+		}
 		// if (glyph?.geometry?.contours) {
 		// 	let data = JSON.stringify(glyph.geometry.contours);
 		// 	let filename = `/home/mike/Resource-Han-Rounded/replacements/${name}.json`;

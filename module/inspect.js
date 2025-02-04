@@ -799,7 +799,7 @@ function inspect(font, references, subfamily) {
 			groupHeavyStroke += `${pathHeavy} z `;
 		}
 		let horizontalEndLight = originLight(glyph.horizontal.end);
-		let horizontalEndHeavy = originHeavy(glyph.horizontal.end);
+		let horizontalEndHeavy = originHeavy(glyph.horizontal.end) || horizontalEndLight;
 		pointsLightX.push(0, horizontalEndLight);
 		pointsHeavyX.push(0, horizontalEndHeavy);
 
