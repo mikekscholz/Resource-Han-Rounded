@@ -71,7 +71,7 @@ const specialInstructions = {
 		"uni3200","uni3201","uni3202","uni3203","uni3204","uni3205","uni3206","uni3207","uni3208","uni3209","uni320A","uni320B","uni320C","uni320D","uni320E","uni320F","uni3210","uni3211","uni3212","uni3213","uni3214","uni3215","uni3216","uni3217","uni3218","uni3219","uni321A","uni321B","uni321C","uni321D","uni321E","uni323F"
 	],
 	extendIgnoreFirst2Contour: [
-		"uni3220","uni3221","uni3222","uni3223",".gid1916","uni3224","uni3225",".gid1919","uni3226",".gid1921","uni3227",".gid1923",".gid1924","uni3228","uni3229","uni322A","uni322B",".gid1929","uni322C","uni322D","uni322E",".gid1933","uni322F","uni3230","uni3231","uni3232",".gid1938","uni3233",".gid1940","uni3234","uni3235",".gid1943","uni3236","uni3237",".gid1946","uni3238","uni3239","uni323A","uni323B","uni323C",".gid1952","uni323D",".gid1954","uni323E",".gid1956","uni3240",".gid1959","uni3241","uni3242","uni3243",".gid1963"
+		"uni3220","uni3221","uni3222","uni3223",".gid1916","uni3224","uni3225",".gid1919","uni3226",".gid1921","uni3227",".gid1923",".gid1924","uni3228","uni3229","uni322A","uni322B",".gid1929","uni322C","uni322D","uni322E",".gid1933","uni322F","uni3230","uni3231","uni3232",".gid1938","uni3233",".gid1940","uni3234","uni3235",".gid1943","uni3236","uni3237",".gid1946","uni3238","uni3239","uni323A","uni323B","uni323C",".gid1952","uni323D",".gid1954","uni323E",".gid1956","uni3240",".gid1959","uni3241","uni3242","uni3243",".gid1963",".gid1663",".gid1696"
 	],
 	extendIgnoreContourIdx: {
 		
