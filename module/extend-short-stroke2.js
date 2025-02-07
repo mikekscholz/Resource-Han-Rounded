@@ -3,7 +3,7 @@
 const { Ot } = require("ot-builder");
 const inside = require("point-in-polygon-hao");
 const ProgressBar = require('./node-progress');
-const { base60, bearing, horizontalSlope, roundTo, turn, verticalSlope } = require("./util");
+const { approximateBezier, base60, bearing, horizontalSlope, roundTo, turn, verticalSlope } = require("./util");
 const { abs, ceil, floor, pow, round, sqrt, trunc, max } = Math;
 
 // const { System } = require("detect-collisions");
@@ -465,6 +465,13 @@ function extendShortStroke(font, references) {
 	function canBeStrokeEnd(contour, idx) {
 		
 	}
+
+	function pointLight(p) {
+		return {x: originLight(p.x), y: originLight(p.y)};
+	}
+	function pointHeavy(p) {
+		return {x: originHeavy(p.x), y: originHeavy(p.y)};
+	}
 	
 	function lineLight(p1, p2) {
 		return {p1: {x: originLight(p1.x), y: originLight(p1.y)},p2: {x: originLight(p2.x), y: originLight(p2.y)}};
@@ -480,6 +487,12 @@ function extendShortStroke(font, references) {
 		let pointsArr = [];
 		let j = contour.length - 1;
 		for (let i = 0; i < contour.length; i++) {
+			if (i + 1 < j && contour[i + 1].kind === 1) {
+				let p1 = pointLight(contour[i]);
+				let cp1 = pointLight(contour[i + 1]);
+				let cp2 = pointLight(contour[i + 2]);
+				let p2 = pointLight(contour[i + 3]);
+			}
 			let x = originLight(contour[i].x);
 			let y = originLight(contour[i].y);
 			pointsArr.push([ x, y ]);
@@ -555,10 +568,10 @@ function extendShortStroke(font, references) {
 				glyph.geometry.contours.push(contour);
 				continue;
 			}
-						if (name === "uni4B67") {
-							console.log(idxC1);
-							console.log(contour);
-						}
+			// if (name === "uni4B67") {
+			// 	console.log(idxC1);
+			// 	console.log(contour);
+			// }
 			if (name in references.extendIgnoreContourIdx) {
 				const skipContours = references.extendIgnoreContourIdx[name];
 				if (skipContours.includes(idxC1)) {
@@ -566,7 +579,7 @@ function extendShortStroke(font, references) {
 					continue;
 				}
 			}
-			debug && console.log(contour.length);
+			// debug && console.log(contour.length);
 			const newContour = [...contour];
 
 			for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
@@ -580,6 +593,10 @@ function extendShortStroke(font, references) {
 				const horizontalAngle = angle(lineLight(circularArray(contour, bottomLeftIdx), circularArray(contour, bottomRightIdx)));
 				const horizontalTopSlope = horizontalSlope(lineLight(circularArray(contour, bottomLeftIdx), circularArray(contour, bottomRightIdx)));
 				const horizontalBottomSlope = horizontalSlope(lineLight(circularArray(contour, bottomLeftIdx), circularArray(contour, bottomRightIdx)));
+				debug && console.log("horizontalTopSlope", horizontalTopSlope);
+				debug && console.log("horizontalBottomSlope", horizontalBottomSlope);
+				if (!Number.isFinite(horizontalTopSlope)) continue;
+				if (!Number.isFinite(horizontalBottomSlope)) continue;
 				if (
 					// is right end
 					canBeRightEnd(circularArray(contour, bottomRightIdx), circularArray(contour, topRightIdx)) &&
@@ -606,7 +623,6 @@ function extendShortStroke(font, references) {
 						if (name in references.extendIgnoreContourIdx) {
 							const skipContours = references.extendIgnoreContourIdx[name];
 							if (skipContours.includes(idxC2)) {
-								glyph.geometry.contours.push(contour);
 								continue;
 							}
 						}
@@ -665,8 +681,12 @@ function extendShortStroke(font, references) {
 									// let xOffsetL = isCorner ? 0 : 4;
 									// let xOffsetH = isCorner ? 0 : 20;
 									
-									const verticalRightSlopeLight = verticalSlope(lineLight(verticalBottomRight, verticalTopRight));
-									const verticalRightSlopeHeavy = verticalSlope(lineHeavy(verticalBottomRight, verticalTopRight));
+									const verticalRightSlopeLight = verticalSlope(lineLight(verticalBottomRight, verticalTopRight)) || 0;
+									const verticalRightSlopeHeavy = verticalSlope(lineHeavy(verticalBottomRight, verticalTopRight)) || 0;
+									debug && console.log("verticalRightSlopeLight", verticalRightSlopeLight);
+									debug && console.log("verticalRightSlopeHeavy", verticalRightSlopeHeavy);
+									if (!Number.isFinite(verticalRightSlopeLight)) continue;
+									if (!Number.isFinite(verticalRightSlopeHeavy)) continue;
 									// const verticalRightSlopeLight = verticalSlope(lineLight(verticalTopRight, circularArray(contour2, cornerN1))) === 0 ? 0 : verticalSlope(lineLight(verticalBottomRight, verticalTopRight));
 									// const verticalRightSlopeHeavy = verticalSlope(lineHeavy(verticalTopRight, circularArray(contour2, cornerN1))) === 0 ? 0 : verticalSlope(lineHeavy(verticalBottomRight, verticalTopRight));
 									let isCorner = (abs(originLight(horizontalTopRight.y) - originLight(verticalTopRight.y)) < 5) || (abs(originLight(horizontalBottomRight.y) - originLight(verticalBottomRight.y)) < 5);
@@ -998,7 +1018,6 @@ function extendShortStroke(font, references) {
 						if (name in references.extendIgnoreContourIdx) {
 							const skipContours = references.extendIgnoreContourIdx[name];
 							if (skipContours.includes(idxC2)) {
-								glyph.geometry.contours.push(contour);
 								continue;
 							}
 						}
@@ -1040,8 +1059,12 @@ function extendShortStroke(font, references) {
 									inside(point2GeoJsonLight(verticalBottomRight), polygon)
 								) {
 									let isCorner = (abs(originLight(horizontalBottomLeft.x) - originLight(verticalBottomLeft.x)) < 30) || (abs(originLight(horizontalBottomRight.x) - originLight(verticalBottomRight.x)) < 30);
-									let horizontalBottomSlopeLight = horizontalSlope(lineLight(horizontalBottomLeft, horizontalBottomRight));
-									let horizontalBottomSlopeHeavy = horizontalSlope(lineHeavy(horizontalBottomLeft, horizontalBottomRight));
+									let horizontalBottomSlopeLight = horizontalSlope(lineLight(horizontalBottomLeft, horizontalBottomRight)) || 0;
+									let horizontalBottomSlopeHeavy = horizontalSlope(lineHeavy(horizontalBottomLeft, horizontalBottomRight)) || 0;
+									debug && console.log("horizontalBottomSlopeLight", horizontalBottomSlopeLight);
+									debug && console.log("horizontalBottomSlopeHeavy", horizontalBottomSlopeHeavy);
+									if (!Number.isFinite(horizontalBottomSlopeLight)) continue;
+									if (!Number.isFinite(horizontalBottomSlopeHeavy)) continue;
 									let verticalBottomCenterXLight = (originLight(verticalBottomLeft.x) + originLight(verticalBottomRight.x)) / 2;
 									let verticalBottomCenterXHeavy = (originHeavy(verticalBottomLeft.x) + originHeavy(verticalBottomRight.x)) / 2;
 									// let distanceLight = verticalBottomCenterXLight - originLight(horizontalTopLeft.x);
@@ -1166,7 +1189,6 @@ function extendShortStroke(font, references) {
 						if (name in references.extendIgnoreContourIdx) {
 							const skipContours = references.extendIgnoreContourIdx[name];
 							if (skipContours.includes(idxC2)) {
-								glyph.geometry.contours.push(contour);
 								continue;
 							}
 						}
@@ -1233,6 +1255,10 @@ function extendShortStroke(font, references) {
 								// const verticalTopLeft = circularArray(contour2, idxP2 - 1);
 								const verticalLeftSlopeLight = verticalSlope(lineLight(verticalBottomLeft, verticalTopLeft));
 								const verticalLeftSlopeHeavy = verticalSlope(lineHeavy(verticalBottomLeft, verticalTopLeft));
+								debug && console.log("verticalLeftSlopeLight", verticalLeftSlopeLight);
+								debug && console.log("verticalLeftSlopeHeavy", verticalLeftSlopeHeavy);
+								if (!Number.isFinite(verticalLeftSlopeLight)) continue;
+								if (!Number.isFinite(verticalLeftSlopeHeavy)) continue;
 								debug && console.log(`is lefts bottom end - idxC2: ${idxC2}, idxP2: ${idxP2}`);
 								if (
 									// and 横's (horizontal's) left end inside 竖 (vertical)
@@ -1362,7 +1388,6 @@ function extendShortStroke(font, references) {
 						if (name in references.extendIgnoreContourIdx) {
 							const skipContours = references.extendIgnoreContourIdx[name];
 							if (skipContours.includes(idxC2)) {
-								glyph.geometry.contours.push(contour);
 								continue;
 							}
 						}
@@ -1407,8 +1432,12 @@ function extendShortStroke(font, references) {
 									let hBLYHeavy = originHeavy(horizontalBottomLeft.y);
 									let hBRXHeavy = originHeavy(horizontalBottomRight.x);
 									let hBRYHeavy = originHeavy(horizontalBottomRight.y);
-									let horizontalBottomSlopeLight = horizontalSlope({p1: {x: hBLXLight, y: hBLYLight}, p2: {x: hBRXLight, y: hBRYLight}});
-									let horizontalBottomSlopeHeavy = horizontalSlope({p1: {x: hBLXHeavy, y: hBLYHeavy}, p2: {x: hBRXHeavy, y: hBRYHeavy}});
+									let horizontalBottomSlopeLight = horizontalSlope({p1: {x: hBLXLight, y: hBLYLight}, p2: {x: hBRXLight, y: hBRYLight}}) || 0;
+									let horizontalBottomSlopeHeavy = horizontalSlope({p1: {x: hBLXHeavy, y: hBLYHeavy}, p2: {x: hBRXHeavy, y: hBRYHeavy}}) || 0;
+									debug && console.log("horizontalBottomSlopeLight", horizontalBottomSlopeLight);
+									debug && console.log("horizontalBottomSlopeHeavy", horizontalBottomSlopeHeavy);
+									if (!Number.isFinite(horizontalBottomSlopeLight)) continue;
+									if (!Number.isFinite(horizontalBottomSlopeHeavy)) continue;
 									let distanceLight = originLight(verticalTopLeft.x) - hBLXLight;
 									let distanceHeavy = originHeavy(verticalTopLeft.x) - hBLXHeavy;
 									let yOffsetL = isCorner ? 0 : (distanceLight * horizontalBottomSlopeLight) + 30;
@@ -1492,13 +1521,13 @@ function extendShortStroke(font, references) {
 	for (const glyph of font.glyphs.items) {
 		const name = glyph.name;
 		// console.log(name);
-		// if (["uni36E6"].includes(name)) {
-		// 	debug = true;
-		// 	console.log(" ");
-		// 	console.log(name);
-		// } else {
-		// 	debug = false;
-		// }
+		if (["uni758E"].includes(name)) {
+			debug = true;
+			console.log(" ");
+			console.log(name);
+		} else {
+			debug = false;
+		}
 		progressTick(name);
 		if (!references.extendSkip.includes(name)) checkSingleGlyph(glyph);
 		// count++;

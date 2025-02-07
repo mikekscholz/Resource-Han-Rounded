@@ -474,6 +474,10 @@ function preProcess(font, references) {
 													references.skipRedundantPoints[name] = [];
 												}
 												references.skipRedundantPoints[name].push(idxC3);
+												if (name in references.extendIgnoreContourIdx === false) {
+													references.extendIgnoreContourIdx[name] = [];
+												}
+												references.extendIgnoreContourIdx[name].push(idxC3);
 												vertMatched = true;
 												break;
 											}
@@ -647,38 +651,38 @@ function preProcess(font, references) {
 						let cVD = abs(turn(parentBearing, controlVectorBearing));
 						if (p2.kind === 1 && p3.kind === 2 && p4.kind === 0) {
 							if (segD < 11 && (c1D < 11 || distanceLight(p1, p2) === 0) && (c2D < 11 || distanceLight(p3, p4) === 0) && cVD < 11 && segmentLength < (parentLength / 4)) {
-								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length && p1Idx > startIdx) redundantPoints.push(p1Idx);
-								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length) redundantPoints.push(p2Idx);
-								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length) redundantPoints.push(p3Idx);
-								if (!redundantPoints.includes(p4Idx) && p4Idx !== 0 && p4Idx < contour.length && p4Idx < endIdx) redundantPoints.push(p4Idx);
+								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length - 1 && p1Idx > startIdx) redundantPoints.push(p1Idx);
+								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length - 1) redundantPoints.push(p2Idx);
+								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length - 1) redundantPoints.push(p3Idx);
+								if (!redundantPoints.includes(p4Idx) && p4Idx !== 0 && p4Idx < contour.length - 1 && p4Idx < endIdx) redundantPoints.push(p4Idx);
 							}
 							if (segD < 3 && (c1D < 3 || distanceLight(p1, p2) === 0) && (c2D < 3 || distanceLight(p3, p4) === 0) && cVD < 3) {
-								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length && p1Idx > startIdx) redundantPoints.push(p1Idx);
-								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length) redundantPoints.push(p2Idx);
-								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length) redundantPoints.push(p3Idx);
-								if (!redundantPoints.includes(p4Idx) && p4Idx !== 0 && p4Idx < contour.length && p4Idx < endIdx) redundantPoints.push(p4Idx);
+								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length - 1 && p1Idx > startIdx) redundantPoints.push(p1Idx);
+								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length - 1) redundantPoints.push(p2Idx);
+								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length - 1) redundantPoints.push(p3Idx);
+								if (!redundantPoints.includes(p4Idx) && p4Idx !== 0 && p4Idx < contour.length - 1 && p4Idx < endIdx) redundantPoints.push(p4Idx);
 							}
 							if (segD < 8 && (c1D < 2 || distanceLight(p1, p2) === 0) && (c2D < 12 || distanceLight(p3, p4) === 0) && cVD < 4 && segmentLength < (parentLength / 3)) {
-								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length && p1Idx > startIdx) redundantPoints.push(p1Idx);
-								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length) redundantPoints.push(p2Idx);
-								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length) redundantPoints.push(p3Idx);
-								if (!redundantPoints.includes(p4Idx) && p4Idx !== 0 && p4Idx < contour.length && p4Idx < endIdx) redundantPoints.push(p4Idx);
+								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length - 1 && p1Idx > startIdx) redundantPoints.push(p1Idx);
+								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length - 1) redundantPoints.push(p2Idx);
+								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length - 1) redundantPoints.push(p3Idx);
+								if (!redundantPoints.includes(p4Idx) && p4Idx !== 0 && p4Idx < contour.length - 1 && p4Idx < endIdx) redundantPoints.push(p4Idx);
 							}
 							if (segD < 20 && (c1D < 4 || distanceLight(p1, p2) === 0) && ((c2D < 20 && c2D > 10) || distanceLight(p3, p4) === 0) && cVD < 15 && p4Idx === endIdx && innerPoints > 5) {
-								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length && p1Idx > startIdx) redundantPoints.push(p1Idx);
-								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length) redundantPoints.push(p2Idx);
-								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length) redundantPoints.push(p3Idx);
+								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length - 1 && p1Idx > startIdx) redundantPoints.push(p1Idx);
+								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length - 1) redundantPoints.push(p2Idx);
+								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length - 1) redundantPoints.push(p3Idx);
 							}
 							if (distanceHeavy(p1, p4) < 100 && (c1D < 30 || distanceLight(p1, p2) === 0) && (c2D < 20 || distanceLight(p3, p4) === 0) && cVD < 15 && p1Idx === startIdx && innerPoints > 5) {
-								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length) redundantPoints.push(p2Idx);
-								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length) redundantPoints.push(p3Idx);
-								if (!redundantPoints.includes(p4Idx) && p4Idx !== 0 && p4Idx < contour.length && p4Idx < endIdx) redundantPoints.push(p4Idx);
+								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length - 1) redundantPoints.push(p2Idx);
+								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length - 1) redundantPoints.push(p3Idx);
+								if (!redundantPoints.includes(p4Idx) && p4Idx !== 0 && p4Idx < contour.length - 1 && p4Idx < endIdx) redundantPoints.push(p4Idx);
 							}
 							if (segD < 8 && (c1D < 14 || distanceLight(p1, p2) === 0) && (c2D < 2 || distanceLight(p3, p4) === 0) && cVD < 4 && segmentLength < (parentLength / 3)) {
-								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length && p1Idx > startIdx) redundantPoints.push(p1Idx);
-								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length) redundantPoints.push(p2Idx);
-								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length) redundantPoints.push(p3Idx);
-								if (!redundantPoints.includes(p4Idx) && p4Idx !== 0 && p4Idx < contour.length && p4Idx < endIdx) redundantPoints.push(p4Idx);
+								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length - 1 && p1Idx > startIdx) redundantPoints.push(p1Idx);
+								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length - 1) redundantPoints.push(p2Idx);
+								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length - 1) redundantPoints.push(p3Idx);
+								if (!redundantPoints.includes(p4Idx) && p4Idx !== 0 && p4Idx < contour.length - 1 && p4Idx < endIdx) redundantPoints.push(p4Idx);
 							}
 						}
 						
@@ -696,21 +700,21 @@ function preProcess(font, references) {
 					let d2 = abs(mainSlope - s2);
 					let d3 = abs(mainSlope - s3);
 					if (c1.kind === 1 && c2.kind === 2 && d1 < 0.02 && d2 < 0.02 && d3 < 0.02) {
-						if (!redundantPoints.includes(c1Idx) && c1Idx !== 0 && c1Idx < contour.length) redundantPoints.push(c1Idx);
-						if (!redundantPoints.includes(c2Idx) && c2Idx !== 0 && c2Idx < contour.length) redundantPoints.push(c2Idx);
+						if (!redundantPoints.includes(c1Idx) && c1Idx !== 0 && c1Idx < contour.length - 1) redundantPoints.push(c1Idx);
+						if (!redundantPoints.includes(c2Idx) && c2Idx !== 0 && c2Idx < contour.length - 1) redundantPoints.push(c2Idx);
 					}
 				}
 			}
-			for (let i = 0; i < contour.length; i++) {
-				let curr = contour[i];
-				if (curr.kind !== 0) continue;
-				let prev = contour[previousNode(contour, i, false)];
-				let next = contour[nextNode(contour, i, false)];
-				let bear1 = bearing(lineLight(prev, curr));
-				let bear2 = bearing(lineLight(curr, next));
-				let rotation = abs(turn(bear1, bear2));
-				if (rotation >= 25 && rotation <= 150 && !corners.includes(i)) corners.push(i);
-			}
+			// for (let i = 0; i < contour.length; i++) {
+			// 	let curr = contour[i];
+			// 	if (curr.kind !== 0) continue;
+			// 	let prev = contour[previousNode(contour, i, false)];
+			// 	let next = contour[nextNode(contour, i, false)];
+			// 	let bear1 = bearing(lineLight(prev, curr));
+			// 	let bear2 = bearing(lineLight(curr, next));
+			// 	let rotation = abs(turn(bear1, bear2));
+			// 	if (rotation >= 25 && rotation <= 150 && !corners.includes(i)) corners.push(i);
+			// }
 			if (redundantPoints.length > 0) {
 				redundantPoints.reverse();
 				for (const i of redundantPoints) {
