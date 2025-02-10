@@ -47,19 +47,7 @@ function angle(line) {
 //      │     │
 //
 function extendShortStroke(font, references) {
-	
-	const polygon = [
-		[
-		  [1, 1],
-		  [1, 2],
-		  [2, 2],
-		  [2, 1],
-		  [1, 1]
-		]
-	  ];
-	  
-	  console.log(inside([ 1.5, 1.5 ], polygon))
-	  
+
 	const dimWght = font.fvar.axes[0].dim;
 	const instanceShsWghtMax = new Map([[dimWght, 1]]);
 	const masterDimWghtMax = { dim: dimWght, min: 0, peak: 1, max: 1 };
@@ -467,20 +455,19 @@ function extendShortStroke(font, references) {
 	}
 
 	function pointLight(p) {
-		return {x: originLight(p.x), y: originLight(p.y)};
+		return { x: originLight(p.x), y: originLight(p.y) };
 	}
+	
 	function pointHeavy(p) {
-		return {x: originHeavy(p.x), y: originHeavy(p.y)};
+		return { x: originHeavy(p.x), y: originHeavy(p.y) };
 	}
 	
 	function lineLight(p1, p2) {
-		return {p1: {x: originLight(p1.x), y: originLight(p1.y)},p2: {x: originLight(p2.x), y: originLight(p2.y)}};
+		return { p1: pointLight(p1) ,p2: pointLight(p2) };
 	}
+	
 	function lineHeavy(p1, p2) {
-		return {p1: {x: originHeavy(p1.x), y: originHeavy(p1.y)},p2: {x: originHeavy(p2.x), y: originHeavy(p2.y)}};
-	}
-	function collisionLineLight(p1, p2) {
-		return [{x: originLight(p1.x), y: originLight(p1.y)},{x: originLight(p2.x), y: originLight(p2.y)}];
+		return { p1: pointHeavy(p1) ,p2: pointHeavy(p2) };
 	}
 	
 	function contour2GeoJsonLight(contour) {
@@ -492,14 +479,21 @@ function extendShortStroke(font, references) {
 				let cp1 = pointLight(contour[i + 1]);
 				let cp2 = pointLight(contour[i + 2]);
 				let p2 = pointLight(contour[i + 3]);
+				let curve = approximateBezier(p1, cp1, cp2, p2);
+				curve.pop();
+				for (const coord of curve) {
+					const { x, y } = coord;
+					pointsArr.push([ x, y ]);
+				}
+				i += 2;
+			} else {
+				const { x, y } = pointLight(contour[i]);
+				pointsArr.push([ x, y ]);
 			}
-			let x = originLight(contour[i].x);
-			let y = originLight(contour[i].y);
-			pointsArr.push([ x, y ]);
 		}
 		if (
-			pointsArr[0][0] !== pointsArr[j][0] ||
-			pointsArr[0][1] !== pointsArr[j][1]
+			pointsArr[0][0] !== pointsArr[pointsArr.length - 1][0] ||
+			pointsArr[0][1] !== pointsArr[pointsArr.length - 1][1]
 		) {
 			pointsArr = [...pointsArr, pointsArr[0]];
 		}
@@ -510,13 +504,26 @@ function extendShortStroke(font, references) {
 		let pointsArr = [];
 		let j = contour.length - 1;
 		for (let i = 0; i < contour.length; i++) {
-			let x = originHeavy(contour[i].x);
-			let y = originHeavy(contour[i].y);
-			pointsArr.push([ x, y ]);
+			if (i + 1 < j && contour[i + 1].kind === 1) {
+				let p1 = pointHeavy(contour[i]);
+				let cp1 = pointHeavy(contour[i + 1]);
+				let cp2 = pointHeavy(contour[i + 2]);
+				let p2 = pointHeavy(contour[i + 3]);
+				let curve = approximateBezier(p1, cp1, cp2, p2);
+				curve.pop();
+				for (const coord of curve) {
+					const { x, y } = coord;
+					pointsArr.push([ x, y ]);
+				}
+				i += 2;
+			} else {
+				const { x, y } = pointHeavy(contour[i]);
+				pointsArr.push([ x, y ]);
+			}
 		}
 		if (
-			pointsArr[0][0] !== pointsArr[j][0] ||
-			pointsArr[0][1] !== pointsArr[j][1]
+			pointsArr[0][0] !== pointsArr[pointsArr.length - 1][0] ||
+			pointsArr[0][1] !== pointsArr[pointsArr.length - 1][1]
 		) {
 			pointsArr = [...pointsArr, pointsArr[0]];
 		}
@@ -524,14 +531,12 @@ function extendShortStroke(font, references) {
 	}
 	
 	function point2GeoJsonLight(point) {
-		let x = originLight(point.x);
-		let y = originLight(point.y);
+		const { x, y } = pointLight(point);
 		return [ x, y ];
 	}
 	
 	function point2GeoJsonHeavy(point) {
-		let x = originHeavy(point.x);
-		let y = originHeavy(point.y);
+		const { x, y } = pointHeavy(point);
 		return [ x, y ];
 	}
 	
@@ -626,11 +631,8 @@ function extendShortStroke(font, references) {
 								continue;
 							}
 						}
-						// {
-						// 	let last1Idx = oldContours.length - 1;
-						// 	let last2Idx = oldContours.length - 2;
-						// 	if (idxC2 === last1Idx || idxC2 === last2Idx) continue;
-						// }
+						let polygonLight = [contour2GeoJsonLight(contour2)];
+						let polygonHeavy = [contour2GeoJsonHeavy(contour2)];
 						let extended = false;
 						
 						for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
@@ -651,9 +653,10 @@ function extendShortStroke(font, references) {
 							) {
 								const verticalTopRight = circularArray(contour2, corner0);
 								const verticalTopLeft = circularArray(contour2, cornerP1);
+								const topRightIsEdge = (inside(point2GeoJsonLight(horizontalTopRight), polygonLight) === 0 || inside(point2GeoJsonHeavy(horizontalTopRight), polygonHeavy) === 0);
 								// const strokeHeavy = distanceHeavy(verticalTopRight, verticalTopLeft);
 								const verticalBottomLeft = circularArray(contour2, findBottomLeftCorner(contour2)) || circularArray(contour2, cornerP2);
-								const verticalBottomRight = circularArray(contour2, findBottomRightCorner(contour2)) || circularArray(contour2, cornerN1);
+								const verticalBottomRight = topRightIsEdge ? circularArray(contour2, cornerN1) : circularArray(contour2, findBottomRightCorner(contour2)) || circularArray(contour2, cornerN1);
 								// const verticalBottomLeft = circularArray(contour2, cornerP2);
 								// const verticalBottomRight = circularArray(contour2, cornerN1);
 								// const verticalBottomRight = circularArray(contour2, previousNodeLTY(contour2, corner0, horizontalBottomRight));
@@ -675,7 +678,16 @@ function extendShortStroke(font, references) {
 									(
 										isBetween(verticalBottomLeft.y, horizontalTopRight.y, verticalTopLeft.y) ||
 										isBetween(verticalBottomRight.y, horizontalTopRight.y, verticalTopRight.y)
-									) && horizontalAngle > 45 && horizontalAngle < 135
+									) && horizontalAngle > 45 && horizontalAngle < 135 &&
+									(
+										(
+											inside(point2GeoJsonLight(horizontalBottomRight), polygonLight) !== false &&
+											inside(point2GeoJsonLight(horizontalTopRight), polygonLight) !== false
+										) || (
+											inside(point2GeoJsonHeavy(horizontalBottomRight), polygonHeavy) !== false &&
+											inside(point2GeoJsonHeavy(horizontalTopRight), polygonHeavy) !== false
+										)
+									)
 								) {
 									// let isCorner = (abs(originLight(horizontalTopRight.y) - originLight(verticalTopRight.y)) < 30) || (abs(originLight(horizontalBottomRight.y) - originLight(verticalBottomRight.y)) < 30);
 									// let xOffsetL = isCorner ? 0 : 4;
@@ -808,7 +820,16 @@ function extendShortStroke(font, references) {
 									(
 										isBetween(verticalBottomLeft.y, horizontalTopRight.y, verticalTopLeft.y) ||
 										isBetween(verticalBottomRight.y, horizontalTopRight.y, verticalTopRight.y)
-									) && horizontalAngle > 45 && horizontalAngle < 135
+									) && horizontalAngle > 45 && horizontalAngle < 135 &&
+									(
+										(
+											inside(point2GeoJsonLight(horizontalBottomRight), polygonLight) !== false &&
+											inside(point2GeoJsonLight(horizontalTopRight), polygonLight) !== false
+										) || (
+											inside(point2GeoJsonHeavy(horizontalBottomRight), polygonHeavy) !== false &&
+											inside(point2GeoJsonHeavy(horizontalTopRight), polygonHeavy) !== false
+										)
+									)
 								) {
 									let isCorner = (approxEq(horizontalTopRight.y, verticalTopRight.y, 30) || approxEq(horizontalBottomRight.y, verticalBottomRight.y, 30));
 									let xOffsetL = isCorner ? 0 : 4;
@@ -833,131 +854,6 @@ function extendShortStroke(font, references) {
 									// break;
 								}
 							}
-							
-							// find 横's (horizontal's) right end inside ㇇'s (horizontal + left-falling)
-							// if (
-							// 	contour2.length > 10 &&
-							// 	canBeLeftFalling(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5), circularArray(contour2, idxP2 + 6), circularArray(contour2, idxP2 + 7), circularArray(contour2, idxP2 - 3), circularArray(contour2, idxP2 - 2), circularArray(contour2, idxP2 - 1)) &&
-							// 	abs(originLight(horizontalTopRight.y) - originLight(circularArray(contour2, idxP2 + 2).y)) <=1 &&
-							// 	originLight(horizontalTopRight.x) > originLight(circularArray(contour2, idxP2 + 3).x) &&
-							// 	originLight(horizontalTopRight.x) < originLight(circularArray(contour2, idxP2).x)
-							// ) {
-							// 	const leftFallBottomLeft = circularArray(contour2, idxP2 + 7);
-							// 	const leftFallBottomRight = circularArray(contour2, idxP2 - 3);
-							// 	if (name in references.horizontalLeftFalling === false) {
-							// 		references.horizontalLeftFalling[name] = [];
-							// 	}
-							// 	let refs = references.horizontalLeftFalling[name];
-							// 	let ref = { "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2 };
-							// 	for (let idxC3 = 0; idxC3 < oldContours.length; idxC3++) {
-							// 		if ([idxC1, idxC2].includes(idxC3)) continue;
-							// 		let vertMatched = false;
-							// 		for (let idxP3 = 0; idxP3 < oldContours[idxC3].length; idxP3++) {
-							// 			if (// is top end
-							// 				canBeTopEnd(oldContours[idxC3][idxP3], circularArray(oldContours[idxC3], idxP3 + 1)) &&
-							// 				approxEq(oldContours[idxC3][idxP3].x, circularArray(oldContours[idxC3], idxP3 - 1).x) &&
-							// 				approxEq(circularArray(oldContours[idxC3], idxP3 + 1).x, circularArray(oldContours[idxC3], idxP3 + 2).x)
-							// 			) {
-							// 				const verticalTopRight = oldContours[idxC3][idxP3];
-							// 				const verticalTopLeft = circularArray(oldContours[idxC3], idxP3 + 1);
-							// 				const verticalBottomLeft = circularArray(oldContours[idxC3], idxP3 + 2);
-							// 				const verticalBottomRight = circularArray(oldContours[idxC3], idxP3 - 1);
-							// 				if (
-							// 					originLight(verticalTopRight.y) >= originLight(leftFallBottomRight.y) &&
-							// 					originLight(verticalTopRight.x) >= originLight(leftFallBottomRight.x) &&
-							// 					originLight(verticalBottomRight.y) < originLight(leftFallBottomRight.y) &&
-							// 					originLight(verticalBottomRight.x) >= originLight(leftFallBottomRight.x) &&
-							// 					originLight(verticalTopLeft.y) >= originLight(leftFallBottomLeft.y) &&
-							// 					originLight(verticalTopLeft.x) <= originLight(leftFallBottomLeft.x) &&
-							// 					originLight(verticalBottomLeft.y) < originLight(leftFallBottomLeft.y) &&
-							// 					originLight(verticalBottomLeft.x) <= originLight(leftFallBottomLeft.x) &&
-							// 					originHeavy(verticalTopRight.y) >= originHeavy(leftFallBottomRight.y) &&
-							// 					originHeavy(verticalTopRight.x) >= originHeavy(leftFallBottomRight.x) &&
-							// 					originHeavy(verticalBottomRight.y) < originHeavy(leftFallBottomRight.y) &&
-							// 					originHeavy(verticalBottomRight.x) >= originHeavy(leftFallBottomRight.x) &&
-							// 					originHeavy(verticalTopLeft.y) >= originHeavy(leftFallBottomLeft.y) &&
-							// 					originHeavy(verticalTopLeft.x) <= originHeavy(leftFallBottomLeft.x) &&
-							// 					originHeavy(verticalBottomLeft.y) < originHeavy(leftFallBottomLeft.y) &&
-							// 					originHeavy(verticalBottomLeft.x) <= originHeavy(leftFallBottomLeft.x)
-							// 				) {
-							// 					ref = { "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2, "vertical": idxC3, "verticalTopRight": idxP3 };
-							// 					vertMatched = true;
-							// 					break;
-							// 				}
-							// 			}
-							// 		}
-							// 		if (vertMatched) break;
-							// 	}
-							// 	refs.push(ref);
-							// 	// extended = true;
-							// 	// break;
-							// }
-
-							// if (
-							// 	contour2.length > 10 &&
-							// 	canBeLeftFalling2(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5), circularArray(contour2, idxP2 + 6), circularArray(contour2, idxP2 + 7), circularArray(contour2, idxP2 - 3), circularArray(contour2, idxP2 - 2), circularArray(contour2, idxP2 - 1))  &&
-							// 	originLight(horizontalTopRight.y) < originLight(circularArray(contour2, idxP2 + 2).y) &&
-							// 	originLight(horizontalTopRight.x) > originLight(circularArray(contour2, idxP2 + 3).x) &&
-							// 	originLight(contour2[idxP2].x) > originLight(horizontalTopRight.x)
-							// ) {
-							// 	if (name in references.horizontalLeftFalling2 === false) {
-							// 		references.horizontalLeftFalling2[name] = [];
-							// 	}
-							// 	let refs = references.horizontalLeftFalling2[name];
-							// 	refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "horizontalSlope": horizontalBottomSlope, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
-								
-							// 	// extended = true;
-							// 	// break;
-							// }
-							// if (
-							// 	contour2.length > 10 &&
-							// 	canBeLeftFalling2b(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5), circularArray(contour2, idxP2 + 6), circularArray(contour2, idxP2 + 7), circularArray(contour2, idxP2 + 8), circularArray(contour2, idxP2 - 3), circularArray(contour2, idxP2 - 2), circularArray(contour2, idxP2 - 1)) &&
-							// 	originLight(horizontalTopRight.y) < originLight(circularArray(contour2, idxP2 + 2).y) &&
-							// 	originLight(horizontalTopRight.x) > originLight(circularArray(contour2, idxP2 + 4).x) &&
-							// 	originLight(contour2[idxP2].x) > originLight(horizontalTopRight.x)
-							// ) {
-							// 	if (name in references.horizontalLeftFalling2b === false) {
-							// 		references.horizontalLeftFalling2b[name] = [];
-							// 	}
-							// 	let refs = references.horizontalLeftFalling2b[name];
-							// 	refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "horizontalSlope": horizontalBottomSlope, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
-								
-							// 	// extended = true;
-							// 	// break;
-							// }
-
-							// if (
-							// 	contour2.length > 10 &&
-							// 	canBeLeftFalling3(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5), circularArray(contour2, idxP2 + 6), circularArray(contour2, idxP2 - 3), circularArray(contour2, idxP2 - 2), circularArray(contour2, idxP2 - 1)) &&
-							// 	abs(originLight(horizontalTopRight.y) - originLight(circularArray(contour2, idxP2 + 1).y)) <=15 &&
-							// 	originLight(horizontalTopRight.x) - originLight(circularArray(contour2, idxP2 + 2).x) > 0 &&
-							// 	originLight(contour2[idxP2].x) > originLight(horizontalTopRight.x)
-							// ) {
-							// 	if (name in references.horizontalLeftFalling3 === false) {
-							// 		references.horizontalLeftFalling3[name] = [];
-							// 	}
-							// 	let refs = references.horizontalLeftFalling3[name];
-							// 	refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
-								
-							// 	// extended = true;
-							// 	// break;
-							// }
-							// if (
-							// 	contour2.length > 10 &&
-							// 	canBeLeftFalling4(circularArray(contour2, idxP2 - 1), contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4)) &&
-							// 	abs(originLight(horizontalTopRight.y) - originLight(circularArray(contour2, idxP2 + 3).y)) <= 15 &&
-							// 	abs(originLight(horizontalTopRight.x) - originLight(circularArray(contour2, idxP2 + 3).x)) <= 30 &&
-							// 	originLight(circularArray(contour2, idxP2).x) > originLight(horizontalTopRight.x)
-							// ) {
-							// 	if (name in references.horizontalLeftFalling4 === false) {
-							// 		references.horizontalLeftFalling4[name] = [];
-							// 	}
-							// 	let refs = references.horizontalLeftFalling4[name];
-							// 	refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
-								
-							// 	// extended = true;
-							// 	// break;
-							// }
 						}
 						if (extended)
 							break;
@@ -1021,8 +917,8 @@ function extendShortStroke(font, references) {
 								continue;
 							}
 						}
-						let polygon = [];
-						polygon.push(contour2GeoJsonLight(contour2o));
+						let polygonLight = [contour2GeoJsonLight(contour2o)];
+						let polygonHeavy = [contour2GeoJsonHeavy(contour2o)];
 						let contour2 = contour2o.filter((point) => point.kind === 0);
 						let extended = false;
 						for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
@@ -1055,8 +951,15 @@ function extendShortStroke(font, references) {
 									// originLight(horizontalTopLeft.x) <= originLight(verticalBottomLeft.x) &&
 									isBetween(horizontalTopLeft.x, verticalBottomLeft.x, horizontalTopRight.x) &&
 									isBetween(horizontalBottomLeft.y, verticalBottomLeft.y, horizontalTopLeft.y) &&
-									inside(point2GeoJsonLight(verticalBottomLeft), polygon) &&
-									inside(point2GeoJsonLight(verticalBottomRight), polygon)
+									(
+										(
+											inside(point2GeoJsonLight(verticalBottomLeft), polygonLight) !== false &&
+											inside(point2GeoJsonLight(verticalBottomRight), polygonLight) !== false
+										) || (
+											inside(point2GeoJsonHeavy(verticalBottomLeft), polygonHeavy) !== false &&
+											inside(point2GeoJsonHeavy(verticalBottomRight), polygonHeavy) !== false
+										)
+									)
 								) {
 									let isCorner = (abs(originLight(horizontalBottomLeft.x) - originLight(verticalBottomLeft.x)) < 30) || (abs(originLight(horizontalBottomRight.x) - originLight(verticalBottomRight.x)) < 30);
 									let horizontalBottomSlopeLight = horizontalSlope(lineLight(horizontalBottomLeft, horizontalBottomRight)) || 0;
@@ -1192,6 +1095,8 @@ function extendShortStroke(font, references) {
 								continue;
 							}
 						}
+						let polygonLight = [contour2GeoJsonLight(contour2)];
+						let polygonHeavy = [contour2GeoJsonHeavy(contour2)];
 						for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
 							if (
 								// is top end
@@ -1215,7 +1120,16 @@ function extendShortStroke(font, references) {
 									// │  └──┼───
 									// │     │   
 									isBetween(verticalTopLeft.x, horizontalTopLeft.x, verticalTopRight.x) &&
-									isBetween(verticalBottomRight.y, horizontalTopLeft.y, verticalTopRight.y)
+									isBetween(verticalBottomRight.y, horizontalTopLeft.y, verticalTopRight.y) &&
+									(
+										(
+											inside(point2GeoJsonLight(horizontalTopLeft), polygonLight) !== false &&
+											inside(point2GeoJsonLight(horizontalBottomLeft), polygonLight) !== false
+										) || (
+											inside(point2GeoJsonHeavy(horizontalTopLeft), polygonHeavy) !== false &&
+											inside(point2GeoJsonHeavy(horizontalBottomLeft), polygonHeavy) !== false
+										)
+									)
 								) {
 									let isCorner = (abs(originLight(horizontalTopLeft.y) - originLight(verticalTopLeft.y)) < 30) || (abs(originLight(horizontalBottomLeft.y) - originLight(verticalBottomLeft.y)) < 30);
 									let xOffsetL = isCorner ? 0 : 4;
@@ -1263,7 +1177,16 @@ function extendShortStroke(font, references) {
 								if (
 									// and 横's (horizontal's) left end inside 竖 (vertical)
 									isBetween(verticalBottomLeft.x, horizontalBottomLeft.x, verticalBottomRight.x) &&
-									isBetween(verticalBottomRight.y, horizontalBottomLeft.y, verticalTopRight.y)
+									isBetween(verticalBottomRight.y, horizontalBottomLeft.y, verticalTopRight.y) &&
+									(
+										(
+											inside(point2GeoJsonLight(horizontalTopLeft), polygonLight) !== false &&
+											inside(point2GeoJsonLight(horizontalBottomLeft), polygonLight) !== false
+										) || (
+											inside(point2GeoJsonHeavy(horizontalTopLeft), polygonHeavy) !== false &&
+											inside(point2GeoJsonHeavy(horizontalBottomLeft), polygonHeavy) !== false
+										)
+									)
 								) {
 									let isCorner = (abs(originLight(horizontalTopLeft.y) - originLight(verticalTopLeft.y)) < 5) || (abs(originLight(horizontalBottomLeft.y) - originLight(verticalBottomLeft.y)) < 5);
 									let horizontalLeftCenterYLight = (originLight(horizontalTopLeft.y) + originLight(horizontalBottomLeft.y)) / 2;
@@ -1391,8 +1314,8 @@ function extendShortStroke(font, references) {
 								continue;
 							}
 						}
-						let polygon = [];
-						polygon.push(contour2GeoJsonLight(contour2o));
+						let polygonLight = [contour2GeoJsonLight(contour2o)];
+						let polygonHeavy = [contour2GeoJsonHeavy(contour2o)];
 						let contour2 = contour2o.filter((point) => point.kind === 0);
 						let extended = false;
 						for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
@@ -1418,8 +1341,15 @@ function extendShortStroke(font, references) {
 									// │   │
 									isBetween(horizontalTopLeft.x, verticalBottomRight.x, horizontalTopRight.x) &&
 									isBetween(horizontalBottomLeft.y, verticalTopLeft.y, horizontalTopRight.y) &&
-									inside(point2GeoJsonLight(verticalTopRight), polygon) &&
-									inside(point2GeoJsonLight(verticalTopLeft), polygon)
+									(
+										(
+											inside(point2GeoJsonLight(verticalTopRight), polygonLight) !== false &&
+											inside(point2GeoJsonLight(verticalTopLeft), polygonLight) !== false
+										) || (
+											inside(point2GeoJsonHeavy(verticalTopRight), polygonHeavy) !== false &&
+											inside(point2GeoJsonHeavy(verticalTopLeft), polygonHeavy) !== false
+										)
+									)
 								) {
 									let isCorner = (abs(originLight(horizontalTopLeft.x) - originLight(verticalTopLeft.x)) <= 30) || (abs(originLight(horizontalTopRight.x) - originLight(verticalTopRight.x)) < 30);
 									// let isCorner = true;
@@ -1440,7 +1370,7 @@ function extendShortStroke(font, references) {
 									if (!Number.isFinite(horizontalBottomSlopeHeavy)) continue;
 									let distanceLight = originLight(verticalTopLeft.x) - hBLXLight;
 									let distanceHeavy = originHeavy(verticalTopLeft.x) - hBLXHeavy;
-									let yOffsetL = isCorner ? 0 : (distanceLight * horizontalBottomSlopeLight) + 30;
+									let yOffsetL = isCorner ? 0 : (distanceLight * horizontalBottomSlopeLight) + 15;
 									// let yOffsetL = isCorner ? 0 : (distanceLight * horizontalBottomSlopeLight) + (horizontalBottomSlopeLight === 0 ? 20 : 8);
 									let yOffsetH = isCorner ? 0 : (distanceHeavy * horizontalBottomSlopeHeavy) + 80;
 									let rightDistance = abs(originLight(verticalTopRight.x) - originLight(horizontalTopRight.x));
@@ -1521,13 +1451,13 @@ function extendShortStroke(font, references) {
 	for (const glyph of font.glyphs.items) {
 		const name = glyph.name;
 		// console.log(name);
-		if (["uni758E"].includes(name)) {
-			debug = true;
-			console.log(" ");
-			console.log(name);
-		} else {
-			debug = false;
-		}
+		// if (["uni758E"].includes(name)) {
+		// 	debug = true;
+		// 	console.log(" ");
+		// 	console.log(name);
+		// } else {
+		// 	debug = false;
+		// }
 		progressTick(name);
 		if (!references.extendSkip.includes(name)) checkSingleGlyph(glyph);
 		// count++;

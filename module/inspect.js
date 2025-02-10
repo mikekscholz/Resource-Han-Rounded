@@ -696,10 +696,12 @@ function inspect(font, references, subfamily) {
 		let groupLightStroke = "";
 		let groupLightHandles = "";
 		let groupLightPoints = "";
+		let lightStart = "";
 		let groupHeavyFill = "";
 		let groupHeavyStroke = "";
 		let groupHeavyHandles = "";
 		let groupHeavyPoints = "";
+		let heavyStart = "";
 		// let glyphPointsLightX = [];
 		// let glyphPointsHeavyX = [];
 		let pointsLightX = [];
@@ -730,11 +732,11 @@ function inspect(font, references, subfamily) {
 				if (idxP === 0) {
 					pathLight += `M ${l1.x}, ${l1.y}`;
 					pathHeavy += `M ${h1.x}, ${h1.y}`;
-					groupLightPoints += /*svg*/ `
+					lightStart += /*svg*/ `
 						<circle class="start-point" cx="${l1.x}" cy="${l1.y}" r="5">
 							<title>contour${idxC} node${idxP}\n${l1.x}, ${l1.y}</title>
 						</circle>`;
-					groupHeavyPoints += /*svg*/ `
+					heavyStart += /*svg*/ `
 						<circle class="start-point" cx="${h1.x}" cy="${h1.y}" r="5">
 							<title>contour${idxC} node${idxP}\n${h1.x}, ${h1.y}</title>
 						</circle>`;
@@ -830,7 +832,7 @@ function inspect(font, references, subfamily) {
 					<g><path class="contour-fill" d="${groupLightFill}" /></g>
 					<g><path class="contour-stroke" d="${groupLightStroke}" /></g>
 					<g>${groupLightHandles}</g>
-					<g>${groupLightPoints}</g>
+					<g>${groupLightPoints}${lightStart}</g>
 				</g>
 				<g transform="translate(${widthLight + abs(minHeavyX) + 20}, 0)">
 					<line class="vertical-rule" stroke="#FFF6" stroke-width="1" x1="0" y1="${safeBottom}" x2="0" y2="${safeTop}" />
@@ -838,7 +840,7 @@ function inspect(font, references, subfamily) {
 					<g><path class="contour-fill" d="${groupHeavyFill}" /></g>
 					<g><path class="contour-stroke" d="${groupHeavyStroke}" /></g>
 					<g>${groupHeavyHandles}</g>
-					<g>${groupHeavyPoints}</g>
+					<g>${groupHeavyPoints}${heavyStart}</g>
 				</g>
 			</g>
 		</svg>`;
@@ -850,18 +852,6 @@ function inspect(font, references, subfamily) {
 	let bar = new ProgressBar('\u001b[38;5;82mmakingPreview\u001b[0m [6/6]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete: '\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
 	// let bar = new ProgressBar('\u001b[38;5;82mmakingPreview\u001b[0m [1/5]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete: '\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
 
-	function progressTick() {
-		if (len) {
-			var chunk = 1;
-			bar.tick(chunk);
-			if (bar.curr > 0 && bar.curr < len - 2) {
-				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
-			}
-			if (bar.curr === len - 1) {
-				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
-			}
-		}
-	}
 	// function progressTick(info = "") {
 	// 	if (len) {
 	// 		var chunk = 1;
@@ -874,6 +864,18 @@ function inspect(font, references, subfamily) {
 	// 		}
 	// 	}
 	// }
+	function progressTick() {
+		if (len) {
+			var chunk = 1;
+			bar.tick(chunk);
+			if (bar.curr > 0 && bar.curr < len - 2) {
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
+			}
+			if (bar.curr === len - 1) {
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
+			}
+		}
+	}
 
 	let pages = Math.ceil(len / 500);
 	let currentHtml;
@@ -1001,8 +1003,11 @@ function inspect(font, references, subfamily) {
 		const name = glyph.name;
 
 		// console.log(name);
-		progressTick();
-		// progressTick(name);
+		// if (debug) {
+			progressTick(name);
+		// } else {
+		// 	progressTick();
+		// }
 		if (glyph?.geometry?.contours) checkSingleGlyph(glyph, idxG);
 		// count++;
 		if (idxG > 0 && (idxG % 500 === 0 || idxG === len - 1)) {
@@ -1075,7 +1080,7 @@ function inspect(font, references, subfamily) {
 					</div>
 					<button class="close-modal close-button" id="closeGlyphDialog" autofocus>&times;</button>
 				</div>
-				<div id="dialogGlyphContainer" data-zoom-on-wheel="max-scale: 20;" data-pan-on-drag></div>
+				<div id="dialogGlyphContainer" data-zoom-on-wheel="max-scale: 20; zoom-amount: 0.001;" data-pan-on-drag></div>
 			</dialog>
 			${'<script>var svgPanZoomContainer=function(e){"use strict";const t=(e,t)=>{const n=new DOMMatrix(t.style.transform);return[n.a,e.scrollLeft-n.e,e.scrollTop-n.f]},n=(e,t,n,o,i)=>{const l=Math.round(Math.max(o,0)),r=Math.round(Math.max(i,0));t.setAttribute("transform",t.style.transform=`matrix(${n},0,0,${n},${l-o},${r-i})`),t.style.margin=0,e.scrollLeft=l,e.scrollTop=r,e.scrollLeft!==l&&(t.style.marginRight=`${l}px`,e.scrollLeft=l),e.scrollTop!==r&&(t.style.marginBottom=`${r}px`,e.scrollTop=r)},o=e=>{const t={};if(e)for(const n of e.split(";")){const e=n.indexOf(":");t[n.slice(0,e).trim().replace(/[a-zA-Z0-9_]-[a-z]/g,(e=>e[0]+e[2].toUpperCase()))]=n.slice(e+1).trim()}return t},i=(e,t)=>{const n=e?.closest(`[${t}]`);return n instanceof HTMLElement?[n,o(n.getAttribute(t))]:[]},l=(e,o,i)=>{const l=e.firstElementChild,[r,a,s]=t(e,l);n(e,l,r,a+o,s+i)},r=e=>t(e,e.firstElementChild)[0],a=(e,o,i={})=>{const l=((e,t,n)=>e<t?t:e>n?n:e)(o,i.minScale||1,i.maxScale||10),r=i.origin,a=e.firstElementChild,[s,c,m]=t(e,a);if(l===s)return;const d=l/s-1,u=a.getBoundingClientRect(),f=(r&&r.clientX||0)-u.left,v=(r&&r.clientY||0)-u.top;n(e,a,l,c+d*f,m+d*v)},s=(e,t,n)=>a(e,r(e)*t,n);var c;return c={button:"left"},addEventListener("mousedown",(e=>{if(0!==e.button&&2!==e.button)return;const[t,n]=i(e.target,"data-pan-on-drag");if(!t||!n||!((e,t,n)=>(!t.modifier||e.getModifierState(t.modifier))&&e.button===("right"===(t.button||n.button)?2:0))(e,n,c))return;e.preventDefault();let o=e.clientX*window.devicePixelRatio,r=e.clientY*window.devicePixelRatio;const a=e=>{l(t,o-e.clientX*window.devicePixelRatio,r-e.clientY*window.devicePixelRatio),o=e.clientX*window.devicePixelRatio,r=e.clientY*window.devicePixelRatio,e.preventDefault()},s=e=>e.preventDefault(),m=()=>{removeEventListener("mouseup",m),removeEventListener("mousemove",a),setTimeout((()=>removeEventListener("contextmenu",s)))};addEventListener("mouseup",m),addEventListener("mousemove",a),addEventListener("contextmenu",s)})),((e,t,n={})=>{n.noEmitStyle||((document.head||document.body||document.documentElement).appendChild(document.createElement("style")).textContent=`[${e}]{overflow:scroll}[${e}]>:first-child{width:100%;height:100%;vertical-align:middle;transform-origin:0 0}`),addEventListener("wheel",(n=>{const[o,l]=i(n.target,e);if(o instanceof HTMLElement){const e=+l.zoomAmount||t.zoomAmount;s(o,(1+e)**-n.deltaY,{origin:n,minScale:+l.minScale||t.minScale,maxScale:+l.maxScale||t.maxScale}),n.preventDefault()}}),{passive:!1}),addEventListener("resize",(()=>{const t=document.querySelectorAll(`[${e}]`);for(let n=0;n<t.length;n++){const i=t[n];if(i instanceof HTMLElement){const t=o(i.getAttribute(e));s(i,1,t)}}}))})("data-zoom-on-wheel",{minScale:1,maxScale:10,zoomAmount:.002}),e.getScale=r,e.pan=l,e.resetScale=e=>{const t=e.firstElementChild;t.style.margin=e.scrollLeft=e.scrollTop=0,t.removeAttribute("transform"),t.style.transform=""},e.setScale=a,e.zoom=s,Object.defineProperty(e,"__esModule",{value:!0}),e}({});</script>'}
 			<script>

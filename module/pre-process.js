@@ -313,6 +313,10 @@ function preProcess(font, references) {
 			oldContours.push(oldContours.shift());
 		}
 		
+		if (glyph.name === "uni8F4F") {
+			oldContours.splice(9,1);
+		}
+		
 		glyph.geometry.contours = [];
 		
 		for (let [idxC1, contour] of oldContours.entries()) {
@@ -354,7 +358,8 @@ function preProcess(font, references) {
 			}
 
 			const newContour = [...contour];
-
+			
+			// fix all intersects like ㄥ to align rounded ends
 			for (let idx = 0; idx < contour.length; idx++) {
 				if (
 					circularArray(contour, idx).kind === 0 &&
@@ -420,6 +425,7 @@ function preProcess(font, references) {
 					const horizontalStrokeLight = originLight(horizontalTopRight.y) - originLight(horizontalBottomRight.y);
 					const horizontalStrokeHeavy = originHeavy(horizontalTopRight.y) - originHeavy(horizontalBottomRight.y);
 					for (const [idxC2, contour2] of oldContours.entries()) {
+						if (idxC2 === idxC1) continue;
 						let extended = false;
 						let matched = false;
 						for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
@@ -429,6 +435,7 @@ function preProcess(font, references) {
 								canBeLeftFalling(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5), circularArray(contour2, idxP2 + 6), circularArray(contour2, idxP2 + 7), circularArray(contour2, idxP2 - 3), circularArray(contour2, idxP2 - 2), circularArray(contour2, idxP2 - 1)) &&
 								abs(originLight(horizontalTopRight.y) - originLight(circularArray(contour2, idxP2 + 2).y)) <=1 &&
 								originLight(horizontalTopRight.x) > originLight(circularArray(contour2, idxP2 + 3).x) &&
+								originLight(horizontalBottomRight.y) > originLight(circularArray(contour2, idxP2 - 2).y) &&
 								originLight(horizontalTopRight.x) < originLight(circularArray(contour2, idxP2).x)
 							) {
 								const leftFallBottomLeft = circularArray(contour2, idxP2 + 7);
@@ -485,9 +492,13 @@ function preProcess(font, references) {
 									}
 									if (vertMatched) break;
 								}
-								refs.push(ref);
-								matched = true;
-								// extended = true;
+								let objIndex = refs.findIndex((obj) => obj["leftFalling"] === idxC2);
+								if (objIndex === -1) {
+									refs.push(ref);
+									matched = true;
+									extended = true;
+								}
+
 								// break;
 							}
 
@@ -502,9 +513,13 @@ function preProcess(font, references) {
 									references.horizontalLeftFalling2[name] = [];
 								}
 								let refs = references.horizontalLeftFalling2[name];
-								refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "horizontalSlope": horizontalBottomSlope, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
-								matched = true;
-								// extended = true;
+								let objIndex = refs.findIndex((obj) => obj["leftFalling"] === idxC2);
+								if (objIndex === -1) {
+									refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "horizontalSlope": horizontalBottomSlope, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
+									matched = true;
+									extended = true;
+								}
+								
 								// break;
 							}
 							let lfI0 = idxP2;
@@ -516,18 +531,22 @@ function preProcess(font, references) {
 							let lfI6 = nextNode(contour2, lfI5)
 							if (
 								contour2.length > 10 &&
-								// canBeLeftFalling2b(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5)) &&
-								canBeLeftFalling2b(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5), circularArray(contour2, idxP2 + 6), circularArray(contour2, idxP2 + 7), circularArray(contour2, idxP2 + 8), circularArray(contour2, idxP2 - 3), circularArray(contour2, idxP2 - 2), circularArray(contour2, idxP2 - 1)) &&
-								originLight(horizontalTopRight.y) < originLight(circularArray(contour2, idxP2 + 2).y) &&
-								originLight(horizontalTopRight.x) > originLight(circularArray(contour2, idxP2 + 4).x) &&
+								canBeLeftFalling2b(contour2[idxP2], circularArray(contour2, lfI1), circularArray(contour2, lfI2), circularArray(contour2, lfI3), circularArray(contour2, lfI4), circularArray(contour2, lfI5)) &&
+								// canBeLeftFalling2b(contour2[idxP2], circularArray(contour2, idxP2 + 1), circularArray(contour2, idxP2 + 2), circularArray(contour2, idxP2 + 3), circularArray(contour2, idxP2 + 4), circularArray(contour2, idxP2 + 5), circularArray(contour2, idxP2 + 6), circularArray(contour2, idxP2 + 7), circularArray(contour2, idxP2 + 8), circularArray(contour2, idxP2 - 3), circularArray(contour2, idxP2 - 2), circularArray(contour2, idxP2 - 1)) &&
+								originLight(horizontalTopRight.y) < originLight(circularArray(contour2, lfI2).y) &&
+								originLight(horizontalTopRight.x) > originLight(circularArray(contour2, lfI4).x) &&
 								originLight(contour2[idxP2].x) > originLight(horizontalTopRight.x)
 							) {
 								if (name in references.horizontalLeftFalling2b === false) {
 									references.horizontalLeftFalling2b[name] = [];
 								}
 								let refs = references.horizontalLeftFalling2b[name];
-								refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "horizontalSlope": horizontalBottomSlope, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
-								matched = true;
+								let objIndex = refs.findIndex((obj) => obj["leftFalling"] === idxC2);
+								if (objIndex === -1) {
+									refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "horizontalSlope": horizontalBottomSlope, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
+									matched = true;
+									extended = true;
+								}
 								// extended = true;
 								// break;
 							}
@@ -543,8 +562,12 @@ function preProcess(font, references) {
 									references.horizontalLeftFalling3[name] = [];
 								}
 								let refs = references.horizontalLeftFalling3[name];
-								refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
-								matched = true;
+								let objIndex = refs.findIndex((obj) => obj["leftFalling"] === idxC2);
+								if (objIndex === -1) {
+									refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "horizontalSlope": horizontalBottomSlope, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
+									matched = true;
+									extended = true;
+								}
 								// extended = true;
 								// break;
 							}
@@ -559,24 +582,28 @@ function preProcess(font, references) {
 									references.horizontalLeftFalling4[name] = [];
 								}
 								let refs = references.horizontalLeftFalling4[name];
-								refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
-								matched = true;
+								let objIndex = refs.findIndex((obj) => obj["leftFalling"] === idxC2);
+								if (objIndex === -1) {
+									refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "horizontalSlope": horizontalBottomSlope, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
+									matched = true;
+									extended = true;
+								}
 								// extended = true;
 								// break;
 							}
 						}
-						if (extended) break;
 						if (matched) {
 							if (name in references.extendIgnoreContourIdx === false) {
 								references.extendIgnoreContourIdx[name] = [];
 							}
-							references.extendIgnoreContourIdx[name].push(idxC1, idxC2);
+							references.extendIgnoreContourIdx[name].push(idxC2);
 							if (name in references.skipRedundantPoints === false) {
 								references.skipRedundantPoints[name] = [];
 							}
 							references.skipRedundantPoints[name].push(idxC1, idxC2);
 							if (!references.leftFallingCorrections.includes(name)) references.leftFallingCorrections.push(name);
 						}
+						// if (extended) continue;
 					}
 				}
 			}
@@ -759,9 +786,9 @@ function preProcess(font, references) {
 	let count = 0;
 	for (const glyph of font.glyphs.items) {
 		const name = glyph.name;
-		if (name === "A") {
-			console.log(JSON.stringify(glyph));
-		}
+		// if (name === "A") {
+		// 	console.log(JSON.stringify(glyph));
+		// }
 		// if (glyph?.geometry?.contours) {
 		// 	let data = JSON.stringify(glyph.geometry.contours);
 		// 	let filename = `/home/mike/Resource-Han-Rounded/replacements/${name}.json`;
