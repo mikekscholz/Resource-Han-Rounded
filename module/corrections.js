@@ -631,6 +631,22 @@ function correctGlyphs(font, references) {
 		if (name in references.horizontalLeftFalling4) {
 			let refs = references.horizontalLeftFalling4[name];
 			for (const ref of refs) {
+				let idxC1 = ref.horizontal;
+				let idxP1 = ref.horizontalBottomRight;
+				let contour = oldContours[idxC1];
+				let horizontalBottomRight = contour[idxP1];
+				let horizontalTopRight = circularArray(contour, idxP1 + 1);
+				horizontalTopRight = {
+					x: makeVariance(
+						originLight(horizontalBottomRight.x),
+						originHeavy(horizontalBottomRight.x)
+					),
+					y: makeVariance(
+						originLight(horizontalTopRight.y),
+						originHeavy(horizontalTopRight.y)
+					),
+					kind: horizontalTopRight.kind,
+				};
 				let idxC2 = ref.leftFalling;
 				let idxP2 = ref.leftFallingTopRight;
 				let contour2 = oldContours[idxC2];

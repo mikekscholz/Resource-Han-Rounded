@@ -93,7 +93,7 @@ function preProcess(font, references) {
 	
 	function canBeRightEnd(bottomRight, topRight) {
 		return bottomRight.kind == 0 && topRight.kind == 0 &&
-			approxEq(bottomRight.x, topRight.x, 50, 75) &&
+			approxEq(bottomRight.x, topRight.x, 50, 85) &&
 			approxEq(distanceLight(topRight, bottomRight), params.strokeWidth.light, 30) &&
 			// approxEq(originLight(topRight.y) - originLight(bottomRight.y), params.strokeWidth.light, 20,) &&
 			// distanceHeavy(topRight, bottomRight) <= params.strokeWidth.heavy;
