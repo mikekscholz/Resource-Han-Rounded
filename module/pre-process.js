@@ -584,7 +584,7 @@ function preProcess(font, references) {
 								let refs = references.horizontalLeftFalling4[name];
 								let objIndex = refs.findIndex((obj) => obj["leftFalling"] === idxC2);
 								if (objIndex === -1) {
-									refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "horizontalSlope": horizontalBottomSlope, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
+									refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "horizontalSlope": horizontalBottomSlope, "leftFalling": idxC2, "leftFallingTopRight": idxP2, "leftFallingTopLeft":  circularIndex(contour2, idxP2 + 3)});
 									matched = true;
 									extended = true;
 								}

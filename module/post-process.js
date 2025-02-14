@@ -1,8 +1,10 @@
 "use strict";
 
 const { Ot } = require("ot-builder");
+const inside = require("point-in-polygon-hao");
 const Bezier = require("./bezier.js");
 const ProgressBar = require('./node-progress');
+const { approximateBezier, base60, bearing, horizontalSlope, roundTo, turn, verticalSlope } = require("./util");
 const { abs, ceil, floor, pow, round, sqrt, trunc } = Math;
 
 // const replacementsDir = fs.readdirSync(__dirname + "/../replacements");
@@ -60,13 +62,93 @@ function postProcess(font, references) {
 		return Ot.Var.Ops.evaluate(point, instanceShsWghtMax);
 	}
 	
+
+	function pointLight(p) {
+		return { x: originLight(p.x), y: originLight(p.y) };
+	}
+	
+	function pointHeavy(p) {
+		return { x: originHeavy(p.x), y: originHeavy(p.y) };
+	}
+	
 	function lineLight(p1, p2) {
-		return {p1: {x: originLight(p1.x), y: originLight(p1.y)},p2: {x: originLight(p2.x), y: originLight(p2.y)}};
+		return { p1: pointLight(p1) ,p2: pointLight(p2) };
 	}
 	
 	function lineHeavy(p1, p2) {
-		return {p1: {x: originHeavy(p1.x), y: originHeavy(p1.y)},p2: {x: originHeavy(p2.x), y: originHeavy(p2.y)}};
+		return { p1: pointHeavy(p1) ,p2: pointHeavy(p2) };
 	}
+	
+	function contour2GeoJsonLight(contour) {
+		let pointsArr = [];
+		let j = contour.length - 1;
+		for (let i = 0; i < contour.length; i++) {
+			if (i + 1 < j && contour[i + 1].kind === 1) {
+				let p1 = pointLight(contour[i]);
+				let cp1 = pointLight(contour[i + 1]);
+				let cp2 = pointLight(contour[i + 2]);
+				let p2 = pointLight(contour[i + 3]);
+				let curve = approximateBezier(p1, cp1, cp2, p2);
+				curve.pop();
+				for (const coord of curve) {
+					const { x, y } = coord;
+					pointsArr.push([ x, y ]);
+				}
+				i += 2;
+			} else {
+				const { x, y } = pointLight(contour[i]);
+				pointsArr.push([ x, y ]);
+			}
+		}
+		if (
+			pointsArr[0][0] !== pointsArr[pointsArr.length - 1][0] ||
+			pointsArr[0][1] !== pointsArr[pointsArr.length - 1][1]
+		) {
+			pointsArr = [...pointsArr, pointsArr[0]];
+		}
+		return pointsArr;
+	}
+	
+	function contour2GeoJsonHeavy(contour) {
+		let pointsArr = [];
+		let j = contour.length - 1;
+		for (let i = 0; i < contour.length; i++) {
+			if (i + 1 < j && contour[i + 1].kind === 1) {
+				let p1 = pointHeavy(contour[i]);
+				let cp1 = pointHeavy(contour[i + 1]);
+				let cp2 = pointHeavy(contour[i + 2]);
+				let p2 = pointHeavy(contour[i + 3]);
+				let curve = approximateBezier(p1, cp1, cp2, p2);
+				curve.pop();
+				for (const coord of curve) {
+					const { x, y } = coord;
+					pointsArr.push([ x, y ]);
+				}
+				i += 2;
+			} else {
+				const { x, y } = pointHeavy(contour[i]);
+				pointsArr.push([ x, y ]);
+			}
+		}
+		if (
+			pointsArr[0][0] !== pointsArr[pointsArr.length - 1][0] ||
+			pointsArr[0][1] !== pointsArr[pointsArr.length - 1][1]
+		) {
+			pointsArr = [...pointsArr, pointsArr[0]];
+		}
+		return pointsArr;
+	}
+	
+	function point2GeoJsonLight(point) {
+		const { x, y } = pointLight(point);
+		return [ x, y ];
+	}
+	
+	function point2GeoJsonHeavy(point) {
+		const { x, y } = pointHeavy(point);
+		return [ x, y ];
+	}
+	
 	
 	function distanceLight(p1, p2) {
 		let x1l = originLight(p1.x);
