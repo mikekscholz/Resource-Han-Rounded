@@ -800,6 +800,7 @@ function preProcess(font, references) {
 		// count++;
 		// if (count % 1000 == 0) console.log("preExtension:", count, "glyphs processed.");
 	}
+	delete references.skipRedundantPoints;
 }
 
 module.exports = {

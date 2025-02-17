@@ -67,7 +67,7 @@ const htmlHeader = /*html*/`
 			gap: 5px;
 		}
 		a, label {
-			width: 28px;
+			width: 32px;
 			position: relative;
 			display: inline-block;
 			background-color: #444;
@@ -76,8 +76,9 @@ const htmlHeader = /*html*/`
 			border-radius: var(--form-radius);
 			font-family: Nunito;
 			text-align: center;
-			height: 22px;
+			height: 32px;
 			text-decoration: none;
+			box-sizing: border-box;
 		}
 		.current {
 			font-weight: 700;
@@ -639,6 +640,64 @@ const htmlHeader = /*html*/`
 			pointer-events: none;
 		}
 	</style>
+	<script>
+		function cssVariableSet(variable, value) {
+			let root = document.querySelector(':root');
+			root.style.setProperty(variable, value);
+		}
+
+		const Bool = (string) => string === 'false' || string === 'undefined' || string === 'null' || string === '0' ? false : !!string;
+
+		let urlSearch = document.location.search;
+		if (urlSearch) {
+			let params = new URLSearchParams(urlSearch);
+			let hr = Bool(params.get('hr'));
+			if (!hr) {
+				cssVariableSet('--toggle-horizontal', 'none');
+			} else {
+				cssVariableSet('--toggle-horizontal', 'revert');
+			}
+						
+			let vr = Bool(params.get('vr'));
+			if (!vr) {
+				cssVariableSet('--toggle-vertical', 'none');
+			} else {
+				cssVariableSet('--toggle-vertical', 'revert');
+			}
+			
+			let points = Bool(params.get('p'));
+			if (!points) {
+				cssVariableSet('--toggle-points', 'none');
+			} else {
+				cssVariableSet('--toggle-points', 'revert');
+			}
+			
+			let handles = Bool(params.get('h'));
+			if (!handles) {
+				cssVariableSet('--toggle-handles', 'none');
+			} else {
+				cssVariableSet('--toggle-handles', 'revert');
+			}
+			
+			let strokes = Bool(params.get('s'));
+			if (!strokes) {
+				cssVariableSet('--toggle-stroke', 'none');
+			} else {
+				cssVariableSet('--toggle-stroke', 'revert');
+			}
+			
+			let fills = params.get('f');
+			if (fills) {
+				let setting = fills / 100;
+				cssVariableSet('--contour-fill', setting);
+			}
+			
+			let zoom = params.get('zoom');
+			if (zoom) {
+				cssVariableSet('--glyph-size', zoom + 'px');
+			}
+		}
+	</script>
 </head>
 <body>`;
 
@@ -715,9 +774,9 @@ function inspect(font, references, subfamily) {
 			let pathHeavy = "";
 			for (let idxP = 0; idxP < contour.length; idxP++) {
 				let lX = originLight(contour[idxP].x);
-				let lY = originLight(contour[idxP].y);
+				let lY = safeTop - originLight(contour[idxP].y);
 				let hX = originHeavy(contour[idxP].x);
-				let hY = originHeavy(contour[idxP].y);
+				let hY = safeTop - originHeavy(contour[idxP].y);
 				pointsLight.push({ x: lX, y: lY, type: contour[idxP].kind });
 				pointsHeavy.push({ x: hX, y: hY, type: contour[idxP].kind });
 				pointsLightX.push(lX);
@@ -734,11 +793,11 @@ function inspect(font, references, subfamily) {
 					pathHeavy += `M ${h1.x}, ${h1.y}`;
 					lightStart += /*svg*/ `
 						<circle class="start-point" cx="${l1.x}" cy="${l1.y}" r="5">
-							<title>contour${idxC} node${idxP}\n${l1.x}, ${l1.y}</title>
+							<title>contour${idxC} node${idxP}\n${l1.x}, ${safeTop - l1.y}</title>
 						</circle>`;
 					heavyStart += /*svg*/ `
 						<circle class="start-point" cx="${h1.x}" cy="${h1.y}" r="5">
-							<title>contour${idxC} node${idxP}\n${h1.x}, ${h1.y}</title>
+							<title>contour${idxC} node${idxP}\n${h1.x}, ${safeTop - h1.y}</title>
 						</circle>`;
 				} else if (idxP > 0 && l1.type === 0) {
 					pathLight += `L ${l1.x}, ${l1.y}`;
@@ -746,11 +805,11 @@ function inspect(font, references, subfamily) {
 					if (pointsLight[0].x !== l1.x || pointsLight[0].y !== l1.y) {
 						groupLightPoints += /*svg*/ `
 							<circle class="corner-point" cx="${l1.x}" cy="${l1.y}" r="5">
-								<title>contour${idxC} node${idxP}\n${l1.x}, ${l1.y}</title>
+								<title>contour${idxC} node${idxP}\n${l1.x}, ${safeTop - l1.y}</title>
 							</circle>`;
 						groupHeavyPoints += /*svg*/ `
 							<circle class="corner-point" cx="${h1.x}" cy="${h1.y}" r="5">
-								<title>contour${idxC} node${idxP}\n${h1.x}, ${h1.y}</title>
+								<title>contour${idxC} node${idxP}\n${h1.x}, ${safeTop - h1.y}</title>
 							</circle>`;
 					}
 				} else if (l1.type === 1) {
@@ -764,28 +823,28 @@ function inspect(font, references, subfamily) {
 					pathHeavy += `C ${h1.x}, ${h1.y} ${h2.x}, ${h2.y} ${h3.x}, ${h3.y}`;
 					groupLightPoints += /*svg*/ `
 						<circle class="control-point" cx="${l1.x}" cy="${l1.y}" r="4">
-							<title>contour${idxC} node${idxP}\n${l1.x}, ${l1.y}</title>
+							<title>contour${idxC} node${idxP}\n${l1.x}, ${safeTop - l1.y}</title>
 						</circle>`;
 					groupHeavyPoints += /*svg*/ `
 						<circle class="control-point" cx="${h1.x}" cy="${h1.y}" r="4">
-							<title>contour${idxC} node${idxP}\n${h1.x}, ${h1.y}</title>
+							<title>contour${idxC} node${idxP}\n${h1.x}, ${safeTop - h1.y}</title>
 						</circle>`;
 					groupLightPoints += /*svg*/ `
 						<circle class="control-point" cx="${l2.x}" cy="${l2.y}" r="4">
-							<title>contour${idxC} node${idxP + 1}\n${l2.x}, ${l2.y}</title>
+							<title>contour${idxC} node${idxP + 1}\n${l2.x}, ${safeTop - l2.y}</title>
 						</circle>`;
 					groupHeavyPoints += /*svg*/ `
 						<circle class="control-point" cx="${h2.x}" cy="${h2.y}" r="4">
-							<title>contour${idxC} node${idxP + 1}\n${h2.x}, ${h2.y}</title>
+							<title>contour${idxC} node${idxP + 1}\n${h2.x}, ${safeTop - h2.y}</title>
 						</circle>`;
 					if (pointsLight[0].x !== l3.x || pointsLight[0].y !== l3.y) {
 						groupLightPoints += /*svg*/ `
 							<circle class="corner-point" cx="${l3.x}" cy="${l3.y}" r="5">
-								<title>contour${idxC} node${idxP + 2}\n${l3.x}, ${l3.y}</title>
+								<title>contour${idxC} node${idxP + 2}\n${l3.x}, ${safeTop - l3.y}</title>
 							</circle>`;
 						groupHeavyPoints += /*svg*/ `
 							<circle class="corner-point" cx="${h3.x}" cy="${h3.y}" r="5">
-								<title>contour${idxC} node${idxP + 2}\n${h3.x}, ${h3.y}</title>
+								<title>contour${idxC} node${idxP + 2}\n${h3.x}, ${safeTop - h3.y}</title>
 							</circle>`;
 					}
 					groupLightHandles += /*svg*/ `<line class="control-vector" x1="${l0.x}" y1="${l0.y}" x2="${l1.x}" y2="${l1.y}" />`;
@@ -817,26 +876,26 @@ function inspect(font, references, subfamily) {
 		let widthHeavy = abs(minHeavyX - maxHeavyX);
 		let viewportWidth = 10 + widthLight + 10 + widthHeavy + 10;
 		let svgHeader = /*svg*/ `
-		<svg height="100%" viewBox="0 ${safeBottom} ${viewportWidth} ${viewportHeight}" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" data-glyph-idx="${idxG}" data-glyph-name="${glyph.name}">
-			<g transform="scale(1, -1) translate(0, -${ascender})">
-				<line class="dotted-rule" x1="0" y1="${safeBottom + 2}" x2="${viewportWidth}" y2="${safeBottom + 2}" />
-				<line class="dotted-rule" x1="0" y1="${descender}" x2="${viewportWidth}" y2="${descender}" />
-				<line class="dotted-rule" x1="0" y1="0" x2="${viewportWidth}" y2="0" />
-				<line class="dotted-rule" x1="0" y1="${xHeight}" x2="${viewportWidth}" y2="${xHeight}" />
-				<line class="dotted-rule" x1="0" y1="${capsHeight}" x2="${viewportWidth}" y2="${capsHeight}" />
-				<line class="dotted-rule" x1="0" y1="${ascender}" x2="${viewportWidth}" y2="${ascender}" />
-				<line class="dotted-rule" x1="0" y1="${safeTop - 2}" x2="${viewportWidth}" y2="${safeTop - 2}" />
+		<svg height="100%" viewBox="0 0 ${viewportWidth} ${viewportHeight}" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" data-glyph-idx="${idxG}" data-glyph-name="${glyph.name}">
+			<g>
+				<line class="dotted-rule" x1="0" y1="${safeTop - (safeBottom + 4)}" x2="${viewportWidth}" y2="${safeTop - (safeBottom + 4)}" />
+				<line class="dotted-rule" x1="0" y1="${safeTop - descender}" x2="${viewportWidth}" y2="${safeTop - descender}" />
+				<line class="dotted-rule" x1="0" y1="${safeTop}" x2="${viewportWidth}" y2="${safeTop}" />
+				<line class="dotted-rule" x1="0" y1="${safeTop - xHeight}" x2="${viewportWidth}" y2="${safeTop - xHeight}" />
+				<line class="dotted-rule" x1="0" y1="${safeTop - capsHeight}" x2="${viewportWidth}" y2="${safeTop - capsHeight}" />
+				<line class="dotted-rule" x1="0" y1="${safeTop - ascender}" x2="${viewportWidth}" y2="${safeTop - ascender}" />
+				<line class="dotted-rule" x1="0" y1="2" x2="${viewportWidth}" y2="2" />
 				<g transform="translate(${abs(minLightX) + 10}, 0)">
-					<line class="vertical-rule" stroke="#FFF6" stroke-width="1" x1="0" y1="${safeBottom}" x2="0" y2="${safeTop}" />
-					<line class="vertical-rule" stroke="#FFF6" stroke-width="1" x1="${horizontalEndLight}" y1="${safeBottom}" x2="${horizontalEndLight}" y2="${safeTop}" />
+					<line class="vertical-rule" stroke="#FFF6" stroke-width="1" x1="0" y1="${safeTop - safeBottom}" x2="0" y2="${safeTop - safeTop}" />
+					<line class="vertical-rule" stroke="#FFF6" stroke-width="1" x1="${horizontalEndLight}" y1="${safeTop - safeBottom}" x2="${horizontalEndLight}" y2="${safeTop - safeTop}" />
 					<g><path class="contour-fill" d="${groupLightFill}" /></g>
 					<g><path class="contour-stroke" d="${groupLightStroke}" /></g>
 					<g>${groupLightHandles}</g>
 					<g>${groupLightPoints}${lightStart}</g>
 				</g>
 				<g transform="translate(${widthLight + abs(minHeavyX) + 20}, 0)">
-					<line class="vertical-rule" stroke="#FFF6" stroke-width="1" x1="0" y1="${safeBottom}" x2="0" y2="${safeTop}" />
-					<line class="vertical-rule" stroke="#FFF6" stroke-width="1" x1="${horizontalEndHeavy}" y1="${safeBottom}" x2="${horizontalEndHeavy}" y2="${safeTop}" />
+					<line class="vertical-rule" stroke="#FFF6" stroke-width="1" x1="0" y1="${safeTop - safeBottom}" x2="0" y2="${safeTop - safeTop}" />
+					<line class="vertical-rule" stroke="#FFF6" stroke-width="1" x1="${horizontalEndHeavy}" y1="${safeTop - safeBottom}" x2="${horizontalEndHeavy}" y2="${safeTop - safeTop}" />
 					<g><path class="contour-fill" d="${groupHeavyFill}" /></g>
 					<g><path class="contour-stroke" d="${groupHeavyStroke}" /></g>
 					<g>${groupHeavyHandles}</g>
@@ -1095,12 +1154,12 @@ function inspect(font, references, subfamily) {
 				}
 
 				// Create a function for setting a variable value
-				function cssVariableSet(variable, value) {
-					let root = document.querySelector(':root');
-					root.style.setProperty(variable, value);
-				}
+				//function cssVariableSet(variable, value) {
+				//	let root = document.querySelector(':root');
+				//	root.style.setProperty(variable, value);
+				//}
 				
-				const Bool = (string) => string === 'false' || string === 'undefined' || string === 'null' || string === '0' ? false : !!string;
+				//const Bool = (string) => string === 'false' || string === 'undefined' || string === 'null' || string === '0' ? false : !!string;
 				
 				let checkboxHorizontal = document.getElementById('toggleHorizontalRules');
 				let checkboxVertical = document.getElementById('toggleVerticalRules');

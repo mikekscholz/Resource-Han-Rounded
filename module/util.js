@@ -18,6 +18,16 @@ function turn(bearing1, bearing2) {
 	return delta;
 }
 
+function angle(bearing1, bearing2) {
+  let delta = bearing2 - bearing1;
+  if (delta < -180) {
+      delta += 360;
+  } else if (delta > 180) {
+      delta -= 360;
+  }
+  return delta < 0 ? -(delta + 180) : 180 - delta;
+}
+
 function base60(num) {
 	return abs(360 + num % 360) % 360;
 }
@@ -94,5 +104,5 @@ function midpoint(p1, p2) {
 }
 
 module.exports = {
-	approximateBezier, base60, bearing, horizontalSlope, roundTo, turn, verticalSlope
+	angle, approximateBezier, base60, bearing, horizontalSlope, roundTo, turn, verticalSlope
 };

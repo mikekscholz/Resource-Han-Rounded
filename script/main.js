@@ -10,7 +10,7 @@ const { filename } = require("../configure");
 const { preProcess } = require("../module/pre-process");
 const { postProcess } = require("../module/post-process");
 const { specialInstructions } = require("../module/special-instructions");
-const { inspect } = require("../module/inspect");
+const { inspect } = require("../module/inspect2");
 const writeFile = async(filename, data, increment = 0) => {
 	// const name = `/mnt/c/Users/Michael/${path.basename(filename, path.extname(filename))}${"(" + increment + ")" || ""}${path.extname(filename)}`;
 	const name = `${path.dirname(filename)}/${path.basename(filename, path.extname(filename))}${ increment ? "(" + increment + ")" : ""}${path.extname(filename)}`;
@@ -36,13 +36,13 @@ preProcess(font, references);
 extendShortStroke(font, references);
 correctGlyphs(font, references);
 // console.log(JSON.stringify(references));
-roundFont(font, references);
+// roundFont(font, references);
 // postProcess(font, references);
 inspect(font, references, param.subfamily);
 console.log('\u001b[38;5;82mCompiling OpenType font file.\u001b[0m This may take several minutes.');
-buildVFMetaData(font, param);
-writeOtf(font, filename.cff2Vf(param.subfamily), false);
+// buildVFMetaData(font, param);
+// writeOtf(font, filename.cff2Vf(param.subfamily), false);
 
-const string = JSON.stringify(references, null, "\t");
-const filename2 = `/mnt/c/Users/Michael/${param.subfamily}-references.json`;
-writeFile(filename2, string);
+// const string = JSON.stringify(references, null, "\t");
+// const filename2 = `/mnt/c/Users/Michael/${param.subfamily}-references.json`;
+// writeFile(filename2, string);

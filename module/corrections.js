@@ -6,7 +6,8 @@ const { hangulSios } = require("./correctionsUnicode");
 const ProgressBar = require('./node-progress');
 const fs = require("node:fs");
 const path = require("node:path");
-const { abs, ceil, floor, pow, sqrt, round, trunc } = Math;
+const { angle, approximateBezier, base60, bearing, horizontalSlope, roundTo, turn, verticalSlope } = require("./util");
+const { abs, ceil, floor, pow, round, sqrt, trunc, max } = Math;
 
 // const replacementsDir = fs.readdirSync(__dirname + "/../replacements");
 // let replacements = [];
@@ -61,14 +62,102 @@ function correctGlyphs(font, references) {
 	function originHeavy(point) {
 		return Ot.Var.Ops.evaluate(point, instanceShsWghtMax);
 	}
-		
+	
+
+	function pointLight(p) {
+		return { x: originLight(p.x), y: originLight(p.y) };
+	}
+	
+	function pointHeavy(p) {
+		return { x: originHeavy(p.x), y: originHeavy(p.y) };
+	}
+	
+	function lineLight(p1, p2) {
+		return { p1: pointLight(p1) ,p2: pointLight(p2) };
+	}
+	
+	function lineHeavy(p1, p2) {
+		return { p1: pointHeavy(p1) ,p2: pointHeavy(p2) };
+	}
+	
+	function contour2GeoJsonLight(contour) {
+		let pointsArr = [];
+		let j = contour.length - 1;
+		for (let i = 0; i < contour.length; i++) {
+			if (i + 1 < j && contour[i + 1].kind === 1) {
+				let p1 = pointLight(contour[i]);
+				let cp1 = pointLight(contour[i + 1]);
+				let cp2 = pointLight(contour[i + 2]);
+				let p2 = pointLight(contour[i + 3]);
+				let curve = approximateBezier(p1, cp1, cp2, p2);
+				curve.pop();
+				for (const coord of curve) {
+					const { x, y } = coord;
+					pointsArr.push([ x, y ]);
+				}
+				i += 2;
+			} else {
+				const { x, y } = pointLight(contour[i]);
+				pointsArr.push([ x, y ]);
+			}
+		}
+		if (
+			pointsArr[0][0] !== pointsArr[pointsArr.length - 1][0] ||
+			pointsArr[0][1] !== pointsArr[pointsArr.length - 1][1]
+		) {
+			pointsArr = [...pointsArr, pointsArr[0]];
+		}
+		return pointsArr;
+	}
+	
+	function contour2GeoJsonHeavy(contour) {
+		let pointsArr = [];
+		let j = contour.length - 1;
+		for (let i = 0; i < contour.length; i++) {
+			if (i + 1 < j && contour[i + 1].kind === 1) {
+				let p1 = pointHeavy(contour[i]);
+				let cp1 = pointHeavy(contour[i + 1]);
+				let cp2 = pointHeavy(contour[i + 2]);
+				let p2 = pointHeavy(contour[i + 3]);
+				let curve = approximateBezier(p1, cp1, cp2, p2);
+				curve.pop();
+				for (const coord of curve) {
+					const { x, y } = coord;
+					pointsArr.push([ x, y ]);
+				}
+				i += 2;
+			} else {
+				const { x, y } = pointHeavy(contour[i]);
+				pointsArr.push([ x, y ]);
+			}
+		}
+		if (
+			pointsArr[0][0] !== pointsArr[pointsArr.length - 1][0] ||
+			pointsArr[0][1] !== pointsArr[pointsArr.length - 1][1]
+		) {
+			pointsArr = [...pointsArr, pointsArr[0]];
+		}
+		return pointsArr;
+	}
+	
+	function point2GeoJsonLight(point) {
+		const { x, y } = pointLight(point);
+		return [ x, y ];
+	}
+	
+	function point2GeoJsonHeavy(point) {
+		const { x, y } = pointHeavy(point);
+		return [ x, y ];
+	}
+	
+	
 	function distanceLight(p1, p2) {
 		let x1l = originLight(p1.x);
 		let x2l = originLight(p2.x);
 		let y1l = originLight(p1.y);
 		let y2l = originLight(p2.y);
-		let xdl = x2l - x1l;
-		let ydl = y2l - y1l;
+		let xdl = abs(x2l - x1l);
+		let ydl = abs(y2l - y1l);
 		return sqrt(pow(xdl, 2) + pow(ydl, 2));
 	}
 	
@@ -77,8 +166,8 @@ function correctGlyphs(font, references) {
 		let x2h = originHeavy(p2.x);
 		let y1h = originHeavy(p1.y);
 		let y2h = originHeavy(p2.y);
-		let xdh = x2h - x1h;
-		let ydh = y2h - y1h;
+		let xdh = abs(x2h - x1h);
+		let ydh = abs(y2h - y1h);
 		return sqrt(pow(xdh, 2) + pow(ydh, 2));
 	}
 	
@@ -285,12 +374,12 @@ function correctGlyphs(font, references) {
 		originLight(farLeft.y) - originLight(topLeft.y) == 0;
 	}
 
-	function isBetween(a, x, b) {
-		return originLight(a) <= originLight(x) &&
-			originLight(x) <= originLight(b) + 2 &&
-			originHeavy(a) <= originHeavy(x) &&
-			originHeavy(x) <= originHeavy(b) + 2;
-	}
+	// function isBetween(a, x, b) {
+	// 	return originLight(a) <= originLight(x) &&
+	// 		originLight(x) <= originLight(b) + 2 &&
+	// 		originHeavy(a) <= originHeavy(x) &&
+	// 		originHeavy(x) <= originHeavy(b) + 2;
+	// }
 
 	function makeVariance(valueDefault, valueWghtMax) {
 		return valueFactory.create(valueDefault, [[masterWghtMax, valueWghtMax - valueDefault]]);
@@ -349,7 +438,11 @@ function correctGlyphs(font, references) {
 		}
 		return this;
 	};
-
+	
+	Number.prototype.isBetween = function(a, b) {
+		return a <= this.valueOf() && this.valueOf() <= b;
+	};
+	
 	function checkSingleGlyph(glyph, idxG) {
 		if (!glyph.geometry || !glyph.geometry.contours)
 			return;
@@ -634,19 +727,19 @@ function correctGlyphs(font, references) {
 				let idxC1 = ref.horizontal;
 				let idxP1 = ref.horizontalBottomRight;
 				let contour = oldContours[idxC1];
-				let horizontalBottomRight = contour[idxP1];
-				let horizontalTopRight = circularArray(contour, idxP1 + 1);
-				horizontalTopRight = {
-					x: makeVariance(
-						originLight(horizontalBottomRight.x),
-						originHeavy(horizontalBottomRight.x)
-					),
-					y: makeVariance(
-						originLight(horizontalTopRight.y),
-						originHeavy(horizontalTopRight.y)
-					),
-					kind: horizontalTopRight.kind,
-				};
+				let horizontalBottomRight = oldContours[idxC1][idxP1];
+				let horizontalTopRight = oldContours[idxC1][idxP1 + 1];
+				// horizontalTopRight = {
+				// 	x: makeVariance(
+				// 		originLight(horizontalBottomRight.x),
+				// 		originHeavy(horizontalBottomRight.x)
+				// 	),
+				// 	y: makeVariance(
+				// 		originLight(horizontalTopRight.y),
+				// 		originHeavy(horizontalTopRight.y)
+				// 	),
+				// 	kind: horizontalTopRight.kind,
+				// };
 				let idxC2 = ref.leftFalling;
 				let idxP2 = ref.leftFallingTopRight;
 				let contour2 = oldContours[idxC2];
@@ -706,7 +799,73 @@ function correctGlyphs(font, references) {
 
 			
 			const newContour = [...contour];
-
+			if (contour.length > 12) {
+				for (let idxP = 0; idxP < contour.length; idxP++) {
+					let p1 = circularArray(contour, idxP);
+					let p2 = circularArray(contour, idxP + 1);
+					let p3 = circularArray(contour, idxP + 2);
+					let p4 = circularArray(contour, idxP + 3);
+					let p5 = circularArray(contour, idxP + 4);
+					let p6 = circularArray(contour, idxP + 5);
+					let p7 = circularArray(contour, idxP + 6);
+					let p8 = circularArray(contour, idxP + 7);
+					let p9 = circularArray(contour, idxP + 8);
+					let p10 = circularArray(contour, idxP + 9);
+					if (p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && p5.kind === 1 && p6.kind === 2 && p7.kind === 0 && p8.kind === 1 && p9.kind === 2 && p10.kind === 0) {
+						let p1p2Bearing = bearing(lineHeavy(p1, p2));
+						let p3p4Bearing = bearing(lineHeavy(p3, p4));
+						let p4p5Bearing = bearing(lineHeavy(p4, p5));
+						let p6p7Bearing = bearing(lineHeavy(p6, p7));
+						let p7p8Bearing = bearing(lineHeavy(p7, p8));
+						let p10p9Bearing = bearing(lineHeavy(p10, p9));
+						let corner1Angle = angle(p3p4Bearing, p4p5Bearing);
+						let corner2Angle = angle(p6p7Bearing, p7p8Bearing);
+						let combinedAngle = corner1Angle + corner2Angle;
+						let p1p2Distance = distanceHeavy(p1, p2);
+						let p1p4Distance = distanceHeavy(p1, p4);
+						let p4p7Distance = distanceHeavy(p4, p7);
+						let hookHeight = originHeavy(p7.y) - originHeavy(p10.y);
+						let yOffset = hookHeight < 75 ? 75 - hookHeight : 0;
+						if (
+							p1p2Bearing.isBetween(85, 95) &&
+							p10p9Bearing.isBetween(85, 95) &&
+							p1p2Distance.isBetween(50, 175) &&
+							p3p4Bearing.isBetween(4, 12) &&
+							corner1Angle.isBetween(-145, -85) &&
+							corner2Angle.isBetween(-75, -25) &&
+							combinedAngle.isBetween(-170, -145) &&
+							p4p7Distance.isBetween(100, 160) &&
+							p1p4Distance.isBetween(185, 320)
+						) {
+							let p4I = circularIndex(contour, idxP + 3);
+							let p5I = circularIndex(contour, idxP + 4);
+							let p6I = circularIndex(contour, idxP + 5);
+							let p7I = circularIndex(contour, idxP + 6);
+							newContour[p4I] = {
+								x: makeVariance(originLight(contour[p4I].x), originHeavy(contour[p4I].x)),
+								y: makeVariance(originLight(contour[p4I].y), originHeavy(contour[p7I].y) + yOffset),
+								kind: contour[p4I].kind,
+							};
+							newContour[p5I] = {
+								x: makeVariance(originLight(contour[p5I].x), originHeavy(contour[p5I].x)),
+								y: makeVariance(originLight(contour[p5I].y), originHeavy(contour[p7I].y) + yOffset),
+								kind: contour[p5I].kind,
+							};
+							newContour[p6I] = {
+								x: makeVariance(originLight(contour[p6I].x), originHeavy(contour[p6I].x)),
+								y: makeVariance(originLight(contour[p6I].y), originHeavy(contour[p7I].y) + yOffset),
+								kind: contour[p6I].kind,
+							};
+							newContour[p7I] = {
+								x: makeVariance(originLight(contour[p7I].x), originHeavy(contour[p7I].x)),
+								y: makeVariance(originLight(contour[p7I].y), originHeavy(contour[p7I].y) + yOffset),
+								kind: contour[p7I].kind,
+							};
+							break;
+						}
+					}
+				}
+			}
 			// if (["uni31A1"].includes(name)) console.log(name, contour);
 			// if (["uni3105", "uni30A7", "uni3041", "uni3042", "uni31A0"].includes(name)) console.log(name, contour);
 			
@@ -1550,12 +1709,59 @@ function correctGlyphs(font, references) {
 			// }
 
 			// fix ㊇
-			// if (glyph.name === "uni3287" && idxC === 2) {
-			// 	newContour[2] = {
-			// 		x: makeVariance(612, 662),
-			// 		y: makeVariance(originLight(contour[2].y), originHeavy(contour[2].y)),
-			// 		kind: contour[2].kind,
+			// if (glyph.name === "uni3402" && idxC === 3) {
+			// 	newContour[11] = {
+			// 		x: makeVariance(originLight(contour[11].x), 986),
+			// 		y: makeVariance(originLight(contour[11].y), 213),
+			// 		kind: contour[11].kind,
 			// 	};
+			// 	newContour[11] = {
+			// 		x: makeVariance(originLight(contour[11].x), 986),
+			// 		y: makeVariance(originLight(contour[11].y), 213),
+			// 		kind: contour[11].kind,
+			// 	};
+			// 	newContour[12] = {
+			// 		x: makeVariance(originLight(contour[12].x), 870),
+			// 		y: makeVariance(originLight(contour[12].y), 189),
+			// 		kind: contour[12].kind,
+			// 	};
+			// 	newContour[13] = {
+			// 		x: makeVariance(originLight(contour[13].x), 865),
+			// 		y: makeVariance(originLight(contour[13].y), 123),
+			// 		kind: contour[13].kind,
+			// 	};
+			// 	newContour[14] = {
+			// 		x: makeVariance(originLight(contour[14].x), 861),
+			// 		y: makeVariance(originLight(contour[14].y), 48),
+			// 		kind: contour[14].kind,
+			// 	};
+			// }
+			// if (glyph.name === "uni3402" && idxC === 1) {
+			// 	newContour[10] = {
+			// 		x: makeVariance(originLight(contour[10].x), originHeavy(contour[10].x)),
+			// 		y: makeVariance(originLight(contour[10].y), originHeavy(contour[13].y)),
+			// 		kind: contour[10].kind,
+			// 	};
+			// 	newContour[11] = {
+			// 		x: makeVariance(originLight(contour[11].x), originHeavy(contour[11].x)),
+			// 		y: makeVariance(originLight(contour[11].y), originHeavy(contour[13].y)),
+			// 		kind: contour[11].kind,
+			// 	};
+			// 	newContour[12] = {
+			// 		x: makeVariance(originLight(contour[12].x), originHeavy(contour[12].x)),
+			// 		y: makeVariance(originLight(contour[12].y), originHeavy(contour[13].y)),
+			// 		kind: contour[12].kind,
+			// 	};
+			// 	newContour[13] = {
+			// 		x: makeVariance(originLight(contour[13].x), originHeavy(contour[13].x)),
+			// 		y: makeVariance(originLight(contour[13].y), originHeavy(contour[13].y)),
+			// 		kind: contour[13].kind,
+			// 	};
+			// 	// newContour[14] = {
+			// 	// 	x: makeVariance(originLight(contour[14].x), 861),
+			// 	// 	y: makeVariance(originLight(contour[14].y), 48),
+			// 	// 	kind: contour[14].kind,
+			// 	// };
 			// }
 
 			// fix ㊬
@@ -1806,6 +2012,7 @@ function correctGlyphs(font, references) {
 		// count++;
 		// if (count % 1000 == 0) console.log("correctGlyphs:", count, "glyphs processed.");
 	}
+	delete references.leftFallingCorrections;
 }
 
 module.exports = {

@@ -5,6 +5,8 @@ const inside = require("point-in-polygon-hao");
 const ProgressBar = require('./node-progress');
 const { approximateBezier, base60, bearing, horizontalSlope, roundTo, turn, verticalSlope } = require("./util");
 const { abs, ceil, floor, pow, round, sqrt, trunc, max } = Math;
+const Offset = require('polygon-offset');
+let offset = new Offset();
 
 // const { System } = require("detect-collisions");
 // const system = new System();
@@ -121,7 +123,7 @@ function extendShortStroke(font, references) {
 	
 	function canBeLeftEnd(topLeft, bottomLeft) {
 		return topLeft.kind == 0 && bottomLeft.kind == 0 &&
-			approxEq(topLeft.x, bottomLeft.x, 40, 45) &&
+			approxEq(topLeft.x, bottomLeft.x, 40, 75) &&
 			approxEq(
 				originLight(topLeft.y) - originLight(bottomLeft.y),
 				params.strokeWidth.light,
@@ -479,16 +481,24 @@ function extendShortStroke(font, references) {
 				let cp1 = pointLight(contour[i + 1]);
 				let cp2 = pointLight(contour[i + 2]);
 				let p2 = pointLight(contour[i + 3]);
-				let curve = approximateBezier(p1, cp1, cp2, p2);
+				let curve = approximateBezier(p1, cp1, cp2, p2, 0.2);
 				curve.pop();
 				for (const coord of curve) {
 					const { x, y } = coord;
-					pointsArr.push([ x, y ]);
+					let point = [ x, y ];
+					if (pointsArr.length && pointsArr[pointsArr.length - 1].toString() === point.toString()) {
+						continue;
+					}
+					pointsArr.push(point);
 				}
 				i += 2;
 			} else {
 				const { x, y } = pointLight(contour[i]);
-				pointsArr.push([ x, y ]);
+				let point = [ x, y ];
+				if (pointsArr.length && pointsArr[pointsArr.length - 1].toString() === point.toString()) {
+					continue;
+				}
+				pointsArr.push(point);
 			}
 		}
 		if (
@@ -509,16 +519,24 @@ function extendShortStroke(font, references) {
 				let cp1 = pointHeavy(contour[i + 1]);
 				let cp2 = pointHeavy(contour[i + 2]);
 				let p2 = pointHeavy(contour[i + 3]);
-				let curve = approximateBezier(p1, cp1, cp2, p2);
+				let curve = approximateBezier(p1, cp1, cp2, p2, 0.2);
 				curve.pop();
 				for (const coord of curve) {
 					const { x, y } = coord;
-					pointsArr.push([ x, y ]);
+					let point = [ x, y ];
+					if (pointsArr.length && pointsArr[pointsArr.length - 1].toString() === point.toString()) {
+						continue;
+					}
+					pointsArr.push(point);
 				}
 				i += 2;
 			} else {
 				const { x, y } = pointHeavy(contour[i]);
-				pointsArr.push([ x, y ]);
+				let point = [ x, y ];
+				if (pointsArr.length && pointsArr[pointsArr.length - 1].toString() === point.toString()) {
+					continue;
+				}
+				pointsArr.push(point);
 			}
 		}
 		if (
@@ -564,27 +582,20 @@ function extendShortStroke(font, references) {
 		const name = glyph.name;
 		
 		let oldContours = glyph.geometry.contours;
-		
 		glyph.geometry.contours = [];
+		
+		let skipContours = [];
+		if (name in references.extendIgnoreContourIdx) {
+			skipContours = references.extendIgnoreContourIdx[name];
+		}
 		
 		for (let [idxC1, contour] of oldContours.entries()) {
 			// find possible 横s (horizontals)
-			if (contour.length < 4) {
+			if (contour.length < 4 || skipContours.includes(idxC1)) {
 				glyph.geometry.contours.push(contour);
 				continue;
 			}
-			// if (name === "uni4B67") {
-			// 	console.log(idxC1);
-			// 	console.log(contour);
-			// }
-			if (name in references.extendIgnoreContourIdx) {
-				const skipContours = references.extendIgnoreContourIdx[name];
-				if (skipContours.includes(idxC1)) {
-					glyph.geometry.contours.push(contour);
-					continue;
-				}
-			}
-			// debug && console.log(contour.length);
+
 			const newContour = [...contour];
 
 			for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
@@ -592,14 +603,11 @@ function extendShortStroke(font, references) {
 				const topRightIdx = nextNode(contour, bottomRightIdx);
 				const topLeftIdx = nextNode(contour, topRightIdx);
 				const bottomLeftIdx = previousNode(contour, bottomRightIdx);
-				// const topLeftIdx = nextNodeIdx(contour, topRightIdx);
-				// const bottomLeftIdx = previousNodeIdx(contour, bottomRightIdx);
 
 				const horizontalAngle = angle(lineLight(circularArray(contour, bottomLeftIdx), circularArray(contour, bottomRightIdx)));
 				const horizontalTopSlope = horizontalSlope(lineLight(circularArray(contour, bottomLeftIdx), circularArray(contour, bottomRightIdx)));
 				const horizontalBottomSlope = horizontalSlope(lineLight(circularArray(contour, bottomLeftIdx), circularArray(contour, bottomRightIdx)));
-				debug && console.log("horizontalTopSlope", horizontalTopSlope);
-				debug && console.log("horizontalBottomSlope", horizontalBottomSlope);
+
 				if (!Number.isFinite(horizontalTopSlope)) continue;
 				if (!Number.isFinite(horizontalBottomSlope)) continue;
 				if (
@@ -622,17 +630,12 @@ function extendShortStroke(font, references) {
 					setCustomRadius(name, idxC1, distanceLight(horizontalBottomRight, horizontalTopRight) / 2, distanceHeavy(horizontalBottomRight, horizontalTopRight) / 2);
 					for (const [idxC2, contour2] of oldContours.entries()) {
 						// find possible 竖s (verticals)
-						if (contour2 == contour || contour2.length < 4) continue;
-						if (references.extendIgnoreLast2Contour.includes(name) && [circularIndex(oldContours, -1), circularIndex(oldContours, -2)].includes(idxC2)) continue;
-						if (references.extendIgnoreFirst2Contour.includes(name) && [0, 1].includes(idxC2)) continue;
-						if (name in references.extendIgnoreContourIdx) {
-							const skipContours = references.extendIgnoreContourIdx[name];
-							if (skipContours.includes(idxC2)) {
-								continue;
-							}
-						}
+						if (idxC2 === idxC1 || contour2.length < 4 || skipContours.includes(idxC2)) continue;
+
 						let polygonLight = [contour2GeoJsonLight(contour2)];
+						// let polygonLight2 = offset.data(polygonLight).arcSegments(3).margin(1);
 						let polygonHeavy = [contour2GeoJsonHeavy(contour2)];
+						// let polygonHeavy2 = offset.data(polygonHeavy).arcSegments(3).margin(1);
 						let extended = false;
 						
 						for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
@@ -755,46 +758,6 @@ function extendShortStroke(font, references) {
 									// extended = true;
 									// break;
 								}
-								// if (
-								// 	// and 横's (horizontal's) left end inside 竖 (vertical)
-								// 	// ┌──┬──┬───
-								// 	// │  ⇦  ┊   
-								// 	// │  └──┼───
-								// 	// │     │   
-								// 	isBetween(verticalTopLeft.x, horizontalTopLeft.x, verticalTopRight.x) &&
-								// 	isBetween(verticalBottomRight.y, horizontalTopLeft.y, verticalTopRight.y)
-								// ) {
-								// 	// let xOffsetL = 2;
-								// 	// let xOffsetH = 10;
-								// 	// if (approxEq(horizontalTopLeft.y, verticalTopLeft.y) || approxEq(horizontalBottomLeft.y, verticalBottomLeft.y)) {
-								// 	// 	xOffsetL = 0;
-								// 	// 	xOffsetH = 0;
-								// 	// }
-								// 	let isCorner = (abs(originLight(horizontalTopLeft.y) - originLight(verticalTopLeft.y)) < 5) || (abs(originLight(horizontalBottomLeft.y) - originLight(verticalBottomLeft.y)) < 5);
-								// 	let xOffsetL = isCorner ? 0 : 4;
-								// 	let xOffsetH = isCorner ? 0 : 20;
-								// 	newContour[bottomLeftIdx] = {
-								// 		x: makeVariance(
-								// 			originLight(verticalTopLeft.x) + xOffsetL,
-								// 			originHeavy(verticalTopLeft.x) + xOffsetH
-								// 		),
-								// 		y: horizontalBottomLeft.y,
-								// 		kind: 0,
-								// 	};
-								// 	// contour[bottomLeftIdx] = newContour[bottomLeftIdx];
-								// 	// oldContours[idxC1][bottomLeftIdx] = newContour[bottomLeftIdx];
-								// 	newContour[topLeftIdx] = {
-								// 		x: makeVariance(
-								// 			originLight(verticalTopLeft.x) + xOffsetL,
-								// 			originHeavy(verticalTopLeft.x) + xOffsetH
-								// 		),
-								// 		y: horizontalTopLeft.y,
-								// 		kind: 0,
-								// 	};
-								// 	// contour[topLeftIdx] = newContour[topLeftIdx];
-								// 	// oldContours[idxC1][topLeftIdx] = newContour[topLeftIdx];
-
-								// }
 							}
 							
 							if (
@@ -807,9 +770,6 @@ function extendShortStroke(font, references) {
 								const verticalBottomRight = circularArray(contour2, idxP2 + 1);
 								const verticalTopRight = circularArray(contour2, idxP2 + 2);
 								const verticalTopLeft = circularArray(contour2, idxP2 - 1);
-								debug && console.log(`is bottom end - idxC2: ${idxC2}, idxP2: ${idxP2}`);
-								debug && console.log(verticalBottomLeft);
-								debug && console.log(verticalBottomRight);
 								if (
 									// and 横's (horizontal's) right end inside 竖 (vertical)
 									// isBetween(verticalBottomLeft.x, horizontalBottomRight.x, verticalBottomRight.x) &&
@@ -870,19 +830,11 @@ function extendShortStroke(font, references) {
 		
 		for (let [idxC1, contour] of oldContours.entries()) {
 			// find possible 竖s (verticals)
-			if (contour.length < 4) {
+			if (contour.length < 4 || skipContours.includes(idxC1)) {
 				glyph.geometry.contours.push(contour);
 				continue;
 			}
-			
-			if (name in references.extendIgnoreContourIdx) {
-				const skipContours = references.extendIgnoreContourIdx[name];
-				if (skipContours.includes(idxC1)) {
-					glyph.geometry.contours.push(contour);
-					continue;
-				}
-			}
-			
+
 			const newContour = [...contour];
 
 			for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
@@ -908,17 +860,13 @@ function extendShortStroke(font, references) {
 					setCustomRadius(name, idxC1, distanceLight(verticalBottomLeft, verticalBottomRight) / 2, distanceHeavy(verticalBottomLeft, verticalBottomRight) / 2);
 					for (const [idxC2, contour2o] of oldContours.entries()) {
 						// find possible 横s (horizontals)
-						if (contour2o == contour || contour2o.length < 4) continue;
-						if (references.extendIgnoreLast2Contour.includes(name) && [circularIndex(oldContours, -1), circularIndex(oldContours, -2)].includes(idxC2)) continue;
-						if (references.extendIgnoreFirst2Contour.includes(name) && [0, 1].includes(idxC2)) continue;
-						if (name in references.extendIgnoreContourIdx) {
-							const skipContours = references.extendIgnoreContourIdx[name];
-							if (skipContours.includes(idxC2)) {
-								continue;
-							}
-						}
+						if (idxC2 === idxC1 || contour2o.length < 4 || skipContours.includes(idxC2)) continue;
+
 						let polygonLight = [contour2GeoJsonLight(contour2o)];
+						// let polygonLight2 = offset.data(polygonLight).arcSegments(3).margin(1);
 						let polygonHeavy = [contour2GeoJsonHeavy(contour2o)];
+						// let polygonHeavy2 = offset.data(polygonHeavy).arcSegments(3).margin(1);
+						
 						let contour2 = contour2o.filter((point) => point.kind === 0);
 						let extended = false;
 						for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
@@ -1009,25 +957,6 @@ function extendShortStroke(font, references) {
 									// extended = true;
 									// break;
 								}
-								// if (
-								// 	// and 竖's (vertical's) top inside 横's (horizontal's) left end
-								// 	// originLight(horizontalBottomLeft.x) <= originLight(verticalTopLeft.x) &&
-								// 	isBetween(horizontalTopLeft.x, verticalBottomRight.x, horizontalTopRight.x) &&
-								// 	isBetween(horizontalBottomLeft.y, verticalTopLeft.y, horizontalTopRight.y)
-								// ) {
-								// 	newContour[topRightIdx] = {
-								// 		x: verticalTopRight.x,
-								// 		y: horizontalTopRight.y,
-								// 		kind: 0,
-								// 	};
-								// 	newContour[topLeftIdx] = {
-								// 		x: verticalTopLeft.x,
-								// 		y: horizontalTopLeft.y,
-								// 		kind: 0,
-								// 	};
-								// 	// extended = true;
-								// 	// break;
-								// }
 							}
 						}
 						if (extended)
@@ -1044,19 +973,11 @@ function extendShortStroke(font, references) {
 		
 		for (let [idxC1, contour] of oldContours.entries()) {
 			// find possible 横s (horizontals)
-			if (contour.length < 4) {
+			if (contour.length < 4 || skipContours.includes(idxC1)) {
 				glyph.geometry.contours.push(contour);
 				continue;
 			}
-			
-			if (name in references.extendIgnoreContourIdx) {
-				const skipContours = references.extendIgnoreContourIdx[name];
-				if (skipContours.includes(idxC1)) {
-					glyph.geometry.contours.push(contour);
-					continue;
-				}
-			}
-			
+
 			const newContour = [...contour];
 
 			for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
@@ -1083,20 +1004,16 @@ function extendShortStroke(font, references) {
 					const horizontalStrokeHeavy = originHeavy(horizontalTopLeft.y) - originHeavy(horizontalBottomLeft.y);
 					
 					setCustomRadius(name, idxC1, distanceLight(horizontalBottomLeft, horizontalTopLeft) / 2, distanceHeavy(horizontalBottomLeft, horizontalTopLeft) / 2);
-					debug && console.log(`is left end - idxC1: ${idxC1}, idxP1: ${idxP1}`);
+					
 					for (const [idxC2, contour2] of oldContours.entries()) {
 						// find possible 竖s (verticals)
-						if (contour2 == contour || contour2.length < 4) continue;
-						if (references.extendIgnoreLast2Contour.includes(name) && [circularIndex(oldContours, -1), circularIndex(oldContours, -2)].includes(idxC2)) continue;
-						if (references.extendIgnoreFirst2Contour.includes(name) && [0, 1].includes(idxC2)) continue;
-						if (name in references.extendIgnoreContourIdx) {
-							const skipContours = references.extendIgnoreContourIdx[name];
-							if (skipContours.includes(idxC2)) {
-								continue;
-							}
-						}
+						if (idxC2 === idxC1 || contour2.length < 4 || skipContours.includes(idxC2)) continue;
+
 						let polygonLight = [contour2GeoJsonLight(contour2)];
+						// let polygonLight2 = offset.data(polygonLight).arcSegments(3).margin(1);
 						let polygonHeavy = [contour2GeoJsonHeavy(contour2)];
+						// let polygonHeavy2 = offset.data(polygonHeavy).arcSegments(3).margin(1);
+
 						for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
 							if (
 								// is top end
@@ -1254,19 +1171,11 @@ function extendShortStroke(font, references) {
 		
 		for (let [idxC1, contour] of oldContours.entries()) {
 			// find possible 竖s (verticals)
-			if (contour.length < 4) {
+			if (contour.length < 4 || skipContours.includes(idxC1)) {
 				glyph.geometry.contours.push(contour);
 				continue;
 			}
-			
-			if (name in references.extendIgnoreContourIdx) {
-				const skipContours = references.extendIgnoreContourIdx[name];
-				if (skipContours.includes(idxC1)) {
-					glyph.geometry.contours.push(contour);
-					continue;
-				}
-			}
-			
+
 			const newContour = [...contour];
 
 			for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
@@ -1297,25 +1206,21 @@ function extendShortStroke(font, references) {
 					let bottomHeavy = distanceHeavy(verticalBottomRightCorner, verticalBottomLeftCorner);
 					let heavyRadius;
 					if (abs(topLight - bottomLight) < 12) {
-						heavyRadius = max(topHeavy, bottomHeavy) / 2
+						heavyRadius = max(topHeavy, bottomHeavy) / 1.8
 					} else {
-						heavyRadius = topHeavy / 2
+						heavyRadius = topHeavy / 1.8
 					}
 					
 					setCustomRadius(name, idxC1, topLight / 2, heavyRadius);
 					for (const [idxC2, contour2o] of oldContours.entries()) {
 						// find possible 横s (horizontals)
-						if (contour2o == contour || contour2o.length < 4) continue;
-						if (references.extendIgnoreLast2Contour.includes(name) && [circularIndex(oldContours, -1), circularIndex(oldContours, -2)].includes(idxC2)) continue;
-						if (references.extendIgnoreFirst2Contour.includes(name) && [0, 1].includes(idxC2)) continue;
-						if (name in references.extendIgnoreContourIdx) {
-							const skipContours = references.extendIgnoreContourIdx[name];
-							if (skipContours.includes(idxC2)) {
-								continue;
-							}
-						}
+						if (idxC2 === idxC1 || contour2o.length < 4 || skipContours.includes(idxC2)) continue;
+
 						let polygonLight = [contour2GeoJsonLight(contour2o)];
+						// let polygonLight2 = offset.data(polygonLight).arcSegments(3).margin(1);
 						let polygonHeavy = [contour2GeoJsonHeavy(contour2o)];
+						// let polygonHeavy2 = offset.data(polygonHeavy).arcSegments(3).margin(1);
+
 						let contour2 = contour2o.filter((point) => point.kind === 0);
 						let extended = false;
 						for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
@@ -1463,6 +1368,7 @@ function extendShortStroke(font, references) {
 		// count++;
 		// if (count % 1000 == 0) console.log("extendShortStroke: ", count, " glyphs processed.");
 	}
+	delete references.extendIgnoreContourIdx;
 }
 
 module.exports = {

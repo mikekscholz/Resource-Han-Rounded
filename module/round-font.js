@@ -746,6 +746,7 @@ let curGlyph = "";
 		// count++;
 		// if (count % 1000 == 0) console.log("roundingGlyphs: ", count, " glyphs processed.");
 	}
+	delete references.customRadiusList;
 }
 
 module.exports = {

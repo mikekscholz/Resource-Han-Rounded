@@ -291,15 +291,6 @@ function postProcess(font, references) {
 			let contour = oldContours[idxC1];
 			let contour2 = oldContours[idxC2];
 			let idxP1 = findBottomRight(contour);
-			let h0 = circularArray(contour, idxP1 - 1);
-			let h1 = circularArray(contour, idxP1);
-			let h2 = circularArray(contour, idxP1 + 1);
-			let h3 = circularArray(contour, idxP1 + 2);
-			let h4 = circularArray(contour, idxP1 + 3);
-			let h5 = circularArray(contour, idxP1 + 4);
-			let h6 = circularArray(contour, idxP1 + 5);
-			let h7 = circularArray(contour, idxP1 + 6);
-			let h8 = circularArray(contour, idxP1 + 7);
 			let h1I = circularIndex(contour, idxP1);
 			let h2I = circularIndex(contour, idxP1 + 1);
 			let h3I = circularIndex(contour, idxP1 + 2);
@@ -308,13 +299,16 @@ function postProcess(font, references) {
 			let h6I = circularIndex(contour, idxP1 + 5);
 			let h7I = circularIndex(contour, idxP1 + 6);
 			let h8I = circularIndex(contour, idxP1 + 7);
-			let r1 = circularArray(contour2, -7);
-			let r2 = circularArray(contour2, -6);
-			let r3 = circularArray(contour2, -5);
-			let r4 = circularArray(contour2, -4);
-			let r5 = circularArray(contour2, -3);
-			let r6 = circularArray(contour2, -2);
-			let r7 = circularArray(contour2, -1);
+			let h9I = circularIndex(contour, idxP1 + 8);
+			let h1 = contour[h1I];
+			let h2 = contour[h2I];
+			let h3 = contour[h3I];
+			let h4 = contour[h4I];
+			let h5 = contour[h5I];
+			let h6 = contour[h6I];
+			let h7 = contour[h7I];
+			let h8 = contour[h8I];
+			let h9 = contour[h9I];
 			let r1I = circularIndex(contour2, -7);
 			let r2I = circularIndex(contour2, -6);
 			let r3I = circularIndex(contour2, -5);
@@ -322,6 +316,13 @@ function postProcess(font, references) {
 			let r5I = circularIndex(contour2, -3);
 			let r6I = circularIndex(contour2, -2);
 			let r7I = circularIndex(contour2, -1);
+			let r1 = contour2[r1I];
+			let r2 = contour2[r2I];
+			let r3 = contour2[r3I];
+			let r4 = contour2[r4I];
+			let r5 = contour2[r5I];
+			let r6 = contour2[r6I];
+			let r7 = contour2[r7I];
 			let r1xL = originLight(r1.x);
 			let r1yL = originLight(r1.y);
 			let r2xL = originLight(r2.x);
@@ -545,14 +546,93 @@ function postProcess(font, references) {
 			};
 			oldContours[idxC2][r6I] = {
 				x: makeVariance(originLight(h8.x) + hXL, originHeavy(h8.x) + hXH),
-				y: makeVariance(originLight(h8.y) + hYL - 2, originHeavy(h8.y) + hYH - 10),
+				y: makeVariance(originLight(h8.y) + hYL - 2, originHeavy(h8.y) + hYH - 20),
 				kind: r6.kind,
 			};
 			oldContours[idxC2][r7I] = {
 				x: makeVariance(originLight(h8.x) + hXL - 1, originHeavy(h8.x) + hXH - 1),
-				y: makeVariance(originLight(h8.y) + hYL - 2, originHeavy(h8.y) + hYH - 10),
+				y: makeVariance(originLight(h8.y) + hYL - 2, originHeavy(h8.y) + hYH - 30),
 				kind: r7.kind,
 			};
+			if ("leftFallingTopLeft" in ref) {
+				let modified = false;
+				let lP1I = ref.leftFallingTopLeft;
+				let lC1I = lP1I + 1;
+				let lC2I = lP1I + 2;
+				let lP2I = lP1I + 3;
+				let lP1 = oldContours[idxC2][lP1I];
+				let lC1 = oldContours[idxC2][lC1I];
+				let lC2 = oldContours[idxC2][lC2I];
+				let lP2 = oldContours[idxC2][lP2I];
+				let lP1L = pointLight(lP1);
+				let lC1L = pointLight(lC1);
+				let lC2L = pointLight(lC2);
+				let lP2L = pointLight(lP2);
+				let lP1H = pointHeavy(lP1);
+				let lC1H = pointHeavy(lC1);
+				let lC2H = pointHeavy(lC2);
+				let lP2H = pointHeavy(lP2);
+				let horizontalPolyLight = [contour2GeoJsonLight(oldContours[idxC1])];
+				let horizontalPolyHeavy = [contour2GeoJsonHeavy(oldContours[idxC1])];
+				let geoLeftP1Light = point2GeoJsonLight(lP1);
+				let geoLeftP1Heavy = point2GeoJsonHeavy(lP1);
+				if (inside(geoLeftP1Light, horizontalPolyLight) === false) {
+					let hP1L = pointLight(h5);
+					let hC1L = pointLight(h6);
+					let hC2L = pointLight(h7);
+					let hP2L = pointLight(h8);
+					let horizontalCurve2Light = new Bezier(hP1L.x, hP1L.y, hC1L.x, hC1L.y, hC2L.x, hC2L.y, hP2L.x, hP2L.y);
+					let verticalCurve2Light = new Bezier(lP1L.x, lP1L.y, lC1L.x, lC1L.y, lC2L.x, lC2L.y, lP2L.x, lP2L.y);
+					let intersectLight2 = verticalCurve2Light.intersects(horizontalCurve2Light);
+					if (intersectLight2.length > 0) {
+						let splitLight2 = verticalCurve2Light.split(intersectLight2[0].split('/')[0]);
+						lP1L = splitLight2.right.points[0]
+						lC1L = splitLight2.right.points[1]
+						lC2L = splitLight2.right.points[2]
+						lP2L = splitLight2.right.points[3]
+						modified = true;
+					}
+				}
+				if (inside(geoLeftP1Heavy, horizontalPolyHeavy) === false) {
+					let hP1H = pointHeavy(h5);
+					let hC1H = pointHeavy(h6);
+					let hC2H = pointHeavy(h7);
+					let hP2H = pointHeavy(h8);
+					let horizontalCurve2Heavy = new Bezier(hP1H.x, hP1H.y, hC1H.x, hC1H.y, hC2H.x, hC2H.y, hP2H.x, hP2H.y);
+					let verticalCurve2Heavy = new Bezier(lP1H.x, lP1H.y, lC1H.x, lC1H.y, lC2H.x, lC2H.y, lP2H.x, lP2H.y);
+					let intersectHeavy2 = verticalCurve2Heavy.intersects(horizontalCurve2Heavy);
+					if (intersectHeavy2.length > 0) {
+						let splitHeavy2 = verticalCurve2Heavy.split(intersectHeavy2[0].split('/')[0]);
+						lP1H = splitHeavy2.right.points[0]
+						lC1H = splitHeavy2.right.points[1]
+						lC2H = splitHeavy2.right.points[2]
+						lP2H = splitHeavy2.right.points[3]
+						modified = true;
+					}
+				}
+				if (modified) {
+					lP1 = {
+						x: makeVariance(lP1L.x, lP1H.x),
+						y: makeVariance(lP1L.y, lP1H.y),
+						kind: lP1.kind,
+					};
+					lC1 = {
+						x: makeVariance(lC1L.x, lC1H.x),
+						y: makeVariance(lC1L.y, lC1H.y),
+						kind: lC1.kind,
+					};
+					lC2 = {
+						x: makeVariance(lC2L.x, lC2H.x),
+						y: makeVariance(lC2L.y, lC2H.y),
+						kind: lC2.kind,
+					};
+					lP2 = {
+						x: makeVariance(lP2L.x, lP2H.x),
+						y: makeVariance(lP2L.y, lP2H.y),
+						kind: lP2.kind,
+					};
+				}
+			}
 		}
 		
 		if (name in references.horizontalLeftFalling) {
