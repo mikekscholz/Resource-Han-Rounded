@@ -221,30 +221,6 @@ function postProcess(font, references) {
 			originHeavy(topRight.x) - originHeavy(topLeft.x) <= params.strokeWidth.heavy;
 	}
 
-	function canBeLeftFalling(topRight, topPeak, topLeft, flatLeft, downLeft) {
-		return topRight.kind == 0 && topPeak.kind == 0 && topLeft.kind == 0 && flatLeft.kind == 0 && downLeft.kind == 0 &&
-		originLight(topRight.x) - originLight(topPeak.x) > 0 &&
-		originLight(topPeak.x) - originLight(topLeft.x) > 0 &&
-		originLight(topLeft.x) - originLight(flatLeft.x) > 0 &&
-		originLight(flatLeft.x) - originLight(downLeft.x) == 0 &&
-		originLight(topRight.y) - originLight(topPeak.y) <= 0 &&
-		originLight(topPeak.y) - originLight(topLeft.y) > 0 &&
-		originLight(topLeft.y) - originLight(flatLeft.y) == 0 &&
-		originLight(flatLeft.y) - originLight(downLeft.y) > 0;
-	}
-
-	function canBeLeftFalling2(right, topRight, topPeak, farLeft, topLeft) {
-		return right.kind == 0 && topRight.kind == 0 && topPeak.kind == 0 && farLeft.kind == 0 && topLeft.kind == 0 &&
-		originLight(right.x) - originLight(topRight.x) < 0 &&
-		originLight(topRight.x) - originLight(topPeak.x) > 0 &&
-		originLight(topPeak.x) - originLight(farLeft.x) > 0 &&
-		originLight(farLeft.x) - originLight(topLeft.x) < 0 &&
-		originLight(right.y) - originLight(topRight.y) < 0 &&
-		originLight(topRight.y) - originLight(topPeak.y) < 0 &&
-		originLight(topPeak.y) - originLight(farLeft.y) > 0 &&
-		originLight(farLeft.y) - originLight(topLeft.y) == 0;
-	}
-
 	function isBetween(a, x, b) {
 		return originLight(a) <= originLight(x) &&
 			originLight(x) <= originLight(b) + 2 &&
@@ -253,7 +229,7 @@ function postProcess(font, references) {
 	}
 
 	function makeVariance(valueDefault, valueWghtMax) {
-		return valueFactory.create(valueDefault, [[masterWghtMax, valueWghtMax - valueDefault]]);
+		return valueFactory.create(valueDefault.toFixed(2), [[masterWghtMax, valueWghtMax.toFixed(2) - valueDefault.toFixed(2)]]);
 	}
 	
 	function findBottomRight(contour) {
@@ -388,11 +364,11 @@ function postProcess(font, references) {
 			function generateCurve2Heavy() {
 				hCurveHeavy = new Bezier(originHeavy(h1.x) + hXH,originHeavy(h1.y) + hYH,originHeavy(h2.x) + hXH,originHeavy(h2.y) + hYH,originHeavy(h3.x) + hXH,originHeavy(h3.y) + hYH,originHeavy(h4.x) + hXH,originHeavy(h4.y) + hYH);
 			}
-			function checkIntersectLight() {
-				intersectLight = vCurveLight.intersects(hCurveLight);
+			function checkIntersectLight(threshold = 0.5) {
+				intersectLight = vCurveLight.intersects(hCurveLight, threshold);
 			}
-			function checkIntersectHeavy() {
-				intersectHeavy = vCurveHeavy.intersects(hCurveHeavy);
+			function checkIntersectHeavy(threshold = 0.5) {
+				intersectHeavy = vCurveHeavy.intersects(hCurveHeavy, threshold);
 			}
 			
 			generateCurve1Light();
@@ -412,19 +388,19 @@ function postProcess(font, references) {
 				hXL = hXL + 6;
 				hYL = hXL * horizontalSlope;
 				generateCurve2Light();
-				checkIntersectLight();
+				checkIntersectLight(2);
 			}
 			while (intersectLight.length !== 0) {
 				hXL = hXL - 1;
 				hYL = hXL * horizontalSlope;
 				generateCurve2Light();
-				checkIntersectLight();
+				checkIntersectLight(1);
 			}
 			while (intersectLight.length === 0) {
 				hXL = hXL + 0.1;
 				hYL = hXL * horizontalSlope;
 				generateCurve2Light();
-				checkIntersectLight();
+				checkIntersectLight(0.5);
 			}
 			
 			generateCurve1Heavy();
@@ -444,31 +420,31 @@ function postProcess(font, references) {
 				hXH = hXH + 30;
 				hYH = hXH * horizontalSlope;
 				generateCurve2Heavy();
-				checkIntersectHeavy();
+				checkIntersectHeavy(20);
 			}
 			while (intersectHeavy.length !== 0) {
 				hXH = hXH - 10;
 				hYH = hXH * horizontalSlope;
 				generateCurve2Heavy();
-				checkIntersectHeavy();
+				checkIntersectHeavy(10);
 			}
 			while (intersectHeavy.length === 0) {
 				hXH = hXH + 2;
 				hYH = hXH * horizontalSlope;
 				generateCurve2Heavy();
-				checkIntersectHeavy();
+				checkIntersectHeavy(5);
 			}
 			while (intersectHeavy.length !== 0) {
 				hXH = hXH - 1;
 				hYH = hXH * horizontalSlope;
 				generateCurve2Heavy();
-				checkIntersectHeavy();
+				checkIntersectHeavy(1);
 			}
 			while (intersectHeavy.length === 0) {
 				hXH = hXH + 0.1;
 				hYH = hXH * horizontalSlope;
 				generateCurve2Heavy();
-				checkIntersectHeavy();
+				checkIntersectHeavy(0.5);
 			}
 			// if (badCurve) return;
 			let splitLight = vCurveLight.split(intersectLight[0].split('/')[0]);
@@ -555,6 +531,7 @@ function postProcess(font, references) {
 				kind: r7.kind,
 			};
 			if ("leftFallingTopLeft" in ref) {
+				// console.log(oldContours[idxC1])
 				let modified = false;
 				let lP1I = ref.leftFallingTopLeft;
 				let lC1I = lP1I + 1;
@@ -572,16 +549,17 @@ function postProcess(font, references) {
 				let lC1H = pointHeavy(lC1);
 				let lC2H = pointHeavy(lC2);
 				let lP2H = pointHeavy(lP2);
-				let horizontalPolyLight = [contour2GeoJsonLight(oldContours[idxC1])];
-				let horizontalPolyHeavy = [contour2GeoJsonHeavy(oldContours[idxC1])];
-				let geoLeftP1Light = point2GeoJsonLight(lP1);
-				let geoLeftP1Heavy = point2GeoJsonHeavy(lP1);
-				if (inside(geoLeftP1Light, horizontalPolyLight) === false) {
-					let hP1L = pointLight(h5);
-					let hC1L = pointLight(h6);
-					let hC2L = pointLight(h7);
-					let hP2L = pointLight(h8);
-					let horizontalCurve2Light = new Bezier(hP1L.x, hP1L.y, hC1L.x, hC1L.y, hC2L.x, hC2L.y, hP2L.x, hP2L.y);
+				// let horizontalPolyLight = [contour2GeoJsonLight(oldContours[idxC1])];
+				// let horizontalPolyHeavy = [contour2GeoJsonHeavy(oldContours[idxC1])];
+				// let geoLeftP1Light = point2GeoJsonLight(lP1);
+				// let geoLeftP1Heavy = point2GeoJsonHeavy(lP1);
+				// if (inside(geoLeftP1Light, horizontalPolyLight) === false) {
+					// let hP1L = pointLight(h5);
+					// let hC1L = pointLight(h6);
+					// let hC2L = pointLight(h7);
+					// let hP2L = pointLight(h8);
+					// let horizontalCurve2Light = new Bezier(hP1L.x, hP1L.y, hC1L.x, hC1L.y, hC2L.x, hC2L.y, hP2L.x, hP2L.y);
+					let horizontalCurve2Light = new Bezier(originLight(h5.x) + hXL,originLight(h5.y) + hYL,originLight(h6.x) + hXL,originLight(h6.y) + hYL,originLight(h7.x) + hXL,originLight(h7.y) + hYL,originLight(h8.x) + hXL,originLight(h8.y) + hYL);
 					let verticalCurve2Light = new Bezier(lP1L.x, lP1L.y, lC1L.x, lC1L.y, lC2L.x, lC2L.y, lP2L.x, lP2L.y);
 					let intersectLight2 = verticalCurve2Light.intersects(horizontalCurve2Light);
 					if (intersectLight2.length > 0) {
@@ -592,13 +570,14 @@ function postProcess(font, references) {
 						lP2L = splitLight2.right.points[3]
 						modified = true;
 					}
-				}
-				if (inside(geoLeftP1Heavy, horizontalPolyHeavy) === false) {
-					let hP1H = pointHeavy(h5);
-					let hC1H = pointHeavy(h6);
-					let hC2H = pointHeavy(h7);
-					let hP2H = pointHeavy(h8);
-					let horizontalCurve2Heavy = new Bezier(hP1H.x, hP1H.y, hC1H.x, hC1H.y, hC2H.x, hC2H.y, hP2H.x, hP2H.y);
+					// }
+					// if (inside(geoLeftP1Heavy, horizontalPolyHeavy) === false) {
+						// let hP1H = pointHeavy(h5);
+						// let hC1H = pointHeavy(h6);
+						// let hC2H = pointHeavy(h7);
+						// let hP2H = pointHeavy(h8);
+						// let horizontalCurve2Heavy = new Bezier(hP1H.x, hP1H.y, hC1H.x, hC1H.y, hC2H.x, hC2H.y, hP2H.x, hP2H.y);
+						let horizontalCurve2Heavy = new Bezier(originHeavy(h5.x) + hXH,originHeavy(h5.y) + hYH,originHeavy(h6.x) + hXH,originHeavy(h6.y) + hYH,originHeavy(h7.x) + hXH,originHeavy(h7.y) + hYH,originHeavy(h8.x) + hXH,originHeavy(h8.y) + hYH);
 					let verticalCurve2Heavy = new Bezier(lP1H.x, lP1H.y, lC1H.x, lC1H.y, lC2H.x, lC2H.y, lP2H.x, lP2H.y);
 					let intersectHeavy2 = verticalCurve2Heavy.intersects(horizontalCurve2Heavy);
 					if (intersectHeavy2.length > 0) {
@@ -609,7 +588,7 @@ function postProcess(font, references) {
 						lP2H = splitHeavy2.right.points[3]
 						modified = true;
 					}
-				}
+				// }
 				if (modified) {
 					lP1 = {
 						x: makeVariance(lP1L.x, lP1H.x),

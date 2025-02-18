@@ -218,19 +218,6 @@ function preProcess(font, references) {
 	//                          1 ○   
 	//                        0 ○     
 	//                        ●       
-	// function canBeLeftFalling4(rightC2, farRight, topPeak, topLeft, flatLeft, leftC1) {
-	// 	return rightC2.kind == 2 && farRight.kind == 0 && topPeak.kind == 0 && topLeft.kind == 0 && flatLeft.kind == 0 && leftC1.kind == 1 &&
-	// 	originLight(rightC2.x) < originLight(farRight.x) &&
-	// 	originLight(rightC2.y) < originLight(farRight.y) &&
-	// 	originLight(farRight.x) > originLight(topPeak.x) &&
-	// 	originLight(farRight.y) < originLight(topPeak.y) &&
-	// 	originLight(topPeak.x) > originLight(topLeft.x) &&
-	// 	originLight(topPeak.y) > originLight(topLeft.y) &&
-	// 	originLight(topLeft.x) > originLight(flatLeft.x) &&
-	// 	abs(originLight(topLeft.y) - originLight(flatLeft.y)) < 3 &&
-	// 	originLight(flatLeft.x) > originLight(leftC1.x) &&
-	// 	originLight(flatLeft.y) > originLight(leftC1.y)
-	// }
 	function canBeLeftFalling4(rightC2, topRight, topRightC1, topRightC2, farRight, topPeak, topLeft, flatLeft, leftC1) {
 		return rightC2.kind == 2 && topRight.kind == 0 && topRightC1.kind == 1 && topRightC2.kind == 2 &&
 		farRight.kind == 0 && topPeak.kind == 0 && topLeft.kind == 0 && flatLeft.kind == 0 && leftC1.kind == 1 &&
@@ -251,6 +238,7 @@ function preProcess(font, references) {
 		originLight(flatLeft.x) > originLight(leftC1.x) &&
 		originLight(flatLeft.y) > originLight(leftC1.y)
 	}
+	
 	function approxEq(a, b, threshold = 5, thresholdHeavy = false) {
 		if (typeof a == 'number' && typeof b == 'number')
 			return abs(a - b) <= threshold;

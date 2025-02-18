@@ -152,147 +152,6 @@ function extendShortStroke(font, references) {
 			) &&
 			originHeavy(topRight.x) - originHeavy(topLeft.x) <= params.strokeWidth.heavy;
 	}
-	
-	//             1            
-	//             ●            
-	//           .    .         
-	// 3     2 .         .      
-	// ●  .  ●              .  0
-	// 4                       ●
-	// ●                        
-	function canBeLeftFalling(topRight, topPeak, topLeft, flatLeft, downLeft, leftC1, leftC2, bottomLeft, bottomRight, rightC1, rightC2) {
-		return topRight.kind == 0 && topPeak.kind == 0 && topLeft.kind == 0 && flatLeft.kind == 0 && downLeft.kind == 0 &&
-		leftC1.kind == 1 && leftC2.kind == 2 && bottomLeft.kind == 0 && bottomRight.kind == 0 && rightC1.kind == 1 && rightC2.kind == 2 &&
-		originLight(topRight.x) - originLight(topPeak.x) > 0 &&
-		originLight(topPeak.x) - originLight(topLeft.x) > 0 &&
-		originLight(topLeft.x) - originLight(flatLeft.x) > 0 &&
-		originLight(flatLeft.x) - originLight(downLeft.x) == 0 &&
-		originLight(topRight.y) - originLight(topPeak.y) <= 0 &&
-		originLight(topPeak.y) - originLight(topLeft.y) > 0 &&
-		originLight(topLeft.y) - originLight(flatLeft.y) == 0 &&
-		originLight(flatLeft.y) - originLight(downLeft.y) > 0 &&
-		originLight(topRight.y) > originLight(bottomRight.y) &&
-		originLight(topRight.x) > originLight(bottomRight.x) &&
-		originLight(downLeft.y) > originLight(bottomLeft.y) &&
-		originLight(downLeft.x) > originLight(bottomLeft.x);
-	}
-	
-	//            2              
-	//            ●              
-	//         .     .           
-	//      .            .       
-	// 3 .   4               .  1
-	// ●  .  ●                  ●
-	//                         0 
-	//                         ● 
-	function canBeLeftFalling2(topRight, farRight, topPeak, farLeft, topLeft, leftC1, leftC2, bottomLeft, bottomRight, rightC1, rightC2) {
-		return topRight.kind == 0 && farRight.kind == 0 && topPeak.kind == 0 && farLeft.kind == 0 && topLeft.kind == 0 &&
-		leftC1.kind == 1 && leftC2.kind == 2 && bottomLeft.kind == 0 && bottomRight.kind == 0 && rightC1.kind == 1 && rightC2.kind == 2 &&
-		originLight(topRight.x) - originLight(farRight.x) < 0 &&
-		originLight(farRight.x) - originLight(topPeak.x) > 0 &&
-		originLight(topPeak.x) - originLight(farLeft.x) > 0 &&
-		originLight(farLeft.x) - originLight(topLeft.x) < 0 &&
-		originLight(topRight.y) - originLight(farRight.y) < 0 &&
-		originLight(farRight.y) - originLight(topPeak.y) < 0 &&
-		originLight(topPeak.y) - originLight(farLeft.y) > 0 &&
-		abs(originLight(farLeft.y) - originLight(topLeft.y)) <= 2 &&
-		originLight(topRight.y) > originLight(bottomRight.y) &&
-		originLight(topRight.x) > originLight(bottomRight.x) &&
-		originLight(topLeft.y) > originLight(bottomLeft.y) &&
-		originLight(topLeft.x) > originLight(bottomLeft.x);
-	}
-	
-	//            2              
-	//            ●              
-	//      3  .     .           
-	//      ●            .       
-	// 4 .   5               .  1
-	// ●  .  ●                  ●
-	//                         0 
-	//                         ● 
-	function canBeLeftFalling2b(topRight, farRight, topPeak, slopeLeft, farLeft, topLeft, leftC1, leftC2, bottomLeft, bottomRight, rightC1, rightC2) {
-		return topRight.kind == 0 && farRight.kind == 0 && topPeak.kind == 0 && slopeLeft.kind == 0 && farLeft.kind == 0 && topLeft.kind == 0 &&
-		leftC1.kind == 1 && leftC2.kind == 2 && bottomLeft.kind == 0 && bottomRight.kind == 0 && rightC1.kind == 1 && rightC2.kind == 2 &&
-		originLight(topRight.x) - originLight(farRight.x) < 0 &&
-		originLight(farRight.x) - originLight(topPeak.x) > 0 &&
-		originLight(topPeak.x) - originLight(slopeLeft.x) > 0 &&
-		originLight(slopeLeft.x) - originLight(farLeft.x) > 0 &&
-		originLight(farLeft.x) - originLight(topLeft.x) < 0 &&
-		originLight(topRight.y) - originLight(farRight.y) < 0 &&
-		originLight(farRight.y) - originLight(topPeak.y) < 0 &&
-		originLight(topPeak.y) - originLight(slopeLeft.y) > 0 &&
-		originLight(slopeLeft.y) - originLight(farLeft.y) > 0 &&
-		abs(originLight(farLeft.y) - originLight(topLeft.y)) <= 2 &&
-		originLight(topRight.y) > originLight(bottomRight.y) &&
-		originLight(topRight.x) > originLight(bottomRight.x) &&
-		originLight(topLeft.y) > originLight(bottomLeft.y) &&
-		originLight(topLeft.x) > originLight(bottomLeft.x);
-	}
-	
-	//            1              
-	//            ●              
-	//         .     .           
-	//      .            .       
-	// 2 .                   .  0
-	// ●                        ●
-	// ●                         
-	// 3                         
-	function canBeLeftFalling3(topRight, topPeak, topLeft, downLeft, leftC1, leftC2, bottomLeft, bottomRight, rightC1, rightC2) {
-		return topRight.kind == 0 && topPeak.kind == 0 && topLeft.kind == 0 && downLeft.kind == 0 &&
-		leftC1.kind == 1 && leftC2.kind == 2 && bottomLeft.kind == 0 && bottomRight.kind == 0 && rightC1.kind == 1 && rightC2.kind == 2 &&
-		originLight(topRight.x) - originLight(topPeak.x) > 0 &&
-		originLight(topPeak.x) - originLight(topLeft.x) > 0 &&
-		originLight(topLeft.x) - originLight(downLeft.x) === 0 &&
-		originLight(topRight.y) - originLight(topPeak.y) < 0 &&
-		originLight(topPeak.y) - originLight(topLeft.y) > 0 &&
-		originLight(topLeft.y) - originLight(downLeft.y) > 0 &&
-		originLight(topRight.y) > originLight(bottomRight.y) &&
-		originLight(topRight.x) > originLight(bottomRight.x) &&
-		originLight(downLeft.y) > originLight(bottomLeft.y) &&
-		originLight(downLeft.x) > originLight(bottomLeft.x);
-	}
-	
-	//               4               
-	//               ●               
-	//           .        .          
-	//  6   5 .                .    3
-	//  ●   ●                     2 ●
-	//                          1 ○   
-	//                        0 ○     
-	//                        ●       
-	function canBeLeftFalling4(rightC2, farRight, topPeak, topLeft, flatLeft, leftC1) {
-		return rightC2.kind == 2 && farRight.kind == 0 && topPeak.kind == 0 && topLeft.kind == 0 && flatLeft.kind == 0 && leftC1.kind == 1 &&
-		originLight(rightC2.x) < originLight(farRight.x) &&
-		originLight(rightC2.y) < originLight(farRight.y) &&
-		originLight(farRight.x) > originLight(topPeak.x) &&
-		originLight(farRight.y) < originLight(topPeak.y) &&
-		originLight(topPeak.x) > originLight(topLeft.x) &&
-		originLight(topPeak.y) > originLight(topLeft.y) &&
-		originLight(topLeft.x) > originLight(flatLeft.x) &&
-		abs(originLight(topLeft.y) - originLight(flatLeft.y)) < 3 &&
-		originLight(flatLeft.x) > originLight(leftC1.x) &&
-		originLight(flatLeft.y) > originLight(leftC1.y)
-	}
-	// function canBeLeftFalling4(rightC2, topRight, topRightC1, topRightC2, farRight, topPeak, topLeft, flatLeft, leftC1) {
-	// 	return rightC2.kind == 2 && topRight.kind == 0 && topRightC1.kind == 1 && topRightC2.kind == 2 &&
-	// 	farRight.kind == 0 && topPeak.kind == 0 && topLeft.kind == 0 && flatLeft.kind == 0 && leftC1.kind == 1 &&
-	// 	originLight(rightC2.x) < originLight(topRight.x) &&
-	// 	originLight(rightC2.y) < originLight(topRight.y) &&
-	// 	originLight(topRight.x) < originLight(topRightC1.x) &&
-	// 	originLight(topRight.y) <= originLight(topRightC1.y) &&
-	// 	originLight(topRightC1.x) < originLight(topRightC2.x) &&
-	// 	originLight(topRightC1.y) < originLight(topRightC2.y) &&
-	// 	originLight(topRightC2.x) < originLight(farRight.x) &&
-	// 	originLight(topRightC2.y) < originLight(farRight.y) &&
-	// 	originLight(farRight.x) > originLight(topPeak.x) &&
-	// 	originLight(farRight.y) < originLight(topPeak.y) &&
-	// 	originLight(topPeak.x) > originLight(topLeft.x) &&
-	// 	originLight(topPeak.y) > originLight(topLeft.y) &&
-	// 	originLight(topLeft.x) > originLight(flatLeft.x) &&
-	// 	abs(originLight(topLeft.y) - originLight(flatLeft.y)) < 3 &&
-	// 	originLight(flatLeft.x) > originLight(leftC1.x) &&
-	// 	originLight(flatLeft.y) > originLight(leftC1.y)
-	// }
 
 	function isBetween(a, x, b) {
 		return (originLight(a) - 2) <= originLight(x) &&
@@ -304,32 +163,7 @@ function extendShortStroke(font, references) {
 	function makeVariance(valueDefault, valueWghtMax) {
 		return valueFactory.create(valueDefault, [[masterWghtMax, valueWghtMax - valueDefault]]);
 	}
-	
-	// function previousNodeIdx(contour, fromIdx) {
-	// 	for (let i = 1; i < contour.length; i++) {
-	// 		let strokeHeavy = distanceHeavy(circularArray(contour, fromIdx + 1), circularArray(contour, fromIdx));
-	// 		if (
-	// 			(circularArray(contour, fromIdx - i).kind === 0 && distanceHeavy(circularArray(contour, fromIdx - i), circularArray(contour, fromIdx)) >= strokeHeavy)
-	// 		) {
-	// 			return circularIndex(contour, fromIdx - i);
-	// 		}
-	// 	}
-	// 	return (fromIdx - 1);
-	// }
-	
-	// function nextNodeIdx(contour, fromIdx) {
-	// 	for (let i = 1; i < contour.length; i++) {
-	// 		let strokeHeavy = distanceHeavy(circularArray(contour, fromIdx - 1), circularArray(contour, fromIdx));
-	// 		if (
-	// 			(circularArray(contour, fromIdx + i).kind === 0 && distanceHeavy(circularArray(contour, fromIdx + i), circularArray(contour, fromIdx)) >= strokeHeavy)
-	// 		) {
-	// 			return circularIndex(contour, fromIdx + i);
-	// 		}
-	// 	}
-	// 	return (fromIdx + 1);
-	// }
-	
-	
+
 	function previousNode(contour, idx, corner = false) {
 		let current = circularArray(contour, idx);
 		let currentXL = originLight(current.x);
@@ -345,23 +179,7 @@ function extendShortStroke(font, references) {
 		}
 		return  circularIndex(contour, idx - 1);
 	}
-	function previousNodeLTY(contour, idx, point) {
-		let targetYL = originLight(point.y);
-		let targetYH = originHeavy(point.y);
-		let currentXL = originLight(circularArray(contour, idx).x);
-		let currentYL = originLight(circularArray(contour, idx).y);
-		for (let i = 1; i < contour.length; i++) {
-			let prev = circularArray(contour, idx - i);
-			let prevXL = originLight(prev.x);
-			let prevYL = originLight(prev.y);
-			let prevYH = originHeavy(prev.y);
-			let prevT = prev.type;
-			if ((currentXL !== prevXL || currentYL !== prevYL) && prevYL < targetYL && prevYH < targetYH && prevT === 0) {
-				return circularIndex(contour, idx - i);
-			}
-		}
-		return  circularIndex(contour, idx - 1);
-	}
+
 	function nextNode(contour, idx, corner = false) {
 		let current = circularArray(contour, idx);
 		let currentXL = originLight(current.x);
@@ -408,19 +226,7 @@ function extendShortStroke(font, references) {
 			if ((rotation <= -68 && rotation >= -112) || (rotation <= 95 && rotation >= 85)) return circularIndex(contour, start + i);
 		}
 	}
-	function findBottomRightCornerR(contour, start = 0) {
-		for (let i = 0; i < contour.length; i++) {
-			let curr = circularArray(contour, start - i);
-			if (curr.kind !== 0) continue;
-			let prev = contour[previousNode(contour, start - i)];
-			let next = contour[nextNode(contour, start - i)];
-			let bear1 = bearing(lineLight(next, curr));
-			if (bear1 < 135 || bear1 > 225) continue;
-			let bear2 = bearing(lineLight(curr, prev));
-			let rotation = abs(turn(bear1, bear2));
-			if (rotation >= 45 && rotation <= 135) return circularIndex(contour, start + i);
-		}
-	}
+
 	function findTopRightCorner(contour, start = 0) {
 		for (let i = 0; i < contour.length; i++) {
 			let curr = circularArray(contour, start + i);
@@ -436,6 +242,7 @@ function extendShortStroke(font, references) {
 			if (rotation >= 68 && rotation <= 112 && bear2 > 225 && bear2 < 315) return circularIndex(contour, start + i);
 		}
 	}
+	
 	function findTopLeftCorner(contour, start = 0) {
 		for (let i = 0; i < contour.length; i++) {
 			let curr = circularArray(contour, start + i);
@@ -452,8 +259,21 @@ function extendShortStroke(font, references) {
 		}
 	}
 	
-	function canBeStrokeEnd(contour, idx) {
-		
+	function canBeStrokeEnd(p1, p2, p3, p4) {
+		let cornerPoints = p2.kind === 0 && p3.kind === 0;
+		let strokeWidthLight = approxEq(distanceLight(p2, p3), params.strokeWidth.light, 20);
+		let strokeWidthHeavy = approxEq(distanceHeavy(p2, p3), params.strokeWidth.heavy, 20);
+		let bearingLight1 = bearing(lineLight(p1, p2));
+		let bearingLight2 = bearing(lineLight(p2, p3));
+		let bearingLight3 = bearing(lineLight(p3, p4));
+		let anglesLight = turn(bearingLight1, bearingLight2) + turn(bearingLight2, bearingLight3);
+		let trapezoidalLight = anglesLight > -190 && anglesLight < -170;
+		let bearingHeavy1 = bearing(lineHeavy(p1, p2));
+		let bearingHeavy2 = bearing(lineHeavy(p2, p3));
+		let bearingHeavy3 = bearing(lineHeavy(p3, p4));
+		let anglesHeavy = turn(bearingHeavy1, bearingHeavy2) + turn(bearingHeavy2, bearingHeavy3);
+		let trapezoidalHeavy = anglesHeavy > -190 && anglesHeavy < -170;
+		return cornerPoints && strokeWidthLight && strokeWidthHeavy && trapezoidalLight && trapezoidalHeavy;
 	}
 
 	function pointLight(p) {
@@ -481,7 +301,7 @@ function extendShortStroke(font, references) {
 				let cp1 = pointLight(contour[i + 1]);
 				let cp2 = pointLight(contour[i + 2]);
 				let p2 = pointLight(contour[i + 3]);
-				let curve = approximateBezier(p1, cp1, cp2, p2, 0.2);
+				let curve = approximateBezier(p1, cp1, cp2, p2, 0.5);
 				curve.pop();
 				for (const coord of curve) {
 					const { x, y } = coord;
@@ -519,7 +339,7 @@ function extendShortStroke(font, references) {
 				let cp1 = pointHeavy(contour[i + 1]);
 				let cp2 = pointHeavy(contour[i + 2]);
 				let p2 = pointHeavy(contour[i + 3]);
-				let curve = approximateBezier(p1, cp1, cp2, p2, 0.2);
+				let curve = approximateBezier(p1, cp1, cp2, p2, 0.5);
 				curve.pop();
 				for (const coord of curve) {
 					const { x, y } = coord;
@@ -698,8 +518,6 @@ function extendShortStroke(font, references) {
 									
 									const verticalRightSlopeLight = verticalSlope(lineLight(verticalBottomRight, verticalTopRight)) || 0;
 									const verticalRightSlopeHeavy = verticalSlope(lineHeavy(verticalBottomRight, verticalTopRight)) || 0;
-									debug && console.log("verticalRightSlopeLight", verticalRightSlopeLight);
-									debug && console.log("verticalRightSlopeHeavy", verticalRightSlopeHeavy);
 									if (!Number.isFinite(verticalRightSlopeLight)) continue;
 									if (!Number.isFinite(verticalRightSlopeHeavy)) continue;
 									// const verticalRightSlopeLight = verticalSlope(lineLight(verticalTopRight, circularArray(contour2, cornerN1))) === 0 ? 0 : verticalSlope(lineLight(verticalBottomRight, verticalTopRight));
@@ -1189,10 +1007,6 @@ function extendShortStroke(font, references) {
 					approxEq(contour[topRightIdx].x, circularArray(contour, bottomRightIdx).x, 85) &&
 					approxEq(circularArray(contour, topLeftIdx).x, circularArray(contour, bottomLeftIdx).x, 85)
 				) {
-					// const topRightIdx = idxP1;
-					// const topLeftIdx = circularIndex(contour, idxP1 + 1);
-					// const bottomLeftIdx = circularIndex(contour, idxP1 + 2);
-					// const bottomRightIdx = circularIndex(contour, idxP1 - 1);
 					const verticalTopRight = circularArray(contour, topRightIdx);
 					const verticalTopLeft = circularArray(contour, topLeftIdx);
 					const verticalBottomLeft = circularArray(contour, bottomLeftIdx);
@@ -1233,11 +1047,12 @@ function extendShortStroke(font, references) {
 								const horizontalTopLeft = contour2[idxP2];
 								const horizontalBottomLeft = circularArray(contour2, idxP2 + 1);
 								const horizontalBottomRight = circularArray(contour2, idxP2 + 2);
+								const horizontalTopRight = circularArray(contour2, previousNode(contour2, idxP2));
+								const strokeLight = distanceLight(horizontalTopLeft, horizontalBottomLeft);
 								const strokeHeavy = distanceHeavy(horizontalTopLeft, horizontalBottomLeft);
-								// const horizontalTopRight = circularArray(contour2, idxP2 - 1);
-								const horizontalTopRight = (circularArray(contour2, idxP2 - 1).kind === 0 && distanceHeavy(circularArray(contour2, idxP2 - 1), horizontalTopLeft) >= strokeHeavy) ? circularArray(contour2, idxP2 - 1) :
-								circularArray(contour2, idxP2 - 2).kind === 0 ? circularArray(contour2, idxP2 - 2) : 
-								circularArray(contour2, idxP2 - 3).kind === 0 ? circularArray(contour2, idxP2 - 3) : circularArray(contour2, idxP2 - 4);
+								// const horizontalTopRight = (circularArray(contour2, idxP2 - 1).kind === 0 && distanceHeavy(circularArray(contour2, idxP2 - 1), horizontalTopLeft) >= strokeHeavy) ? circularArray(contour2, idxP2 - 1) :
+								// circularArray(contour2, idxP2 - 2).kind === 0 ? circularArray(contour2, idxP2 - 2) : 
+								// circularArray(contour2, idxP2 - 3).kind === 0 ? circularArray(contour2, idxP2 - 3) : circularArray(contour2, idxP2 - 4);
 								if (
 									// and 竖's (vertical's) top inside 横's (horizontal's) left end
 									// ┌────────
@@ -1275,9 +1090,9 @@ function extendShortStroke(font, references) {
 									if (!Number.isFinite(horizontalBottomSlopeHeavy)) continue;
 									let distanceLight = originLight(verticalTopLeft.x) - hBLXLight;
 									let distanceHeavy = originHeavy(verticalTopLeft.x) - hBLXHeavy;
-									let yOffsetL = isCorner ? 0 : (distanceLight * horizontalBottomSlopeLight) + 15;
+									let yOffsetL = isCorner ? 0 : (distanceLight * horizontalBottomSlopeLight) + (strokeLight * 0.85);
 									// let yOffsetL = isCorner ? 0 : (distanceLight * horizontalBottomSlopeLight) + (horizontalBottomSlopeLight === 0 ? 20 : 8);
-									let yOffsetH = isCorner ? 0 : (distanceHeavy * horizontalBottomSlopeHeavy) + 80;
+									let yOffsetH = isCorner ? 0 : (distanceHeavy * horizontalBottomSlopeHeavy) + (strokeHeavy * 0.85);
 									let rightDistance = abs(originLight(verticalTopRight.x) - originLight(horizontalTopRight.x));
 									let leftDistance = abs(originLight(verticalTopLeft.x) - originLight(horizontalTopLeft.x));
 									let side = rightDistance < leftDistance ? isCorner ? horizontalTopRight : horizontalBottomLeft : isCorner ? horizontalTopLeft : horizontalBottomLeft;
