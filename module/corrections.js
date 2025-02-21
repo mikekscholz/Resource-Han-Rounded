@@ -6,7 +6,7 @@ const { hangulSios } = require("./correctionsUnicode");
 const ProgressBar = require('./node-progress');
 const fs = require("node:fs");
 const path = require("node:path");
-const { angle, approximateBezier, base60, bearing, horizontalSlope, roundTo, turn, verticalSlope } = require("./util");
+const { innerAngle, approximateBezier, base60, bearing, horizontalSlope, roundTo, turn, verticalSlope } = require("./util");
 const { abs, ceil, floor, pow, round, sqrt, trunc, max } = Math;
 
 // const replacementsDir = fs.readdirSync(__dirname + "/../replacements");
@@ -729,17 +729,17 @@ function correctGlyphs(font, references) {
 				let contour = oldContours[idxC1];
 				let horizontalBottomRight = oldContours[idxC1][idxP1];
 				let horizontalTopRight = oldContours[idxC1][idxP1 + 1];
-				// horizontalTopRight = {
-				// 	x: makeVariance(
-				// 		originLight(horizontalBottomRight.x),
-				// 		originHeavy(horizontalBottomRight.x)
-				// 	),
-				// 	y: makeVariance(
-				// 		originLight(horizontalTopRight.y),
-				// 		originHeavy(horizontalTopRight.y)
-				// 	),
-				// 	kind: horizontalTopRight.kind,
-				// };
+				oldContours[idxC1][idxP1 + 1] = {
+					x: makeVariance(
+						originLight(horizontalBottomRight.x),
+						originHeavy(horizontalBottomRight.x)
+					),
+					y: makeVariance(
+						originLight(horizontalTopRight.y),
+						originHeavy(horizontalTopRight.y)
+					),
+					kind: horizontalTopRight.kind,
+				};
 				let idxC2 = ref.leftFalling;
 				let idxP2 = ref.leftFallingTopRight;
 				let contour2 = oldContours[idxC2];
@@ -818,8 +818,8 @@ function correctGlyphs(font, references) {
 						let p6p7Bearing = bearing(lineHeavy(p6, p7));
 						let p7p8Bearing = bearing(lineHeavy(p7, p8));
 						let p10p9Bearing = bearing(lineHeavy(p10, p9));
-						let corner1Angle = angle(p3p4Bearing, p4p5Bearing);
-						let corner2Angle = angle(p6p7Bearing, p7p8Bearing);
+						let corner1Angle = innerAngle(p3p4Bearing, p4p5Bearing);
+						let corner2Angle = innerAngle(p6p7Bearing, p7p8Bearing);
 						let combinedAngle = corner1Angle + corner2Angle;
 						let p1p2Distance = distanceHeavy(p1, p2);
 						let p1p4Distance = distanceHeavy(p1, p4);

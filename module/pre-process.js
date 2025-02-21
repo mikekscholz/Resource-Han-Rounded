@@ -432,7 +432,7 @@ function preProcess(font, references) {
 									references.horizontalLeftFalling[name] = [];
 								}
 								let refs = references.horizontalLeftFalling[name];
-								let ref = { "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2 };
+								let ref = { "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2, "leftFallingType": "1" };
 								for (let idxC3 = 0; idxC3 < oldContours.length; idxC3++) {
 									if ([idxC1, idxC2].includes(idxC3)) continue;
 									let vertMatched = false;
@@ -464,7 +464,7 @@ function preProcess(font, references) {
 												originHeavy(verticalBottomLeft.y) < originHeavy(leftFallBottomLeft.y) &&
 												originHeavy(verticalBottomLeft.x) <= originHeavy(leftFallBottomLeft.x)
 											) {
-												ref = { "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2, "vertical": idxC3, "verticalTopRight": idxP3 };
+												ref = { "horizontal": idxC1, "horizontalBottomRight": idxP1, "leftFalling": idxC2, "leftFallingTopRight": idxP2, "vertical": idxC3, "verticalTopRight": idxP3, "leftFallingType": "1" };
 												if (name in references.skipRedundantPoints === false) {
 													references.skipRedundantPoints[name] = [];
 												}
@@ -503,7 +503,7 @@ function preProcess(font, references) {
 								let refs = references.horizontalLeftFalling2[name];
 								let objIndex = refs.findIndex((obj) => obj["leftFalling"] === idxC2);
 								if (objIndex === -1) {
-									refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "horizontalSlope": horizontalBottomSlope, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
+									refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "horizontalSlope": horizontalBottomSlope, "leftFalling": idxC2, "leftFallingTopRight": idxP2, "leftFallingType": "2" });
 									matched = true;
 									extended = true;
 								}
@@ -531,7 +531,7 @@ function preProcess(font, references) {
 								let refs = references.horizontalLeftFalling2b[name];
 								let objIndex = refs.findIndex((obj) => obj["leftFalling"] === idxC2);
 								if (objIndex === -1) {
-									refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "horizontalSlope": horizontalBottomSlope, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
+									refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "horizontalSlope": horizontalBottomSlope, "leftFalling": idxC2, "leftFallingTopRight": idxP2, "leftFallingType": "2b" });
 									matched = true;
 									extended = true;
 								}
@@ -552,7 +552,7 @@ function preProcess(font, references) {
 								let refs = references.horizontalLeftFalling3[name];
 								let objIndex = refs.findIndex((obj) => obj["leftFalling"] === idxC2);
 								if (objIndex === -1) {
-									refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "horizontalSlope": horizontalBottomSlope, "leftFalling": idxC2, "leftFallingTopRight": idxP2 });
+									refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "horizontalSlope": horizontalBottomSlope, "leftFalling": idxC2, "leftFallingTopRight": idxP2, "leftFallingType": "3" });
 									matched = true;
 									extended = true;
 								}
@@ -572,7 +572,7 @@ function preProcess(font, references) {
 								let refs = references.horizontalLeftFalling4[name];
 								let objIndex = refs.findIndex((obj) => obj["leftFalling"] === idxC2);
 								if (objIndex === -1) {
-									refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "horizontalSlope": horizontalBottomSlope, "leftFalling": idxC2, "leftFallingTopRight": idxP2, "leftFallingTopLeft":  circularIndex(contour2, idxP2 + 3)});
+									refs.push({ "horizontal": idxC1, "horizontalBottomRight": idxP1, "horizontalSlope": horizontalBottomSlope, "leftFalling": idxC2, "leftFallingTopRight": idxP2, "leftFallingTopLeft":  circularIndex(contour2, idxP2 + 3), "leftFallingType": "4"});
 									matched = true;
 									extended = true;
 								}

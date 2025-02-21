@@ -88,22 +88,27 @@ function postProcess(font, references) {
 				let cp1 = pointLight(contour[i + 1]);
 				let cp2 = pointLight(contour[i + 2]);
 				let p2 = pointLight(contour[i + 3]);
-				let curve = approximateBezier(p1, cp1, cp2, p2);
+				let curve = approximateBezier(p1, cp1, cp2, p2, 0.5);
 				curve.pop();
 				for (const coord of curve) {
 					const { x, y } = coord;
-					pointsArr.push([ x, y ]);
+					let point = [ x, y ];
+					if (pointsArr.length && pointsArr[pointsArr.length - 1].toString() === point.toString()) {
+						continue;
+					}
+					pointsArr.push(point);
 				}
 				i += 2;
 			} else {
 				const { x, y } = pointLight(contour[i]);
-				pointsArr.push([ x, y ]);
+				let point = [ x, y ];
+				if (pointsArr.length && pointsArr[pointsArr.length - 1].toString() === point.toString()) {
+					continue;
+				}
+				pointsArr.push(point);
 			}
 		}
-		if (
-			pointsArr[0][0] !== pointsArr[pointsArr.length - 1][0] ||
-			pointsArr[0][1] !== pointsArr[pointsArr.length - 1][1]
-		) {
+		if (pointsArr[0].toString() !== pointsArr[pointsArr.length - 1].toString()) {
 			pointsArr = [...pointsArr, pointsArr[0]];
 		}
 		return pointsArr;
@@ -118,22 +123,27 @@ function postProcess(font, references) {
 				let cp1 = pointHeavy(contour[i + 1]);
 				let cp2 = pointHeavy(contour[i + 2]);
 				let p2 = pointHeavy(contour[i + 3]);
-				let curve = approximateBezier(p1, cp1, cp2, p2);
+				let curve = approximateBezier(p1, cp1, cp2, p2, 0.5);
 				curve.pop();
 				for (const coord of curve) {
 					const { x, y } = coord;
-					pointsArr.push([ x, y ]);
+					let point = [ x, y ];
+					if (pointsArr.length && pointsArr[pointsArr.length - 1].toString() === point.toString()) {
+						continue;
+					}
+					pointsArr.push(point);
 				}
 				i += 2;
 			} else {
 				const { x, y } = pointHeavy(contour[i]);
-				pointsArr.push([ x, y ]);
+				let point = [ x, y ];
+				if (pointsArr.length && pointsArr[pointsArr.length - 1].toString() === point.toString()) {
+					continue;
+				}
+				pointsArr.push(point);
 			}
 		}
-		if (
-			pointsArr[0][0] !== pointsArr[pointsArr.length - 1][0] ||
-			pointsArr[0][1] !== pointsArr[pointsArr.length - 1][1]
-		) {
+		if (pointsArr[0].toString() !== pointsArr[pointsArr.length - 1].toString()) {
 			pointsArr = [...pointsArr, pointsArr[0]];
 		}
 		return pointsArr;
@@ -229,7 +239,7 @@ function postProcess(font, references) {
 	}
 
 	function makeVariance(valueDefault, valueWghtMax) {
-		return valueFactory.create(valueDefault.toFixed(2), [[masterWghtMax, valueWghtMax.toFixed(2) - valueDefault.toFixed(2)]]);
+		return valueFactory.create(parseFloat(valueDefault.toFixed(4)), [[masterWghtMax, parseFloat(valueWghtMax.toFixed(4)) - parseFloat(valueDefault.toFixed(4))]]);
 	}
 	
 	function findBottomRight(contour) {
@@ -285,6 +295,38 @@ function postProcess(font, references) {
 			let h7 = contour[h7I];
 			let h8 = contour[h8I];
 			let h9 = contour[h9I];
+			let h1xL = originLight(h1.x)
+			let h1yL = originLight(h1.y)
+			let h1xH = originHeavy(h1.x)
+			let h1yH = originHeavy(h1.y)
+			let h2xL = originLight(h2.x)
+			let h2yL = originLight(h2.y)
+			let h2xH = originHeavy(h2.x)
+			let h2yH = originHeavy(h2.y)
+			let h3xL = originLight(h3.x)
+			let h3yL = originLight(h3.y)
+			let h3xH = originHeavy(h3.x)
+			let h3yH = originHeavy(h3.y)
+			let h4xL = originLight(h4.x)
+			let h4yL = originLight(h4.y)
+			let h4xH = originHeavy(h4.x)
+			let h4yH = originHeavy(h4.y)
+			let h5xL = originLight(h5.x)
+			let h5yL = originLight(h5.y)
+			let h5xH = originHeavy(h5.x)
+			let h5yH = originHeavy(h5.y)
+			let h6xL = originLight(h6.x)
+			let h6yL = originLight(h6.y)
+			let h6xH = originHeavy(h6.x)
+			let h6yH = originHeavy(h6.y)
+			let h7xL = originLight(h7.x)
+			let h7yL = originLight(h7.y)
+			let h7xH = originHeavy(h7.x)
+			let h7yH = originHeavy(h7.y)
+			let h8xL = originLight(h8.x)
+			let h8yL = originLight(h8.y)
+			let h8xH = originHeavy(h8.x)
+			let h8yH = originHeavy(h8.y)
 			let r1I = circularIndex(contour2, -7);
 			let r2I = circularIndex(contour2, -6);
 			let r3I = circularIndex(contour2, -5);
@@ -346,8 +388,8 @@ function postProcess(font, references) {
 			let hYL = 0;
 			let hXH = 0;
 			let hYH = 0;
-			let hXLMax = ((r4xH - originLight(h1.x)) + 800);
-			let hXHMax = ((r4xH - originHeavy(h1.x)) + 800);
+			let hXLMax = ((r4xH - h1xL) + 800);
+			let hXHMax = ((r4xH - h1xH) + 800);
 			let hCurveLight;
 			let hCurveHeavy;
 			let intersectLight = [];
@@ -359,10 +401,10 @@ function postProcess(font, references) {
 				vCurveHeavy = new Bezier(r1xH,r1yH,r2xH + r2xHC,r2yH + r2yHC,r3xH + r3xHC,r3yH + r3yHC,r4xH,r4yH);
 			}
 			function generateCurve2Light() {
-				hCurveLight = new Bezier(originLight(h1.x) + hXL,originLight(h1.y) + hYL,originLight(h2.x) + hXL,originLight(h2.y) + hYL,originLight(h3.x) + hXL,originLight(h3.y) + hYL,originLight(h4.x) + hXL,originLight(h4.y) + hYL);
+				hCurveLight = new Bezier(h1xL + hXL, h1yL + hYL, h2xL + hXL, h2yL + hYL, h3xL + hXL, h3yL + hYL, h4xL + hXL, h4yL + hYL);
 			}
 			function generateCurve2Heavy() {
-				hCurveHeavy = new Bezier(originHeavy(h1.x) + hXH,originHeavy(h1.y) + hYH,originHeavy(h2.x) + hXH,originHeavy(h2.y) + hYH,originHeavy(h3.x) + hXH,originHeavy(h3.y) + hYH,originHeavy(h4.x) + hXH,originHeavy(h4.y) + hYH);
+				hCurveHeavy = new Bezier(h1xH + hXH, h1yH + hYH, h2xH + hXH, h2yH + hYH, h3xH + hXH, h3yH + hYH, h4xH + hXH, h4yH + hYH);
 			}
 			function checkIntersectLight(threshold = 0.5) {
 				intersectLight = vCurveLight.intersects(hCurveLight, threshold);
@@ -447,49 +489,53 @@ function postProcess(font, references) {
 				checkIntersectHeavy(0.5);
 			}
 			// if (badCurve) return;
+			let type4OffsetH = 0;
+			if (ref.leftFallingType === "4") {
+				type4OffsetH = r4xH - (h4xH + hXH);
+			}
 			let splitLight = vCurveLight.split(intersectLight[0].split('/')[0]);
 			let splitHeavy = vCurveHeavy.split(intersectHeavy[0].split('/')[0]);
 			let pointsLight = splitLight.left.points;
 			let pointsHeavy = splitHeavy.left.points;
 	
 			oldContours[idxC1][h1I] = {
-				x: makeVariance(originLight(h1.x) + hXL, originHeavy(h1.x) + hXH),
-				y: makeVariance(originLight(h1.y) + hYL, originHeavy(h1.y) + hYH),
+				x: makeVariance(h1xL + hXL, h1xH + hXH + type4OffsetH),
+				y: makeVariance(h1yL + hYL, h1yH + hYH),
 				kind: h1.kind,
 			};
 			oldContours[idxC1][h2I] = {
-				x: makeVariance(originLight(h2.x) + hXL, originHeavy(h2.x) + hXH),
-				y: makeVariance(originLight(h2.y) + hYL, originHeavy(h2.y) + hYH),
+				x: makeVariance(h2xL + hXL, h2xH + hXH + type4OffsetH),
+				y: makeVariance(h2yL + hYL, h2yH + hYH),
 				kind: h2.kind,
 			};
 			oldContours[idxC1][h3I] = {
-				x: makeVariance(originLight(h3.x) + hXL, originHeavy(h3.x) + hXH),
-				y: makeVariance(originLight(h3.y) + hYL, originHeavy(h3.y) + hYH),
+				x: makeVariance(h3xL + hXL, h3xH + hXH + type4OffsetH),
+				y: makeVariance(h3yL + hYL, h3yH + hYH),
 				kind: h3.kind,
 			};
 			oldContours[idxC1][h4I] = {
-				x: makeVariance(originLight(h4.x) + hXL, originHeavy(h4.x) + hXH),
-				y: makeVariance(originLight(h4.y) + hYL, originHeavy(h4.y) + hYH),
+				x: makeVariance(h4xL + hXL, h4xH + hXH + type4OffsetH),
+				y: makeVariance(h4yL + hYL, h4yH + hYH),
 				kind: h4.kind,
 			};
 			oldContours[idxC1][h5I] = {
-				x: makeVariance(originLight(h5.x) + hXL, originHeavy(h5.x) + hXH),
-				y: makeVariance(originLight(h5.y) + hYL, originHeavy(h5.y) + hYH),
+				x: makeVariance(h5xL + hXL, h5xH + hXH + type4OffsetH),
+				y: makeVariance(h5yL + hYL, h5yH + hYH),
 				kind: h5.kind,
 			};
 			oldContours[idxC1][h6I] = {
-				x: makeVariance(originLight(h6.x) + hXL, originHeavy(h6.x) + hXH),
-				y: makeVariance(originLight(h6.y) + hYL, originHeavy(h6.y) + hYH),
+				x: makeVariance(h6xL + hXL, h6xH + hXH + type4OffsetH),
+				y: makeVariance(h6yL + hYL, h6yH + hYH),
 				kind: h6.kind,
 			};
 			oldContours[idxC1][h7I] = {
-				x: makeVariance(originLight(h7.x) + hXL, originHeavy(h7.x) + hXH),
-				y: makeVariance(originLight(h7.y) + hYL, originHeavy(h7.y) + hYH),
+				x: makeVariance(h7xL + hXL, h7xH + hXH + type4OffsetH),
+				y: makeVariance(h7yL + hYL, h7yH + hYH),
 				kind: h7.kind,
 			};
 			oldContours[idxC1][h8I] = {
-				x: makeVariance(originLight(h8.x) + hXL, originHeavy(h8.x) + hXH),
-				y: makeVariance(originLight(h8.y) + hYL, originHeavy(h8.y) + hYH),
+				x: makeVariance(h8xL + hXL, h8xH + hXH + type4OffsetH),
+				y: makeVariance(h8yL + hYL, h8yH + hYH),
 				kind: h8.kind,
 			};
 	
@@ -511,23 +557,23 @@ function postProcess(font, references) {
 				kind: r3.kind,
 			};
 			oldContours[idxC2][r4I] = {
-				x: makeVariance(pointsLight[3].x, pointsHeavy[3].x),
+				x: makeVariance(pointsLight[3].x, pointsHeavy[3].x + type4OffsetH),
 				y: makeVariance(pointsLight[3].y, pointsHeavy[3].y),
 				kind: r4.kind,
 			};
 			oldContours[idxC2][r5I] = {
-				x: makeVariance(pointsLight[3].x - 2, pointsHeavy[3].x - 10),
-				y: makeVariance(pointsLight[3].y + 2, pointsHeavy[3].y + 10),
+				x: makeVariance(pointsLight[3].x, pointsHeavy[3].x),
+				y: makeVariance(pointsLight[3].y, pointsHeavy[3].y),
 				kind: r5.kind,
 			};
 			oldContours[idxC2][r6I] = {
-				x: makeVariance(originLight(h8.x) + hXL, originHeavy(h8.x) + hXH),
-				y: makeVariance(originLight(h8.y) + hYL - 2, originHeavy(h8.y) + hYH - 20),
+				x: makeVariance(pointsLight[3].x, pointsHeavy[3].x),
+				y: makeVariance(pointsLight[3].y, pointsHeavy[3].y),
 				kind: r6.kind,
 			};
 			oldContours[idxC2][r7I] = {
-				x: makeVariance(originLight(h8.x) + hXL - 1, originHeavy(h8.x) + hXH - 1),
-				y: makeVariance(originLight(h8.y) + hYL - 2, originHeavy(h8.y) + hYH - 30),
+				x: makeVariance(pointsLight[3].x, pointsHeavy[3].x),
+				y: makeVariance(pointsLight[3].y, pointsHeavy[3].y),
 				kind: r7.kind,
 			};
 			if ("leftFallingTopLeft" in ref) {
@@ -559,7 +605,7 @@ function postProcess(font, references) {
 					// let hC2L = pointLight(h7);
 					// let hP2L = pointLight(h8);
 					// let horizontalCurve2Light = new Bezier(hP1L.x, hP1L.y, hC1L.x, hC1L.y, hC2L.x, hC2L.y, hP2L.x, hP2L.y);
-					let horizontalCurve2Light = new Bezier(originLight(h5.x) + hXL,originLight(h5.y) + hYL,originLight(h6.x) + hXL,originLight(h6.y) + hYL,originLight(h7.x) + hXL,originLight(h7.y) + hYL,originLight(h8.x) + hXL,originLight(h8.y) + hYL);
+					let horizontalCurve2Light = new Bezier(h5xL + hXL,h5yL + hYL,h6xL + hXL,h6yL + hYL,h7xL + hXL,h7yL + hYL,h8xL + hXL,h8yL + hYL);
 					let verticalCurve2Light = new Bezier(lP1L.x, lP1L.y, lC1L.x, lC1L.y, lC2L.x, lC2L.y, lP2L.x, lP2L.y);
 					let intersectLight2 = verticalCurve2Light.intersects(horizontalCurve2Light);
 					if (intersectLight2.length > 0) {
@@ -577,7 +623,7 @@ function postProcess(font, references) {
 						// let hC2H = pointHeavy(h7);
 						// let hP2H = pointHeavy(h8);
 						// let horizontalCurve2Heavy = new Bezier(hP1H.x, hP1H.y, hC1H.x, hC1H.y, hC2H.x, hC2H.y, hP2H.x, hP2H.y);
-						let horizontalCurve2Heavy = new Bezier(originHeavy(h5.x) + hXH,originHeavy(h5.y) + hYH,originHeavy(h6.x) + hXH,originHeavy(h6.y) + hYH,originHeavy(h7.x) + hXH,originHeavy(h7.y) + hYH,originHeavy(h8.x) + hXH,originHeavy(h8.y) + hYH);
+					let horizontalCurve2Heavy = new Bezier(h5xH + hXH, h5yH + hYH, h6xH + hXH, h6yH + hYH, h7xH + hXH, h7yH + hYH, h8xH + hXH, h8yH + hYH);
 					let verticalCurve2Heavy = new Bezier(lP1H.x, lP1H.y, lC1H.x, lC1H.y, lC2H.x, lC2H.y, lP2H.x, lP2H.y);
 					let intersectHeavy2 = verticalCurve2Heavy.intersects(horizontalCurve2Heavy);
 					if (intersectHeavy2.length > 0) {
@@ -589,28 +635,28 @@ function postProcess(font, references) {
 						modified = true;
 					}
 				// }
-				if (modified) {
-					lP1 = {
-						x: makeVariance(lP1L.x, lP1H.x),
+				// if (modified) {
+					oldContours[idxC2][lP1I] = {
+						x: makeVariance(lP1L.x, lP1H.x + type4OffsetH),
 						y: makeVariance(lP1L.y, lP1H.y),
 						kind: lP1.kind,
 					};
-					lC1 = {
+					oldContours[idxC2][lC1I] = {
 						x: makeVariance(lC1L.x, lC1H.x),
 						y: makeVariance(lC1L.y, lC1H.y),
 						kind: lC1.kind,
 					};
-					lC2 = {
+					oldContours[idxC2][lC2I] = {
 						x: makeVariance(lC2L.x, lC2H.x),
 						y: makeVariance(lC2L.y, lC2H.y),
 						kind: lC2.kind,
 					};
-					lP2 = {
+					oldContours[idxC2][lP2I] = {
 						x: makeVariance(lP2L.x, lP2H.x),
 						y: makeVariance(lP2L.y, lP2H.y),
 						kind: lP2.kind,
 					};
-				}
+				// }
 			}
 		}
 		
@@ -674,34 +720,34 @@ function postProcess(font, references) {
 
 	let len = progressLength;
 	let consoleWidth = process.stdout.columns || 150
-	// let bar = new ProgressBar('\u001b[38;5;82mpostProcessing\u001b[0m [5/6]    :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+	let bar = new ProgressBar('\u001b[38;5;82mpostProcessing\u001b[0m [5/6]    :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
 	
-	// function progressTick() {
-	// 	if (len) {
-	// 		var chunk = 1;
-	// 		bar.tick(chunk);
-	// 		if (bar.curr > 0 && bar.curr < len - 2) { 
-	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
-	// 		}
-	// 		if (bar.curr === len - 1) { 
-	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
-	// 		}
-	// 	}
-	// }
-	let bar = new ProgressBar('\u001b[38;5;82mpostProcessing\u001b[0m [5/6]    :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
-	
-	function progressTick(info = "") {
+	function progressTick() {
 		if (len) {
 			var chunk = 1;
 			bar.tick(chunk);
 			if (bar.curr > 0 && bar.curr < len - 2) { 
-				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
 			}
 			if (bar.curr === len - 1) { 
-				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
 			}
 		}
 	}
+	// let bar = new ProgressBar('\u001b[38;5;82mpostProcessing\u001b[0m [5/6]    :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+	
+	// function progressTick(info = "") {
+	// 	if (len) {
+	// 		var chunk = 1;
+	// 		bar.tick(chunk);
+	// 		if (bar.curr > 0 && bar.curr < len - 2) { 
+	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+	// 		}
+	// 		if (bar.curr === len - 1) { 
+	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+	// 		}
+	// 	}
+	// }
 
 	let count = 0;
 	for (const glyph of font.glyphs.items) {
@@ -713,8 +759,8 @@ function postProcess(font, references) {
 		// progressTick();
 		// 	continue;
 		// }
-		if (!references.extendSkip.includes(name)) checkSingleGlyph(glyph);
-		// count++;
+		if (!references.extendSkip.includes(name) && count < 3000) checkSingleGlyph(glyph);
+		count++;
 		// if (count % 200 == 0) console.log("postProcessing: ", count, " glyphs processed.");
 	}
 }

@@ -3,10 +3,10 @@
 const { Ot } = require("ot-builder");
 const inside = require("point-in-polygon-hao");
 const ProgressBar = require('./node-progress');
-const { approximateBezier, base60, bearing, horizontalSlope, roundTo, turn, verticalSlope } = require("./util");
+const { innerAngle, approximateBezier, base60, bearing, horizontalSlope, roundTo, turn, verticalSlope } = require("./util");
 const { abs, ceil, floor, pow, round, sqrt, trunc, max } = Math;
-const Offset = require('polygon-offset');
-let offset = new Offset();
+// const Offset = require('polygon-offset');
+// let offset = new Offset();
 
 // const { System } = require("detect-collisions");
 // const system = new System();
@@ -161,7 +161,7 @@ function extendShortStroke(font, references) {
 	}
 
 	function makeVariance(valueDefault, valueWghtMax) {
-		return valueFactory.create(valueDefault, [[masterWghtMax, valueWghtMax - valueDefault]]);
+		return valueFactory.create(parseFloat(valueDefault.toFixed(2)), [[masterWghtMax, parseFloat(valueWghtMax.toFixed(2)) - parseFloat(valueDefault.toFixed(2))]]);
 	}
 
 	function previousNode(contour, idx, corner = false) {
@@ -262,16 +262,16 @@ function extendShortStroke(font, references) {
 	function canBeStrokeEnd(p1, p2, p3, p4) {
 		let cornerPoints = p2.kind === 0 && p3.kind === 0;
 		let strokeWidthLight = approxEq(distanceLight(p2, p3), params.strokeWidth.light, 20);
-		let strokeWidthHeavy = approxEq(distanceHeavy(p2, p3), params.strokeWidth.heavy, 20);
+		let strokeWidthHeavy = distanceHeavy(p2, p3) <= params.strokeWidth.heavy;
 		let bearingLight1 = bearing(lineLight(p1, p2));
 		let bearingLight2 = bearing(lineLight(p2, p3));
 		let bearingLight3 = bearing(lineLight(p3, p4));
-		let anglesLight = turn(bearingLight1, bearingLight2) + turn(bearingLight2, bearingLight3);
+		let anglesLight = innerAngle(bearingLight1, bearingLight2) + innerAngle(bearingLight2, bearingLight3);
 		let trapezoidalLight = anglesLight > -190 && anglesLight < -170;
 		let bearingHeavy1 = bearing(lineHeavy(p1, p2));
 		let bearingHeavy2 = bearing(lineHeavy(p2, p3));
 		let bearingHeavy3 = bearing(lineHeavy(p3, p4));
-		let anglesHeavy = turn(bearingHeavy1, bearingHeavy2) + turn(bearingHeavy2, bearingHeavy3);
+		let anglesHeavy = innerAngle(bearingHeavy1, bearingHeavy2) + innerAngle(bearingHeavy2, bearingHeavy3);
 		let trapezoidalHeavy = anglesHeavy > -190 && anglesHeavy < -170;
 		return cornerPoints && strokeWidthLight && strokeWidthHeavy && trapezoidalLight && trapezoidalHeavy;
 	}
@@ -321,10 +321,7 @@ function extendShortStroke(font, references) {
 				pointsArr.push(point);
 			}
 		}
-		if (
-			pointsArr[0][0] !== pointsArr[pointsArr.length - 1][0] ||
-			pointsArr[0][1] !== pointsArr[pointsArr.length - 1][1]
-		) {
+		if (pointsArr[0].toString() !== pointsArr[pointsArr.length - 1].toString()) {
 			pointsArr = [...pointsArr, pointsArr[0]];
 		}
 		return pointsArr;
@@ -359,10 +356,7 @@ function extendShortStroke(font, references) {
 				pointsArr.push(point);
 			}
 		}
-		if (
-			pointsArr[0][0] !== pointsArr[pointsArr.length - 1][0] ||
-			pointsArr[0][1] !== pointsArr[pointsArr.length - 1][1]
-		) {
+		if (pointsArr[0].toString() !== pointsArr[pointsArr.length - 1].toString()) {
 			pointsArr = [...pointsArr, pointsArr[0]];
 		}
 		return pointsArr;
@@ -379,8 +373,8 @@ function extendShortStroke(font, references) {
 	}
 	
 	function setCustomRadius(glyphName, idx, radiusMin, radiusMax) {
-		let light = radiusMin.toFixed(1);
-		let heavy = radiusMax.toFixed(1);
+		let light = parseFloat(radiusMin.toFixed(1));
+		let heavy = parseFloat(radiusMax.toFixed(1));
 		if (glyphName in references.customRadiusList === false) {
 			references.customRadiusList[glyphName] = [];
 		}
@@ -411,6 +405,21 @@ function extendShortStroke(font, references) {
 		
 		for (let [idxC1, contour] of oldContours.entries()) {
 			// find possible 横s (horizontals)
+
+			for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
+				const p1I = idxP1;
+				const p2I = nextNode(contour, p1I, true);
+				const p3I = nextNode(contour, p2I, true);
+				const p4I = nextNode(contour, p3I);
+				const p1 = circularArray(contour, p1I);
+				const p2 = circularArray(contour, p2I);
+				const p3 = circularArray(contour, p3I);
+				const p4 = circularArray(contour, p4I);
+				if (canBeStrokeEnd(p1, p2, p3, p4)) {
+					setCustomRadius(name, idxC1, distanceLight(p2, p3) / 2, distanceHeavy(p2, p3) / 1.8);
+				}
+			}
+			
 			if (contour.length < 4 || skipContours.includes(idxC1)) {
 				glyph.geometry.contours.push(contour);
 				continue;
@@ -447,7 +456,7 @@ function extendShortStroke(font, references) {
 					const horizontalBottomLeft = circularArray(contour, bottomLeftIdx);
 					const horizontalStrokeLight = originLight(horizontalTopRight.y) - originLight(horizontalBottomRight.y);
 					const horizontalStrokeHeavy = originHeavy(horizontalTopRight.y) - originHeavy(horizontalBottomRight.y);
-					setCustomRadius(name, idxC1, distanceLight(horizontalBottomRight, horizontalTopRight) / 2, distanceHeavy(horizontalBottomRight, horizontalTopRight) / 2);
+					
 					for (const [idxC2, contour2] of oldContours.entries()) {
 						// find possible 竖s (verticals)
 						if (idxC2 === idxC1 || contour2.length < 4 || skipContours.includes(idxC2)) continue;
@@ -675,7 +684,7 @@ function extendShortStroke(font, references) {
 					const verticalTopRight = circularArray(contour, topRightIdx);
 					const verticalTopLeft = circularArray(contour, topLeftIdx);
 
-					setCustomRadius(name, idxC1, distanceLight(verticalBottomLeft, verticalBottomRight) / 2, distanceHeavy(verticalBottomLeft, verticalBottomRight) / 2);
+					// setCustomRadius(name, idxC1, distanceLight(verticalBottomLeft, verticalBottomRight) / 2, distanceHeavy(verticalBottomLeft, verticalBottomRight) / 2);
 					for (const [idxC2, contour2o] of oldContours.entries()) {
 						// find possible 横s (horizontals)
 						if (idxC2 === idxC1 || contour2o.length < 4 || skipContours.includes(idxC2)) continue;
@@ -821,7 +830,7 @@ function extendShortStroke(font, references) {
 					const horizontalStrokeLight = originLight(horizontalTopLeft.y) - originLight(horizontalBottomLeft.y);
 					const horizontalStrokeHeavy = originHeavy(horizontalTopLeft.y) - originHeavy(horizontalBottomLeft.y);
 					
-					setCustomRadius(name, idxC1, distanceLight(horizontalBottomLeft, horizontalTopLeft) / 2, distanceHeavy(horizontalBottomLeft, horizontalTopLeft) / 2);
+					// setCustomRadius(name, idxC1, distanceLight(horizontalBottomLeft, horizontalTopLeft) / 2, distanceHeavy(horizontalBottomLeft, horizontalTopLeft) / 2);
 					
 					for (const [idxC2, contour2] of oldContours.entries()) {
 						// find possible 竖s (verticals)
@@ -1025,7 +1034,7 @@ function extendShortStroke(font, references) {
 						heavyRadius = topHeavy / 1.8
 					}
 					
-					setCustomRadius(name, idxC1, topLight / 2, heavyRadius);
+					// setCustomRadius(name, idxC1, topLight / 2, heavyRadius);
 					for (const [idxC2, contour2o] of oldContours.entries()) {
 						// find possible 横s (horizontals)
 						if (idxC2 === idxC1 || contour2o.length < 4 || skipContours.includes(idxC2)) continue;
@@ -1084,13 +1093,11 @@ function extendShortStroke(font, references) {
 									let hBRYHeavy = originHeavy(horizontalBottomRight.y);
 									let horizontalBottomSlopeLight = horizontalSlope({p1: {x: hBLXLight, y: hBLYLight}, p2: {x: hBRXLight, y: hBRYLight}}) || 0;
 									let horizontalBottomSlopeHeavy = horizontalSlope({p1: {x: hBLXHeavy, y: hBLYHeavy}, p2: {x: hBRXHeavy, y: hBRYHeavy}}) || 0;
-									debug && console.log("horizontalBottomSlopeLight", horizontalBottomSlopeLight);
-									debug && console.log("horizontalBottomSlopeHeavy", horizontalBottomSlopeHeavy);
 									if (!Number.isFinite(horizontalBottomSlopeLight)) continue;
 									if (!Number.isFinite(horizontalBottomSlopeHeavy)) continue;
 									let distanceLight = originLight(verticalTopLeft.x) - hBLXLight;
 									let distanceHeavy = originHeavy(verticalTopLeft.x) - hBLXHeavy;
-									let yOffsetL = isCorner ? 0 : (distanceLight * horizontalBottomSlopeLight) + (strokeLight * 0.85);
+									let yOffsetL = isCorner ? 0 : (distanceLight * horizontalBottomSlopeLight) + (strokeLight * 0.6);
 									// let yOffsetL = isCorner ? 0 : (distanceLight * horizontalBottomSlopeLight) + (horizontalBottomSlopeLight === 0 ? 20 : 8);
 									let yOffsetH = isCorner ? 0 : (distanceHeavy * horizontalBottomSlopeHeavy) + (strokeHeavy * 0.85);
 									let rightDistance = abs(originLight(verticalTopRight.x) - originLight(horizontalTopRight.x));
