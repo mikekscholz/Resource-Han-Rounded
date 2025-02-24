@@ -18,14 +18,14 @@ function turn(bearing1, bearing2) {
 	return delta;
 }
 
-function innerAngle(bearing1, bearing2) {
+function angle(bearing1, bearing2) {
   let delta = bearing2 - bearing1;
   if (delta < -180) {
       delta += 360;
   } else if (delta > 180) {
       delta -= 360;
   }
-  return delta < 0 ? -(delta + 180) : 180 - delta;
+  return delta === 0 ? 0 : delta < 0 ? -(delta + 180) : 180 - delta;
 }
 
 function base60(num) {
@@ -34,12 +34,26 @@ function base60(num) {
 
 function horizontalSlope(line) {
 	let { p1, p2 } = line;
-	return (p2.y - p1.y) / (p2.x - p1.x);
+	return (p2.y - p1.y) / (p2.x - p1.x) || 0;
 }
 
 function verticalSlope(line) {
 	let { p1, p2 } = line;
-	return (p2.x - p1.x) / (p2.y - p1.y);
+	return (p2.x - p1.x) / (p2.y - p1.y) || 0;
+}
+
+function findIntersection(array) {
+	let [P1, P2, P3, P4] = array;
+
+	let x =
+		((P1.x * P2.y - P2.x * P1.y) * (P3.x - P4.x) -
+			(P1.x - P2.x) * (P3.x * P4.y - P3.y * P4.x)) /
+		((P1.x - P2.x) * (P3.y - P4.y) - (P1.y - P2.y) * (P3.x - P4.x));
+	let y =
+		((P1.x * P2.y - P2.x * P1.y) * (P3.y - P4.y) -
+			(P1.y - P2.y) * (P3.x * P4.y - P3.y * P4.x)) /
+		((P1.x - P2.x) * (P3.y - P4.y) - (P1.y - P2.y) * (P3.x - P4.x));
+	return { x: x, y: y };
 }
 
 function approximateBezier(p1, cp1, cp2, p2, tolerance = 0.1) {
@@ -103,6 +117,15 @@ function midpoint(p1, p2) {
   };
 }
 
+const numberIsBetween = (function() {
+	Object.defineProperty(Number.prototype, "isBetween", {
+		value: function (a, b) {
+			return a <= this.valueOf() &&
+				this.valueOf() <= b;
+		}
+	});
+})();
+
 module.exports = {
-	innerAngle, approximateBezier, base60, bearing, horizontalSlope, roundTo, turn, verticalSlope
+	angle, approximateBezier, base60, bearing, findIntersection, horizontalSlope, numberIsBetween, roundTo, turn, verticalSlope
 };

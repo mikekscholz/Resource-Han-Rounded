@@ -562,17 +562,17 @@ function postProcess(font, references) {
 				kind: r4.kind,
 			};
 			oldContours[idxC2][r5I] = {
-				x: makeVariance(pointsLight[3].x, pointsHeavy[3].x),
+				x: makeVariance(pointsLight[3].x, pointsHeavy[3].x + type4OffsetH),
 				y: makeVariance(pointsLight[3].y, pointsHeavy[3].y),
 				kind: r5.kind,
 			};
 			oldContours[idxC2][r6I] = {
-				x: makeVariance(pointsLight[3].x, pointsHeavy[3].x),
+				x: makeVariance(pointsLight[3].x, pointsHeavy[3].x + type4OffsetH),
 				y: makeVariance(pointsLight[3].y, pointsHeavy[3].y),
 				kind: r6.kind,
 			};
 			oldContours[idxC2][r7I] = {
-				x: makeVariance(pointsLight[3].x, pointsHeavy[3].x),
+				x: makeVariance(pointsLight[3].x, pointsHeavy[3].x + type4OffsetH),
 				y: makeVariance(pointsLight[3].y, pointsHeavy[3].y),
 				kind: r7.kind,
 			};
@@ -759,8 +759,8 @@ function postProcess(font, references) {
 		// progressTick();
 		// 	continue;
 		// }
-		if (!references.extendSkip.includes(name) && count < 3000) checkSingleGlyph(glyph);
-		count++;
+		if (!references.extendSkip.includes(name)) checkSingleGlyph(glyph);
+		// count++;
 		// if (count % 200 == 0) console.log("postProcessing: ", count, " glyphs processed.");
 	}
 }

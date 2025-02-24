@@ -2,14 +2,11 @@
 
 const { Ot } = require("ot-builder");
 const inside = require("point-in-polygon-hao");
+const polydir = require("polygon-direction");
 const ProgressBar = require('./node-progress');
-const { innerAngle, approximateBezier, base60, bearing, horizontalSlope, roundTo, turn, verticalSlope } = require("./util");
+const { angle, approximateBezier, base60, bearing, horizontalSlope, roundTo, turn, verticalSlope } = require("./util");
 const { abs, ceil, floor, pow, round, sqrt, trunc, max } = Math;
-// const Offset = require('polygon-offset');
-// let offset = new Offset();
 
-// const { System } = require("detect-collisions");
-// const system = new System();
 // based on measurement of SHS
 const params = {
 	strokeWidth: { light: 35, heavy: 175 },
@@ -27,19 +24,6 @@ function circularIndex(array, index) {
 	var idx = abs(length + index % length) % length;
 	return isNaN(idx) ? index : idx;
 }
-
-
-
-
-function angle(line) {
-	let { p1, p2 } = line;
-	let deg = (Math.atan2((p1.x - p2.x), (p1.y - p2.y)) + Math.PI) * 360 / (2 * Math.PI);
-	if (p2.x < p1.x && p2.y > p1.y) return deg - 360;
-	if (p2.x < p1.x && p2.y < p1.y) return deg - 180;
-	if (deg === 360) return 180;
-	return deg;
-}
-
 
 // some 横s of 横折s in SHS is shorter than expected.
 // extend to align them.
@@ -112,7 +96,7 @@ function extendShortStroke(font, references) {
 	function canBeBottomEnd(bottomLeft, bottomRight) {
 		// console.log(originLight(topRight.x) - originLight(topLeft.x));
 		return bottomLeft.kind == 0 && bottomRight.kind == 0 &&
-			approxEq(bottomLeft.y, bottomRight.y, 20) &&
+			approxEq(bottomLeft.y, bottomRight.y, 20, 54) &&
 			approxEq(
 				originLight(bottomRight.x) - originLight(bottomLeft.x),
 				params.strokeWidth.light,
@@ -144,7 +128,7 @@ function extendShortStroke(font, references) {
 	function canBeTopEnd(topRight, topLeft) {
 		// console.log(originLight(topRight.x) - originLight(topLeft.x));
 		return topRight.kind == 0 && topLeft.kind == 0 &&
-			approxEq(topRight.y, topLeft.y, 20) &&
+			approxEq(topRight.y, topLeft.y, 20, 54) &&
 			approxEq(
 				originLight(topRight.x) - originLight(topLeft.x),
 				params.strokeWidth.light,
@@ -203,11 +187,9 @@ function extendShortStroke(font, references) {
 			let next = contour[nextNode(contour, start + i)];
 			let bear1 = bearing(lineLight(prev, curr));
 			if (bear1 < 135 || bear1 > 225) continue;
-			let dir1 = angle(lineLight(prev, curr));
-			let dir2 = angle(lineLight(curr, next));
 			let bear2 = bearing(lineLight(curr, next));
-			let rotation = abs(dir1 - dir2);
-			if (rotation >= 68 && rotation <= 112 && bear2 > 45 && bear2 < 135) return circularIndex(contour, start + i);
+			let rotation = turn(bear1, bear2);
+			if (rotation <= -68 && rotation >= -112 && bear2 > 45 && bear2 < 135) return circularIndex(contour, start + i);
 		}
 	}
 	function findBottomRightCorner(contour, start = 0) {
@@ -218,10 +200,7 @@ function extendShortStroke(font, references) {
 			let next = contour[nextNode(contour, start + i)];
 			let bear1 = bearing(lineLight(prev, curr));
 			if (bear1 < 45 || bear1 > 135) continue;
-			let dir1 = angle(lineLight(prev, curr));
-			let dir2 = angle(lineLight(curr, next));
 			let bear2 = bearing(lineLight(curr, next));
-			// let rotation = abs(dir1 - dir2);
 			let rotation = turn(bear1, bear2);
 			if ((rotation <= -68 && rotation >= -112) || (rotation <= 95 && rotation >= 85)) return circularIndex(contour, start + i);
 		}
@@ -235,11 +214,9 @@ function extendShortStroke(font, references) {
 			let next = contour[nextNode(contour, start + i)];
 			let bear1 = bearing(lineLight(prev, curr));
 			if (bear1 < 315 && bear1 > 45) continue;
-			let dir1 = angle(lineLight(prev, curr));
-			let dir2 = angle(lineLight(curr, next));
 			let bear2 = bearing(lineLight(curr, next));
-			let rotation = abs(dir1 - dir2);
-			if (rotation >= 68 && rotation <= 112 && bear2 > 225 && bear2 < 315) return circularIndex(contour, start + i);
+			let rotation = turn(bear1, bear2);
+			if (rotation <= -68 && rotation >= -112 && bear2 > 225 && bear2 < 315) return circularIndex(contour, start + i);
 		}
 	}
 	
@@ -251,27 +228,25 @@ function extendShortStroke(font, references) {
 			let next = contour[nextNode(contour, start + i)];
 			let bear1 = bearing(lineLight(prev, curr));
 			if (bear1 < 225 || bear1 > 315) continue;
-			let dir1 = angle(lineLight(prev, curr));
-			let dir2 = angle(lineLight(curr, next));
 			let bear2 = bearing(lineLight(curr, next));
-			let rotation = abs(dir1 - dir2);
-			if (rotation >= 68 && rotation <= 112 && bear2 > 225 && bear2 < 315) return circularIndex(contour, start + i);
+			let rotation = turn(bear1, bear2);
+			if (rotation <= -68 && rotation >= -112 && bear2 > 225 && bear2 < 315) return circularIndex(contour, start + i);
 		}
 	}
 	
 	function canBeStrokeEnd(p1, p2, p3, p4) {
 		let cornerPoints = p2.kind === 0 && p3.kind === 0;
 		let strokeWidthLight = approxEq(distanceLight(p2, p3), params.strokeWidth.light, 20);
-		let strokeWidthHeavy = distanceHeavy(p2, p3) <= params.strokeWidth.heavy;
+		let strokeWidthHeavy = approxEq(distanceHeavy(p2, p3), params.strokeWidth.heavy, 36);
 		let bearingLight1 = bearing(lineLight(p1, p2));
 		let bearingLight2 = bearing(lineLight(p2, p3));
 		let bearingLight3 = bearing(lineLight(p3, p4));
-		let anglesLight = innerAngle(bearingLight1, bearingLight2) + innerAngle(bearingLight2, bearingLight3);
+		let anglesLight = angle(bearingLight1, bearingLight2) + angle(bearingLight2, bearingLight3);
 		let trapezoidalLight = anglesLight > -190 && anglesLight < -170;
 		let bearingHeavy1 = bearing(lineHeavy(p1, p2));
 		let bearingHeavy2 = bearing(lineHeavy(p2, p3));
 		let bearingHeavy3 = bearing(lineHeavy(p3, p4));
-		let anglesHeavy = innerAngle(bearingHeavy1, bearingHeavy2) + innerAngle(bearingHeavy2, bearingHeavy3);
+		let anglesHeavy = angle(bearingHeavy1, bearingHeavy2) + angle(bearingHeavy2, bearingHeavy3);
 		let trapezoidalHeavy = anglesHeavy > -190 && anglesHeavy < -170;
 		return cornerPoints && strokeWidthLight && strokeWidthHeavy && trapezoidalLight && trapezoidalHeavy;
 	}
@@ -433,23 +408,19 @@ function extendShortStroke(font, references) {
 				const topLeftIdx = nextNode(contour, topRightIdx);
 				const bottomLeftIdx = previousNode(contour, bottomRightIdx);
 
-				const horizontalAngle = angle(lineLight(circularArray(contour, bottomLeftIdx), circularArray(contour, bottomRightIdx)));
+				const horizontalAngle = bearing(lineLight(circularArray(contour, bottomLeftIdx), circularArray(contour, bottomRightIdx)));
 				const horizontalTopSlope = horizontalSlope(lineLight(circularArray(contour, bottomLeftIdx), circularArray(contour, bottomRightIdx)));
 				const horizontalBottomSlope = horizontalSlope(lineLight(circularArray(contour, bottomLeftIdx), circularArray(contour, bottomRightIdx)));
 
-				if (!Number.isFinite(horizontalTopSlope)) continue;
-				if (!Number.isFinite(horizontalBottomSlope)) continue;
+				if (!Number.isFinite(horizontalTopSlope) || !Number.isFinite(horizontalBottomSlope)) continue;
+				
 				if (
 					// is right end
 					canBeRightEnd(circularArray(contour, bottomRightIdx), circularArray(contour, topRightIdx)) &&
 					approxEq(horizontalTopSlope, horizontalBottomSlope, 0.4) &&
 					originLight(circularArray(contour, bottomRightIdx).x) > originLight(circularArray(contour, bottomLeftIdx).x) &&
 					horizontalBottomSlope < 0.5
-					// approxEq(horizontalTopRight.y, horizontalTopLeft.y, 34, 37)
-					// approxEq(distanceLight(horizontalBottomRight, horizontalTopRight), params.strokeWidth.light, 10) &&
-					// approxEq(distanceLight(horizontalTopLeft, horizontalBottomLeft), params.strokeWidth.light, 10) &&
 				) {
-					debug && console.log(`is right end - idxC1: ${idxC1}, idxP1: ${idxP1}`);
 					const horizontalBottomRight = circularArray(contour, bottomRightIdx);
 					const horizontalTopRight = circularArray(contour, topRightIdx);
 					const horizontalTopLeft = circularArray(contour, topLeftIdx);
@@ -460,29 +431,22 @@ function extendShortStroke(font, references) {
 					for (const [idxC2, contour2] of oldContours.entries()) {
 						// find possible 竖s (verticals)
 						if (idxC2 === idxC1 || contour2.length < 4 || skipContours.includes(idxC2)) continue;
-
-						let polygonLight = [contour2GeoJsonLight(contour2)];
-						// let polygonLight2 = offset.data(polygonLight).arcSegments(3).margin(1);
-						let polygonHeavy = [contour2GeoJsonHeavy(contour2)];
-						// let polygonHeavy2 = offset.data(polygonHeavy).arcSegments(3).margin(1);
-						let extended = false;
 						
+						let extended = false;
+						let polygonLight = [contour2GeoJsonLight(contour2)];
+						let polygonHeavy = [contour2GeoJsonHeavy(contour2)];
 						for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
 							const corner0 = idxP2;
 							const cornerP1 = nextNode(contour2, corner0);
 							const cornerP2 = nextNode(contour2, cornerP1);
 							const cornerN1 = previousNode(contour2, corner0);
-							// const cornerP2 = nextNodeIdx(contour2, cornerP1);
-							// const cornerN1 = previousNodeIdx(contour2, corner0);
 							if (
 								// is top end
 								canBeTopEnd(circularArray(contour2, corner0), circularArray(contour2, cornerP1)) &&
 								approxEq(circularArray(contour2, corner0).x, circularArray(contour2, cornerN1).x, 180, 250) &&
 								approxEq(circularArray(contour2, cornerP1).x, circularArray(contour2, cornerP2).x, 180, 250)
-								// canBeTopEnd(verticalTopRight, verticalTopLeft) &&
-								// approxEq(verticalTopRight.x, verticalBottomRight.x, 100) &&
-								// approxEq(verticalTopLeft.x, verticalBottomLeft.x, 100)
 							) {
+
 								const verticalTopRight = circularArray(contour2, corner0);
 								const verticalTopLeft = circularArray(contour2, cornerP1);
 								const topRightIsEdge = (inside(point2GeoJsonLight(horizontalTopRight), polygonLight) === 0 || inside(point2GeoJsonHeavy(horizontalTopRight), polygonHeavy) === 0);
@@ -491,15 +455,6 @@ function extendShortStroke(font, references) {
 								const verticalBottomRight = topRightIsEdge ? circularArray(contour2, cornerN1) : circularArray(contour2, findBottomRightCorner(contour2)) || circularArray(contour2, cornerN1);
 								// const verticalBottomLeft = circularArray(contour2, cornerP2);
 								// const verticalBottomRight = circularArray(contour2, cornerN1);
-								// const verticalBottomRight = circularArray(contour2, previousNodeLTY(contour2, corner0, horizontalBottomRight));
-								// let verticalBottomRight;
-								// if (originLight(circularArray(contour2, cornerN1).y) > originLight(horizontalBottomRight.y)) {
-								// 	let testPoint = cornerN1;
-									
-								// }
-								debug && console.log(`is top end - idxC2: ${idxC2}, idxP2: ${idxP2}`);
-								// debug && console.log(verticalBottomLeft);
-								// debug && console.log(verticalBottomRight);
 								if (
 									// and 横's (horizontal's) right end inside 竖 (vertical)
 									// ───┬──┬──┐
@@ -521,16 +476,10 @@ function extendShortStroke(font, references) {
 										)
 									)
 								) {
-									// let isCorner = (abs(originLight(horizontalTopRight.y) - originLight(verticalTopRight.y)) < 30) || (abs(originLight(horizontalBottomRight.y) - originLight(verticalBottomRight.y)) < 30);
-									// let xOffsetL = isCorner ? 0 : 4;
-									// let xOffsetH = isCorner ? 0 : 20;
-									
-									const verticalRightSlopeLight = verticalSlope(lineLight(verticalBottomRight, verticalTopRight)) || 0;
-									const verticalRightSlopeHeavy = verticalSlope(lineHeavy(verticalBottomRight, verticalTopRight)) || 0;
+									const verticalRightSlopeLight = verticalSlope(lineLight(verticalBottomRight, verticalTopRight));
+									const verticalRightSlopeHeavy = verticalSlope(lineHeavy(verticalBottomRight, verticalTopRight));
 									if (!Number.isFinite(verticalRightSlopeLight)) continue;
 									if (!Number.isFinite(verticalRightSlopeHeavy)) continue;
-									// const verticalRightSlopeLight = verticalSlope(lineLight(verticalTopRight, circularArray(contour2, cornerN1))) === 0 ? 0 : verticalSlope(lineLight(verticalBottomRight, verticalTopRight));
-									// const verticalRightSlopeHeavy = verticalSlope(lineHeavy(verticalTopRight, circularArray(contour2, cornerN1))) === 0 ? 0 : verticalSlope(lineHeavy(verticalBottomRight, verticalTopRight));
 									let isCorner = (abs(originLight(horizontalTopRight.y) - originLight(verticalTopRight.y)) < 5) || (abs(originLight(horizontalBottomRight.y) - originLight(verticalBottomRight.y)) < 5);
 									let horizontalRightCenterYLight = (originLight(horizontalTopRight.y) + originLight(horizontalBottomRight.y)) / 2;
 									let horizontalRightCenterYHeavy = (originHeavy(horizontalTopRight.y) + originHeavy(horizontalBottomRight.y)) / 2;
@@ -599,10 +548,6 @@ function extendShortStroke(font, references) {
 								const verticalTopLeft = circularArray(contour2, idxP2 - 1);
 								if (
 									// and 横's (horizontal's) right end inside 竖 (vertical)
-									// isBetween(verticalBottomLeft.x, horizontalBottomRight.x, verticalBottomRight.x) &&
-									// isBetween(verticalBottomRight.y, horizontalBottomRight.y, verticalTopRight.y) &&
-									// abs(horizontalAngle) < 46
-									
 									isBetween(verticalBottomLeft.x, horizontalBottomRight.x, verticalTopRight.x) &&
 									(
 										isBetween(verticalBottomLeft.y, horizontalTopRight.y, verticalTopLeft.y) ||
@@ -675,24 +620,16 @@ function extendShortStroke(font, references) {
 					approxEq(contour[bottomLeftIdx].x, circularArray(contour, topLeftIdx).x, 450) &&
 					approxEq(circularArray(contour, bottomRightIdx).x, circularArray(contour, topRightIdx).x, 450)
 				) {
-					// const bottomLeftIdx = circularIndex(contour, idxP1);
-					// const bottomRightIdx = circularIndex(contour, idxP1 + 1);
-					// const topRightIdx = circularIndex(contour, idxP1 + 2);
-					// const topLeftIdx = circularIndex(contour, idxP1 - 1);
 					const verticalBottomLeft = circularArray(contour, bottomLeftIdx);
 					const verticalBottomRight = circularArray(contour, bottomRightIdx);
 					const verticalTopRight = circularArray(contour, topRightIdx);
 					const verticalTopLeft = circularArray(contour, topLeftIdx);
-
-					// setCustomRadius(name, idxC1, distanceLight(verticalBottomLeft, verticalBottomRight) / 2, distanceHeavy(verticalBottomLeft, verticalBottomRight) / 2);
 					for (const [idxC2, contour2o] of oldContours.entries()) {
 						// find possible 横s (horizontals)
 						if (idxC2 === idxC1 || contour2o.length < 4 || skipContours.includes(idxC2)) continue;
 
 						let polygonLight = [contour2GeoJsonLight(contour2o)];
-						// let polygonLight2 = offset.data(polygonLight).arcSegments(3).margin(1);
 						let polygonHeavy = [contour2GeoJsonHeavy(contour2o)];
-						// let polygonHeavy2 = offset.data(polygonHeavy).arcSegments(3).margin(1);
 						
 						let contour2 = contour2o.filter((point) => point.kind === 0);
 						let extended = false;
@@ -711,19 +648,8 @@ function extendShortStroke(font, references) {
 								const horizontalBottomLeft = circularArray(contour2, horizontalBottomLeftIdx) || circularArray(contour2, idxP2 + 1);
 								const horizontalBottomRight = circularArray(contour2, horizontalBottomRightIdx) || circularArray(contour2, idxP2 + 2);
 								const horizontalTopRight = circularArray(contour2, horizontalTopRightIdx) || circularArray(contour2, idxP2 - 1);
-
-								// const horizontalTopLeft = circularArray(contour2, idxP2);
-								// const horizontalBottomLeft = circularArray(contour2, idxP2 + 1);
-								// const strokeHeavy = distanceHeavy(horizontalTopLeft, horizontalBottomLeft);
-								// // const horizontalBottomRight = circularArray(contour2, idxP2 + 2);
-								// // const horizontalBottomRight = circularArray(contour2, idxP2 + 2).kind === 0 ? circularArray(contour2, idxP2 + 2) :
-								// const horizontalBottomRight = (circularArray(contour2, idxP2 + 2).kind === 0 && distanceHeavy(circularArray(contour2, idxP2 + 2), horizontalBottomLeft) >= strokeHeavy) ? circularArray(contour2, idxP2 + 2) :
-								// circularArray(contour2, idxP2 + 3).kind === 0 ? circularArray(contour2, idxP2 + 3) : 
-								// circularArray(contour2, idxP2 + 4).kind === 0 ? circularArray(contour2, idxP2 + 4) : circularArray(contour2, idxP2 + 5);
-								// const horizontalTopRight = circularArray(contour2, idxP2 - 1);
 								if (
 									// and 竖's (vertical's) bottom inside 横's (horizontal's) left end
-									// originLight(horizontalTopLeft.x) <= originLight(verticalBottomLeft.x) &&
 									isBetween(horizontalTopLeft.x, verticalBottomLeft.x, horizontalTopRight.x) &&
 									isBetween(horizontalBottomLeft.y, verticalBottomLeft.y, horizontalTopLeft.y) &&
 									(
@@ -737,22 +663,11 @@ function extendShortStroke(font, references) {
 									)
 								) {
 									let isCorner = (abs(originLight(horizontalBottomLeft.x) - originLight(verticalBottomLeft.x)) < 30) || (abs(originLight(horizontalBottomRight.x) - originLight(verticalBottomRight.x)) < 30);
-									let horizontalBottomSlopeLight = horizontalSlope(lineLight(horizontalBottomLeft, horizontalBottomRight)) || 0;
-									let horizontalBottomSlopeHeavy = horizontalSlope(lineHeavy(horizontalBottomLeft, horizontalBottomRight)) || 0;
-									debug && console.log("horizontalBottomSlopeLight", horizontalBottomSlopeLight);
-									debug && console.log("horizontalBottomSlopeHeavy", horizontalBottomSlopeHeavy);
-									if (!Number.isFinite(horizontalBottomSlopeLight)) continue;
-									if (!Number.isFinite(horizontalBottomSlopeHeavy)) continue;
+									let horizontalBottomSlopeLight = horizontalSlope(lineLight(horizontalBottomLeft, horizontalBottomRight));
+									let horizontalBottomSlopeHeavy = horizontalSlope(lineHeavy(horizontalBottomLeft, horizontalBottomRight));
+									if (!Number.isFinite(horizontalBottomSlopeLight) || !Number.isFinite(horizontalBottomSlopeHeavy)) continue;
 									let verticalBottomCenterXLight = (originLight(verticalBottomLeft.x) + originLight(verticalBottomRight.x)) / 2;
 									let verticalBottomCenterXHeavy = (originHeavy(verticalBottomLeft.x) + originHeavy(verticalBottomRight.x)) / 2;
-									// let distanceLight = verticalBottomCenterXLight - originLight(horizontalTopLeft.x);
-									// let distanceHeavy = verticalBottomCenterXHeavy - originHeavy(horizontalTopLeft.x);
-									// // let yOffsetL = isCorner ? 0 : (distanceLight * horizontalTopSlopeLight) + (horizontalTopSlopeLight === 0 ? 10 : 8);
-									// let yOffsetL = isCorner ? 0 : (distanceLight * horizontalTopSlopeLight) + 15;
-									// let yOffsetH = isCorner ? 0 : (distanceHeavy * horizontalTopSlopeHeavy) + 70;
-									// let rightDistance = abs(verticalBottomCenterXLight - originLight(horizontalTopRight.x));
-									// let leftDistance = abs(verticalBottomCenterXLight - originLight(horizontalTopLeft.x));
-									// let side = rightDistance < leftDistance ? isCorner ? horizontalBottomRight : horizontalTopLeft : isCorner ? horizontalBottomLeft : horizontalTopLeft;
 									let distanceLight = verticalBottomCenterXLight - originLight(horizontalBottomLeft.x);
 									let distanceHeavy = verticalBottomCenterXHeavy - originHeavy(horizontalBottomLeft.x);
 									let yOffsetL = isCorner ? 0 : (distanceLight * horizontalBottomSlopeLight) + (horizontalBottomSlopeLight === 0 ? 10 : 8);
@@ -763,22 +678,12 @@ function extendShortStroke(font, references) {
 									
 									newContour[bottomLeftIdx] = {
 										x: verticalBottomLeft.x,
-										y: makeVariance(
-											originLight(side.y) + yOffsetL,
-											originHeavy(side.y) + yOffsetH
-											// originLight(horizontalBottomLeft.y) + yOffsetL,
-											// originHeavy(horizontalBottomLeft.y) + yOffsetH
-										),
+										y: makeVariance(originLight(side.y) + yOffsetL, originHeavy(side.y) + yOffsetH),
 										kind: 0,
 									};
 									newContour[bottomRightIdx] = {
 										x: verticalBottomRight.x,
-										y: makeVariance(
-											originLight(side.y) + yOffsetL,
-											originHeavy(side.y) + yOffsetH
-											// originLight(horizontalBottomLeft.y) + yOffsetL,
-											// originHeavy(horizontalBottomLeft.y) + yOffsetH
-										),
+										y: makeVariance(originLight(side.y) + yOffsetL, originHeavy(side.y) + yOffsetH),
 										kind: 0,
 									};
 									// extended = true;
@@ -819,27 +724,18 @@ function extendShortStroke(font, references) {
 					approxEq(circularArray(contour, bottomLeftIdx).y, circularArray(contour, bottomRightIdx).y) &&
 					originLight(circularArray(contour, bottomRightIdx).x) > originLight(circularArray(contour, bottomLeftIdx).x)
 				) {
-					// const topLeftIdx = idxP1;
-					// const bottomLeftIdx = circularIndex(contour, idxP1 + 1);
-					// const bottomRightIdx = circularIndex(contour, idxP1 + 2);
-					// const topRightIdx = circularIndex(contour, idxP1 - 1);
 					const horizontalTopLeft = contour[topLeftIdx];
 					const horizontalBottomLeft = circularArray(contour, bottomLeftIdx);
 					const horizontalBottomRight = circularArray(contour, bottomRightIdx);
 					const horizontalTopRight = circularArray(contour, topRightIdx);
 					const horizontalStrokeLight = originLight(horizontalTopLeft.y) - originLight(horizontalBottomLeft.y);
 					const horizontalStrokeHeavy = originHeavy(horizontalTopLeft.y) - originHeavy(horizontalBottomLeft.y);
-					
-					// setCustomRadius(name, idxC1, distanceLight(horizontalBottomLeft, horizontalTopLeft) / 2, distanceHeavy(horizontalBottomLeft, horizontalTopLeft) / 2);
-					
 					for (const [idxC2, contour2] of oldContours.entries()) {
 						// find possible 竖s (verticals)
 						if (idxC2 === idxC1 || contour2.length < 4 || skipContours.includes(idxC2)) continue;
 
 						let polygonLight = [contour2GeoJsonLight(contour2)];
-						// let polygonLight2 = offset.data(polygonLight).arcSegments(3).margin(1);
 						let polygonHeavy = [contour2GeoJsonHeavy(contour2)];
-						// let polygonHeavy2 = offset.data(polygonHeavy).arcSegments(3).margin(1);
 
 						for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
 							if (
@@ -913,11 +809,7 @@ function extendShortStroke(font, references) {
 								// const verticalTopLeft = circularArray(contour2, idxP2 - 1);
 								const verticalLeftSlopeLight = verticalSlope(lineLight(verticalBottomLeft, verticalTopLeft));
 								const verticalLeftSlopeHeavy = verticalSlope(lineHeavy(verticalBottomLeft, verticalTopLeft));
-								debug && console.log("verticalLeftSlopeLight", verticalLeftSlopeLight);
-								debug && console.log("verticalLeftSlopeHeavy", verticalLeftSlopeHeavy);
-								if (!Number.isFinite(verticalLeftSlopeLight)) continue;
-								if (!Number.isFinite(verticalLeftSlopeHeavy)) continue;
-								debug && console.log(`is lefts bottom end - idxC2: ${idxC2}, idxP2: ${idxP2}`);
+								if (!Number.isFinite(verticalLeftSlopeLight) || !Number.isFinite(verticalLeftSlopeHeavy)) continue;
 								if (
 									// and 横's (horizontal's) left end inside 竖 (vertical)
 									isBetween(verticalBottomLeft.x, horizontalBottomLeft.x, verticalBottomRight.x) &&
@@ -1020,29 +912,13 @@ function extendShortStroke(font, references) {
 					const verticalTopLeft = circularArray(contour, topLeftIdx);
 					const verticalBottomLeft = circularArray(contour, bottomLeftIdx);
 					const verticalBottomRight = circularArray(contour, bottomRightIdx);
-					
-					const verticalBottomLeftCorner = circularArray(contour, nextNode(contour, topLeftIdx, true));
-					const verticalBottomRightCorner = circularArray(contour, previousNode(contour, topRightIdx, true));
-					let topLight = distanceLight(verticalTopRight, verticalTopLeft);
-					let bottomLight = distanceLight(verticalBottomRightCorner, verticalBottomLeftCorner);
-					let topHeavy = distanceHeavy(verticalTopRight, verticalTopLeft);
-					let bottomHeavy = distanceHeavy(verticalBottomRightCorner, verticalBottomLeftCorner);
-					let heavyRadius;
-					if (abs(topLight - bottomLight) < 12) {
-						heavyRadius = max(topHeavy, bottomHeavy) / 1.8
-					} else {
-						heavyRadius = topHeavy / 1.8
-					}
-					
-					// setCustomRadius(name, idxC1, topLight / 2, heavyRadius);
+
 					for (const [idxC2, contour2o] of oldContours.entries()) {
 						// find possible 横s (horizontals)
 						if (idxC2 === idxC1 || contour2o.length < 4 || skipContours.includes(idxC2)) continue;
 
 						let polygonLight = [contour2GeoJsonLight(contour2o)];
-						// let polygonLight2 = offset.data(polygonLight).arcSegments(3).margin(1);
 						let polygonHeavy = [contour2GeoJsonHeavy(contour2o)];
-						// let polygonHeavy2 = offset.data(polygonHeavy).arcSegments(3).margin(1);
 
 						let contour2 = contour2o.filter((point) => point.kind === 0);
 						let extended = false;
@@ -1059,9 +935,6 @@ function extendShortStroke(font, references) {
 								const horizontalTopRight = circularArray(contour2, previousNode(contour2, idxP2));
 								const strokeLight = distanceLight(horizontalTopLeft, horizontalBottomLeft);
 								const strokeHeavy = distanceHeavy(horizontalTopLeft, horizontalBottomLeft);
-								// const horizontalTopRight = (circularArray(contour2, idxP2 - 1).kind === 0 && distanceHeavy(circularArray(contour2, idxP2 - 1), horizontalTopLeft) >= strokeHeavy) ? circularArray(contour2, idxP2 - 1) :
-								// circularArray(contour2, idxP2 - 2).kind === 0 ? circularArray(contour2, idxP2 - 2) : 
-								// circularArray(contour2, idxP2 - 3).kind === 0 ? circularArray(contour2, idxP2 - 3) : circularArray(contour2, idxP2 - 4);
 								if (
 									// and 竖's (vertical's) top inside 横's (horizontal's) left end
 									// ┌────────
@@ -1080,57 +953,33 @@ function extendShortStroke(font, references) {
 										)
 									)
 								) {
-									let isCorner = (abs(originLight(horizontalTopLeft.x) - originLight(verticalTopLeft.x)) <= 30) || (abs(originLight(horizontalTopRight.x) - originLight(verticalTopRight.x)) < 30);
-									// let isCorner = true;
-
-									let hBLXLight = originLight(horizontalBottomLeft.x);
-									let hBLYLight = originLight(horizontalBottomLeft.y);
-									let hBRXLight = originLight(horizontalBottomRight.x);
-									let hBRYLight = originLight(horizontalBottomRight.y);
-									let hBLXHeavy = originHeavy(horizontalBottomLeft.x);
-									let hBLYHeavy = originHeavy(horizontalBottomLeft.y);
-									let hBRXHeavy = originHeavy(horizontalBottomRight.x);
-									let hBRYHeavy = originHeavy(horizontalBottomRight.y);
-									let horizontalBottomSlopeLight = horizontalSlope({p1: {x: hBLXLight, y: hBLYLight}, p2: {x: hBRXLight, y: hBRYLight}}) || 0;
-									let horizontalBottomSlopeHeavy = horizontalSlope({p1: {x: hBLXHeavy, y: hBLYHeavy}, p2: {x: hBRXHeavy, y: hBRYHeavy}}) || 0;
-									if (!Number.isFinite(horizontalBottomSlopeLight)) continue;
-									if (!Number.isFinite(horizontalBottomSlopeHeavy)) continue;
-									let distanceLight = originLight(verticalTopLeft.x) - hBLXLight;
-									let distanceHeavy = originHeavy(verticalTopLeft.x) - hBLXHeavy;
+									let isCorner = (abs(originLight(horizontalTopLeft.x) - originLight(verticalTopLeft.x)) <= 30) || (abs(originLight(horizontalTopRight.x) - originLight(verticalTopRight.x)) <= 30);
+									let horizontalBottomSlopeLight = horizontalSlope(lineLight(horizontalBottomLeft, horizontalBottomRight));
+									let horizontalBottomSlopeHeavy = horizontalSlope(lineHeavy(horizontalBottomLeft, horizontalBottomRight));
+									if (!Number.isFinite(horizontalBottomSlopeLight) || !Number.isFinite(horizontalBottomSlopeHeavy)) continue;
+									let distanceLight = originLight(verticalTopLeft.x) - originLight(horizontalBottomLeft.x);
+									let distanceHeavy = originHeavy(verticalTopLeft.x) - originHeavy(horizontalBottomLeft.x);
 									let yOffsetL = isCorner ? 0 : (distanceLight * horizontalBottomSlopeLight) + (strokeLight * 0.6);
-									// let yOffsetL = isCorner ? 0 : (distanceLight * horizontalBottomSlopeLight) + (horizontalBottomSlopeLight === 0 ? 20 : 8);
 									let yOffsetH = isCorner ? 0 : (distanceHeavy * horizontalBottomSlopeHeavy) + (strokeHeavy * 0.85);
 									let rightDistance = abs(originLight(verticalTopRight.x) - originLight(horizontalTopRight.x));
 									let leftDistance = abs(originLight(verticalTopLeft.x) - originLight(horizontalTopLeft.x));
-									let side = rightDistance < leftDistance ? isCorner ? horizontalTopRight : horizontalBottomLeft : isCorner ? horizontalTopLeft : horizontalBottomLeft;
+									let side = isCorner ? rightDistance < leftDistance ? horizontalTopRight : horizontalTopLeft : horizontalBottomLeft;
 									newContour[topRightIdx] = {
-										// x: verticalTopRight.x,
-										x: newContour[topRightIdx].x,
+										x: verticalTopRight.x,
 										y: makeVariance(
 											originLight(side.y) + yOffsetL,
 											originHeavy(side.y) + yOffsetH
-											// originLight(horizontalTopRight.y) - yOffsetL,
-											// originHeavy(horizontalTopRight.y) - yOffsetH
 										),
 										kind: 0,
 									};
-									// contour[topRightIdx] = newContour[topRightIdx];
-									// oldContours[idxC1][topRightIdx] = newContour[topRightIdx];
 									newContour[topLeftIdx] = {
-										// x: verticalTopLeft.x,
-										x: newContour[topLeftIdx].x,
+										x: verticalTopLeft.x,
 										y: makeVariance(
 											originLight(side.y) + yOffsetL,
 											originHeavy(side.y) + yOffsetH
-											// originLight(horizontalTopLeft.y) - yOffsetL,
-											// originHeavy(horizontalTopLeft.y) - yOffsetH
 										),
 										kind: 0,
 									};
-									// contour[topLeftIdx] = newContour[topLeftIdx];
-									// oldContours[idxC1][topLeftIdx] = newContour[topLeftIdx];
-									// extended = true;
-									// break;
 								}
 							}
 						}
@@ -1140,6 +989,9 @@ function extendShortStroke(font, references) {
 				}
 			}
 			glyph.geometry.contours.push(newContour);
+		}
+		if (name in references.extendIgnoreContourIdx) {
+			delete references.extendIgnoreContourIdx[name];
 		}
 	}
 	

@@ -6,7 +6,7 @@ const { hangulSios } = require("./correctionsUnicode");
 const ProgressBar = require('./node-progress');
 const fs = require("node:fs");
 const path = require("node:path");
-const { innerAngle, approximateBezier, base60, bearing, horizontalSlope, roundTo, turn, verticalSlope } = require("./util");
+const { angle, approximateBezier, base60, bearing, horizontalSlope, roundTo, turn, verticalSlope } = require("./util");
 const { abs, ceil, floor, pow, round, sqrt, trunc, max } = Math;
 
 // const replacementsDir = fs.readdirSync(__dirname + "/../replacements");
@@ -420,28 +420,52 @@ function correctGlyphs(font, references) {
 	// 	return newContour;
 	// }
 	
-	Array.prototype.reverseContour = function() {
-		this.reverse();
-		for (let i = 0; i < this.length; i++) {
-			let kind = this[i].kind;
-			switch (kind) {
-				case 2:
-					this[i].kind = 1;
-					break;
-				case 1:
-					this[i].kind = 2;
-					break;
-				default:
-					this[i].kind = 0;
-					break;
-			}
-		}
-		return this;
-	};
+	// Array.prototype.reverseContour = function() {
+	// 	this.reverse();
+	// 	for (let i = 0; i < this.length; i++) {
+	// 		let kind = this[i].kind;
+	// 		switch (kind) {
+	// 			case 2:
+	// 				this[i].kind = 1;
+	// 				break;
+	// 			case 1:
+	// 				this[i].kind = 2;
+	// 				break;
+	// 			default:
+	// 				this[i].kind = 0;
+	// 				break;
+	// 		}
+	// 	}
+	// 	return this;
+	// };
 	
-	Number.prototype.isBetween = function(a, b) {
-		return a <= this.valueOf() && this.valueOf() <= b;
-	};
+	Object.defineProperty(Array.prototype, "reverseContour", {
+		value: function() {
+			this.reverse();
+			for (let i = 0; i < this.length; i++) {
+				let kind = this[i].kind;
+				switch (kind) {
+					case 2:
+						this[i].kind = 1;
+						break;
+					case 1:
+						this[i].kind = 2;
+						break;
+					default:
+						this[i].kind = 0;
+						break;
+				}
+			}
+			return this;
+		}
+	});
+	
+	// Object.defineProperty(Number.prototype, "isBetween", {
+	// 	value: function (a, b) {
+	// 		return a <= this.valueOf() &&
+	// 			this.valueOf() <= b;
+	// 	}
+	// });
 	
 	function checkSingleGlyph(glyph, idxG) {
 		if (!glyph.geometry || !glyph.geometry.contours)
@@ -801,6 +825,7 @@ function correctGlyphs(font, references) {
 			const newContour = [...contour];
 			if (contour.length > 12) {
 				for (let idxP = 0; idxP < contour.length; idxP++) {
+					let p0 = circularArray(contour, idxP - 1);
 					let p1 = circularArray(contour, idxP);
 					let p2 = circularArray(contour, idxP + 1);
 					let p3 = circularArray(contour, idxP + 2);
@@ -811,15 +836,18 @@ function correctGlyphs(font, references) {
 					let p8 = circularArray(contour, idxP + 7);
 					let p9 = circularArray(contour, idxP + 8);
 					let p10 = circularArray(contour, idxP + 9);
+					let p11 = circularArray(contour, idxP + 10);
 					if (p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && p5.kind === 1 && p6.kind === 2 && p7.kind === 0 && p8.kind === 1 && p9.kind === 2 && p10.kind === 0) {
+						let p0p1Bearing = bearing(lineHeavy(p0, p1));
 						let p1p2Bearing = bearing(lineHeavy(p1, p2));
 						let p3p4Bearing = bearing(lineHeavy(p3, p4));
 						let p4p5Bearing = bearing(lineHeavy(p4, p5));
 						let p6p7Bearing = bearing(lineHeavy(p6, p7));
 						let p7p8Bearing = bearing(lineHeavy(p7, p8));
 						let p10p9Bearing = bearing(lineHeavy(p10, p9));
-						let corner1Angle = innerAngle(p3p4Bearing, p4p5Bearing);
-						let corner2Angle = innerAngle(p6p7Bearing, p7p8Bearing);
+						let p11p10Bearing = bearing(lineHeavy(p11, p10));
+						let corner1Angle = angle(p3p4Bearing, p4p5Bearing);
+						let corner2Angle = angle(p6p7Bearing, p7p8Bearing);
 						let combinedAngle = corner1Angle + corner2Angle;
 						let p1p2Distance = distanceHeavy(p1, p2);
 						let p1p4Distance = distanceHeavy(p1, p4);
@@ -827,20 +855,28 @@ function correctGlyphs(font, references) {
 						let hookHeight = originHeavy(p7.y) - originHeavy(p10.y);
 						let yOffset = hookHeight < 75 ? 75 - hookHeight : 0;
 						if (
-							p1p2Bearing.isBetween(85, 95) &&
-							p10p9Bearing.isBetween(85, 95) &&
+							p0p1Bearing.isBetween(85, 110) &&
+							p1p2Bearing.isBetween(85, 110) &&
+							p10p9Bearing.isBetween(85, 110) &&
+							p11p10Bearing.isBetween(85, 110) &&
 							p1p2Distance.isBetween(50, 175) &&
-							p3p4Bearing.isBetween(4, 12) &&
+							p3p4Bearing.isBetween(0, 12) &&
 							corner1Angle.isBetween(-145, -85) &&
 							corner2Angle.isBetween(-75, -25) &&
 							combinedAngle.isBetween(-170, -145) &&
 							p4p7Distance.isBetween(100, 160) &&
 							p1p4Distance.isBetween(185, 320)
 						) {
+							// let p3I = circularIndex(contour, idxP + 2);
 							let p4I = circularIndex(contour, idxP + 3);
 							let p5I = circularIndex(contour, idxP + 4);
 							let p6I = circularIndex(contour, idxP + 5);
 							let p7I = circularIndex(contour, idxP + 6);
+							// newContour[p3I] = {
+							// 	x: makeVariance(originLight(contour[p3I].x), originHeavy(contour[p3I].x) + 20),
+							// 	y: makeVariance(originLight(contour[p3I].y), originHeavy(contour[p3I].y) - 20),
+							// 	kind: contour[p3I].kind,
+							// };
 							newContour[p4I] = {
 								x: makeVariance(originLight(contour[p4I].x), originHeavy(contour[p4I].x)),
 								y: makeVariance(originLight(contour[p4I].y), originHeavy(contour[p7I].y) + yOffset),

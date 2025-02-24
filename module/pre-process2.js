@@ -2,7 +2,7 @@
 
 const { Ot } = require("ot-builder");
 const ProgressBar = require('./node-progress');
-const { angle, base60, bearing, findIntersection, horizontalSlope, numberIsBetween, roundTo, turn, verticalSlope } = require("./util");
+const { base60, bearing, horizontalSlope, roundTo, turn, verticalSlope } = require("./util");
 const { abs, ceil, floor, pow, round, sqrt, trunc } = Math;
 
 const path = require("path");
@@ -31,6 +31,15 @@ function circularIndex(array, index) {
 	var length = array && array.length;
 	var idx = abs(length + index % length) % length;
 	return isNaN(idx) ? index : idx;
+}
+
+function angle(line) {
+	let { p1, p2 } = line;
+	let deg = (Math.atan2((p1.x - p2.x), (p1.y - p2.y)) + Math.PI) * 360 / (2 * Math.PI);
+	if (p2.x < p1.x && p2.y > p1.y) return deg - 360;
+	if (p2.x < p1.x && p2.y < p1.y) return deg - 180;
+	if (deg === 360) return 180;
+	return deg;
 }
 
 // function abs(num) {
@@ -88,18 +97,6 @@ function preProcess(font, references) {
 		let xdh = abs(x2h - x1h);
 		let ydh = abs(y2h - y1h);
 		return sqrt(pow(xdh, 2) + pow(ydh, 2));
-	}
-	
-	function bearingLight(start, end) {
-		let p1 = pointLight(start);
-		let p2 = pointLight(end);
-		return (Math.atan2((p1.x - p2.x), (p1.y - p2.y)) + Math.PI) * 360 / (2 * Math.PI);
-	}
-
-	function bearingHeavy(start, end) {
-		let p1 = pointHeavy(start);
-		let p2 = pointHeavy(end);
-		return (Math.atan2((p1.x - p2.x), (p1.y - p2.y)) + Math.PI) * 360 / (2 * Math.PI);
 	}
 	
 	function canBeRightEnd(bottomRight, topRight) {
@@ -371,13 +368,11 @@ function preProcess(font, references) {
 									y: targetPoint.y,
 									kind: circularArray(contour, idxP1 - 1).kind,
 								};
-								if (circularArray(contour2, idxP2 + 1).kind === 1) {
-									oldContours[idxC2][circularIndex(contour2, idxP2 + 1)] = {
-										x: circularArray(contour, idxP1 + 1).x,
-										y: circularArray(contour, idxP1 + 1).y,
-										kind: circularArray(contour2, idxP2 + 1).kind,
-									};
-								}
+								oldContours[idxC2][circularIndex(contour2, idxP2 + 1)] = {
+									x: circularArray(contour, idxP1 + 1).x,
+									y: circularArray(contour, idxP1 + 1).y,
+									kind: circularArray(contour2, idxP2 + 1).kind,
+								};
 								if (JSON.stringify(contour2[idxP2]) === JSON.stringify(circularArray(contour2, idxP2 - 1))) {
 									oldContours[idxC2][circularIndex(contour2, idxP2 - 1)] = {
 										x: contour[idxP1].x,
@@ -390,10 +385,6 @@ function preProcess(font, references) {
 									y: contour[idxP1].y,
 									kind: contour2[idxP2].kind,
 								};
-								if (name in references.skipRedundantPoints === false) {
-									references.skipRedundantPoints[name] = [];
-								}
-								references.skipRedundantPoints[name].push(idxC1, idxC2);
 								matched = true;
 								break;
 							}
@@ -417,7 +408,10 @@ function preProcess(font, references) {
 				const topRightIdx = nextNode(contour, bottomRightIdx);
 				const topLeftIdx = nextNode(contour, topRightIdx);
 				const bottomLeftIdx = previousNode(contour, bottomRightIdx);
+				// const topLeftIdx = nextNodeIdx(contour, topRightIdx);
+				// const bottomLeftIdx = previousNodeIdx(contour, bottomRightIdx);
 
+				const horizontalAngle = angle(lineLight(circularArray(contour, bottomLeftIdx), circularArray(contour, bottomRightIdx)));
 				const horizontalTopSlope = horizontalSlope(lineLight(circularArray(contour, topLeftIdx), circularArray(contour, topRightIdx)));
 				const horizontalBottomSlope = horizontalSlope(lineLight(circularArray(contour, bottomLeftIdx), circularArray(contour, bottomRightIdx)));
 				if (
@@ -627,94 +621,140 @@ function preProcess(font, references) {
 		
 		glyph.geometry.contours = [];
 		
-		let skipContours = [];
-		if (name in references.skipRedundantPoints) {
-			skipContours = references.skipRedundantPoints[name];
-		}		
-		
-		for (let [idxC1, contour] of oldContours.entries()) {
-			if (contour.length < 10 || skipContours.includes(idxC1)) {
+		for (const [idxC1, contour] of oldContours.entries()) {
+			if (contour.length < 4) {
 				glyph.geometry.contours.push(contour);
 				continue;
 			}
 
-			if (JSON.stringify(contour[0]) === JSON.stringify(circularArray(contour, - 1))) contour.pop()
-			let newContour = [...contour];
-
-			
+			const newContour = [...contour];
+			if (name in references.skipRedundantPoints) {
+				const skipContours = references.skipRedundantPoints[name];
+				if (skipContours.includes(idxC1)) {
+					glyph.geometry.contours.push(contour);
+					continue;
+				}
+			}
+			let corners = [];
 			let redundantPoints = [];
-			
-			for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
-				let p0I = previousNode(contour, idxP1);
-				let p1I = circularIndex(contour, idxP1);
-				let p2I = circularIndex(contour, idxP1 + 1);
-				let p3I = circularIndex(contour, idxP1 + 2);
-				let p4I = circularIndex(contour, idxP1 + 3);
-				let p5I = circularIndex(contour, idxP1 + 4);
-				let p6I = circularIndex(contour, idxP1 + 5);
-				let p7I = circularIndex(contour, idxP1 + 6);
-				let p8I = circularIndex(contour, idxP1 + 7);
-				let p9I = nextNode(contour, p8I);
-				let p0 = contour[p0I];
-				let p1 = contour[p1I];
-				let p2 = contour[p2I];
-				let p3 = contour[p3I];
-				let p4 = contour[p4I]; // corner1
-				let p5 = contour[p5I]; // corner2
-				let p6 = contour[p6I];
-				let p7 = contour[p7I];
-				let p8 = contour[p8I];
-				let p9 = contour[p9I];
-				let b0L = bearingLight(p0, p1);
-				let b1L = bearingLight(p1, p2);
-				let b2L = bearingLight(p2, p3);
-				let b3L = bearingLight(p3, p4);
-				let b4L = bearingLight(p4, p5);
-				let b5L = bearingLight(p5, p6);
-				let b6L = bearingLight(p6, p7);
-				let b7L = bearingLight(p8, p7);
-				let b8L = bearingLight(p9, p8);
-				let b0H = bearingHeavy(p0, p1);
-				let b1H = bearingHeavy(p1, p2);
-				let b2H = bearingHeavy(p2, p3);
-				let b3H = bearingHeavy(p3, p4);
-				let b4H = bearingHeavy(p4, p5);
-				let b5H = bearingHeavy(p5, p6);
-				let b6H = bearingHeavy(p6, p7);
-				let b7H = bearingHeavy(p8, p7);
-				let b8H = bearingHeavy(p9, p8);
-				let kinds = (p0.kind === 2 || p0.kind === 0) && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && p5.kind === 0 && p6.kind === 1 && p7.kind === 2 && p8.kind === 0 && (p9.kind === 1 || p9.kind === 0);
-				if ((kinds && distanceLight(p3, p4) > 0 && distanceLight(p5, p6) > 0 && angle(b3L, b4L).isBetween(-91,-75) && angle(b4L, b5L).isBetween(-90,-75) && abs(turn(b0L, b1L)) < 8 && abs(turn(b8L, b7L)) < 8 && abs(turn(b0L, b8L)) < 8 && angle(b0L, b4L).isBetween(-95,-85)) || (kinds && distanceHeavy(p3, p4) > 0 && distanceHeavy(p5, p6) > 0 && angle(b3H, b4H).isBetween(-91,-75) && angle(b4H, b5H).isBetween(-90,-75) && abs(turn(b0H, b1H)) < 8 && abs(turn(b8H, b7H)) < 8 && abs(turn(b0H, b8H)) < 8 && angle(b0H, b4H).isBetween(-95,-85))) {
-					let c1L = findIntersection([pointLight(p0), pointLight(p1), pointLight(p4), pointLight(p5)]);
-					let c1H = findIntersection([pointHeavy(p0), pointHeavy(p1), pointHeavy(p4), pointHeavy(p5)]);
-					let c2L = findIntersection([pointLight(p9), pointLight(p8), pointLight(p4), pointLight(p5)]);
-					let c2H = findIntersection([pointHeavy(p9), pointHeavy(p8), pointHeavy(p4), pointHeavy(p5)]);
-					newContour[p4I] = {
-						x: makeVariance(c1L.x, c1H.x),
-						y: makeVariance(c1L.y, c1H.y),
-						kind: 0,
-					};
-					newContour[p5I] = {
-						x: makeVariance(c2L.x, c2H.x),
-						y: makeVariance(c2L.y, c2H.y),
-						kind: 0,
-					};
-					let indices = [p1I, p2I, p3I, p6I, p7I, p8I];
-					for (const idx of indices) {
-						if (!redundantPoints.includes(idx)) redundantPoints.push(idx);
+			let maxSlope = 0.09;
+			for (let i = 0; i < contour.length; i++) {
+				let curr = contour[i];
+				if (curr.kind !== 0) continue;
+				let prev = contour[previousNode(contour, i, false)];
+				let next = contour[nextNode(contour, i, false)];
+				let bear1 = bearing(lineLight(prev, curr));
+				let bear2 = bearing(lineLight(curr, next));
+				let rotation = abs(turn(bear1, bear2));
+				if (rotation >= 25 && rotation <= 150 && !corners.includes(i)) corners.push(i);
+			}
+			for (let kIdx = 0; kIdx < corners.length; kIdx++) {
+				let vert = false;
+				let prevIdx = circularArray(corners, kIdx - 1);
+				let startIdx = corners[kIdx];
+				let endIdx = circularArray(corners, kIdx + 1);
+				let prevPoint = circularArray(contour, prevIdx);
+				let startPoint = circularArray(contour, startIdx);
+				let endPoint = circularArray(contour, endIdx);
+				let mainSlope = horizontalSlope(lineLight(startPoint, endPoint));
+				let parentBearing = bearing(lineLight(startPoint, endPoint));
+				let parentLength = distanceLight(startPoint, endPoint);
+				if (abs(mainSlope) > 1) {
+					mainSlope = verticalSlope(lineLight(startPoint, endPoint));
+					vert = true;
+				}
+				let innerPoints = (endIdx - startIdx) - 1;
+				if (innerPoints > 2 && innerPoints < 10) {
+					for (let idx = startIdx; idx < endIdx - 1; idx++) {
+						let p1Idx = circularIndex(contour, idx);
+						let p2Idx = circularIndex(contour, idx + 1);
+						let p3Idx = circularIndex(contour, idx + 2);
+						let p4Idx = circularIndex(contour, idx + 3);
+						let p1 = contour[p1Idx];
+						let p2 = contour[p2Idx];
+						let p3 = contour[p3Idx];
+						let p4 = contour[p4Idx];
+						let segmentLength = distanceLight(p1, p4);
+						let segmentBearing = bearing(lineLight(p1, p4));
+						let control1Bearing = bearing(lineLight(p1, p2));
+						let control2Bearing = bearing(lineLight(p3, p4));
+						let controlVectorBearing = bearing(lineLight(p2, p3));
+						let segD = abs(turn(parentBearing, segmentBearing));
+						let c1D = abs(turn(parentBearing, control1Bearing));
+						let c2D = abs(turn(parentBearing, control2Bearing));
+						let cVD = abs(turn(parentBearing, controlVectorBearing));
+						if (p2.kind === 1 && p3.kind === 2 && p4.kind === 0) {
+							if (segD < 11 && (c1D < 11 || distanceLight(p1, p2) === 0) && (c2D < 11 || distanceLight(p3, p4) === 0) && cVD < 11 && segmentLength < (parentLength / 4)) {
+								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length - 1 && p1Idx > startIdx) redundantPoints.push(p1Idx);
+								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length - 1) redundantPoints.push(p2Idx);
+								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length - 1) redundantPoints.push(p3Idx);
+								if (!redundantPoints.includes(p4Idx) && p4Idx !== 0 && p4Idx < contour.length - 1 && p4Idx < endIdx) redundantPoints.push(p4Idx);
+							}
+							if (segD < 3 && (c1D < 3 || distanceLight(p1, p2) === 0) && (c2D < 3 || distanceLight(p3, p4) === 0) && cVD < 3) {
+								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length - 1 && p1Idx > startIdx) redundantPoints.push(p1Idx);
+								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length - 1) redundantPoints.push(p2Idx);
+								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length - 1) redundantPoints.push(p3Idx);
+								if (!redundantPoints.includes(p4Idx) && p4Idx !== 0 && p4Idx < contour.length - 1 && p4Idx < endIdx) redundantPoints.push(p4Idx);
+							}
+							if (segD < 8 && (c1D < 2 || distanceLight(p1, p2) === 0) && (c2D < 12 || distanceLight(p3, p4) === 0) && cVD < 4 && segmentLength < (parentLength / 3)) {
+								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length - 1 && p1Idx > startIdx) redundantPoints.push(p1Idx);
+								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length - 1) redundantPoints.push(p2Idx);
+								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length - 1) redundantPoints.push(p3Idx);
+								if (!redundantPoints.includes(p4Idx) && p4Idx !== 0 && p4Idx < contour.length - 1 && p4Idx < endIdx) redundantPoints.push(p4Idx);
+							}
+							if (segD < 20 && (c1D < 4 || distanceLight(p1, p2) === 0) && ((c2D < 20 && c2D > 10) || distanceLight(p3, p4) === 0) && cVD < 15 && p4Idx === endIdx && innerPoints > 5) {
+								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length - 1 && p1Idx > startIdx) redundantPoints.push(p1Idx);
+								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length - 1) redundantPoints.push(p2Idx);
+								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length - 1) redundantPoints.push(p3Idx);
+							}
+							if (distanceHeavy(p1, p4) < 100 && (c1D < 30 || distanceLight(p1, p2) === 0) && (c2D < 20 || distanceLight(p3, p4) === 0) && cVD < 15 && p1Idx === startIdx && innerPoints > 5) {
+								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length - 1) redundantPoints.push(p2Idx);
+								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length - 1) redundantPoints.push(p3Idx);
+								if (!redundantPoints.includes(p4Idx) && p4Idx !== 0 && p4Idx < contour.length - 1 && p4Idx < endIdx) redundantPoints.push(p4Idx);
+							}
+							if (segD < 8 && (c1D < 14 || distanceLight(p1, p2) === 0) && (c2D < 2 || distanceLight(p3, p4) === 0) && cVD < 4 && segmentLength < (parentLength / 3)) {
+								if (!redundantPoints.includes(p1Idx) && p1Idx !== 0 && p1Idx < contour.length - 1 && p1Idx > startIdx) redundantPoints.push(p1Idx);
+								if (!redundantPoints.includes(p2Idx) && p2Idx !== 0 && p2Idx < contour.length - 1) redundantPoints.push(p2Idx);
+								if (!redundantPoints.includes(p3Idx) && p3Idx !== 0 && p3Idx < contour.length - 1) redundantPoints.push(p3Idx);
+								if (!redundantPoints.includes(p4Idx) && p4Idx !== 0 && p4Idx < contour.length - 1 && p4Idx < endIdx) redundantPoints.push(p4Idx);
+							}
+						}
+						
 					}
 				}
-				
- 			}
-
+				if (innerPoints === 2) {
+					let c1Idx = circularIndex(contour, startIdx + 1);
+					let c2Idx = circularIndex(contour, startIdx + 2);
+					let c1 = contour[c1Idx];
+					let c2 = contour[c2Idx];
+					let s1 = (vert ? verticalSlope(lineLight(startPoint, c1)) : horizontalSlope(lineLight(startPoint, c1))) || mainSlope;
+					let s2 = (vert ? verticalSlope(lineLight(startPoint, c2)) : horizontalSlope(lineLight(startPoint, c2))) || mainSlope;
+					let s3 = (vert ? verticalSlope(lineLight(c1, c2)) : horizontalSlope(lineLight(c1, c2))) || mainSlope;
+					let d1 = abs(mainSlope - s1);
+					let d2 = abs(mainSlope - s2);
+					let d3 = abs(mainSlope - s3);
+					if (c1.kind === 1 && c2.kind === 2 && d1 < 0.02 && d2 < 0.02 && d3 < 0.02) {
+						if (!redundantPoints.includes(c1Idx) && c1Idx !== 0 && c1Idx < contour.length - 1) redundantPoints.push(c1Idx);
+						if (!redundantPoints.includes(c2Idx) && c2Idx !== 0 && c2Idx < contour.length - 1) redundantPoints.push(c2Idx);
+					}
+				}
+			}
+			// for (let i = 0; i < contour.length; i++) {
+			// 	let curr = contour[i];
+			// 	if (curr.kind !== 0) continue;
+			// 	let prev = contour[previousNode(contour, i, false)];
+			// 	let next = contour[nextNode(contour, i, false)];
+			// 	let bear1 = bearing(lineLight(prev, curr));
+			// 	let bear2 = bearing(lineLight(curr, next));
+			// 	let rotation = abs(turn(bear1, bear2));
+			// 	if (rotation >= 25 && rotation <= 150 && !corners.includes(i)) corners.push(i);
+			// }
 			if (redundantPoints.length > 0) {
-				redundantPoints.sort((a,b) => b - a);
+				redundantPoints.reverse();
 				for (const i of redundantPoints) {
 					newContour.splice(i, 1);
 				}
 			}
-			newContour = [...newContour, newContour[0]];
-			
 			glyph.geometry.contours.push(newContour);
 		}
 	}
@@ -763,8 +803,7 @@ function preProcess(font, references) {
 		// }
 		// console.log(name);
 		progressTick(name);
-		checkSingleGlyph(glyph);
-		// if (!references.extendSkip.includes(name)) checkSingleGlyph(glyph);
+		if (!references.extendSkip.includes(name)) checkSingleGlyph(glyph);
 		// count++;
 		// if (count % 1000 == 0) console.log("preExtension:", count, "glyphs processed.");
 	}
