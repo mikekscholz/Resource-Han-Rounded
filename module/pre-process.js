@@ -33,14 +33,14 @@ function circularIndex(array, index) {
 	return isNaN(idx) ? index : idx;
 }
 
-function isPointOnLine(point, line, tolerance) {
-	const { x0, y0 } = point;
+function isPointOnLine(point, line, tolerance = 0) {
+	const { x, y } = point;
 	const { p1, p2 } = line;
 	const A = p2.y - p1.y;
 	const B = p1.x - p2.x;
 	const C = p2.x * p1.y - p1.x * p2.y;
 
-	const distance = abs(A * x0 + B * y0 + C) / sqrt(A * A + B * B);
+	const distance = abs(A * x + B * y + C) / sqrt(A * A + B * B);
 
 	return distance <= tolerance;
 }
@@ -699,7 +699,7 @@ function preProcess(font, references) {
 
 				if (
 					(kinds && ((distanceLight(p3, p4) > 0 && angle(b3L, b4L).isBetween(-91,-75)) || distanceLight(p3, p4) === 0) && ((distanceLight(p5, p6) > 0 && angle(b4L, b5L).isBetween(-90,-75)) || distanceLight(p5, p6) === 0) && distanceLight(p1, p4) < 200 && distanceLight(p5, p8) < 200  && abs(turn(b0L, b1L)) < 8 && abs(turn(b8L, b7L)) < 8 && abs(turn(b0L, b8L)) < 8 && angle(b0L, b4L).isBetween(-95,-85)) || 
-					(kinds && distanceHeavy(p3, p4) > 0 && distanceHeavy(p5, p6) > 0 && distanceHeavy(p1, p4) < 300 && distanceHeavy(p5, p8) < 300 && angle(b3H, b4H).isBetween(-91,-75) && angle(b4H, b5H).isBetween(-90,-75) && abs(turn(b0H, b1H)) < 8 && abs(turn(b8H, b7H)) < 8 && abs(turn(b0H, b8H)) < 8 && angle(b0H, b4H).isBetween(-95,-85))
+					(kinds && ((distanceHeavy(p3, p4) > 0 && angle(b3H, b4H).isBetween(-91,-75)) || distanceHeavy(p3, p4) === 0) && ((distanceHeavy(p5, p6) > 0 && angle(b4H, b5H).isBetween(-90,-75)) || distanceHeavy(p5, p6) === 0) && distanceHeavy(p1, p4) < 300 && distanceHeavy(p5, p8) < 300 && abs(turn(b0H, b1H)) < 8 && abs(turn(b8H, b7H)) < 8 && abs(turn(b0H, b8H)) < 8 && angle(b0H, b4H).isBetween(-95,-85))
 				) {
 					let c1L = findIntersection([pointLight(p0), pointLight(p1), pointLight(p4), pointLight(p5)]);
 					let c1H = findIntersection([pointHeavy(p0), pointHeavy(p1), pointHeavy(p4), pointHeavy(p5)]);
@@ -719,6 +719,7 @@ function preProcess(font, references) {
 					for (const idx of indices) {
 						if (!redundantPoints.includes(idx)) redundantPoints.push(idx);
 					}
+					continue;
 				}
 
 				let kinds2 = (p0.kind === 2 || p0.kind === 0) && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && p5.kind === 1 && p6.kind === 2 && p7.kind === 0 && (p8.kind === 1 || p8.kind === 0);
@@ -737,6 +738,25 @@ function preProcess(font, references) {
 					for (const idx of indices) {
 						if (!redundantPoints.includes(idx)) redundantPoints.push(idx);
 					}
+					continue;
+				}
+				let kinds3 = (p0.kind === 2 || p0.kind === 0) && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && (p5.kind === 1 || p5.kind === 0);
+				if (
+					(kinds3 && angle(b0L, b4L).isBetween(-95,-80) && isPointOnLine(pointLight(p1), lineLight(p0, p4), 4) && isPointOnLine(pointLight(p2), lineLight(p0, p4), 4)) && 
+					(kinds3 && angle(b0H, b4H).isBetween(-95,-80) && isPointOnLine(pointHeavy(p1), lineHeavy(p0, p4), 8) && isPointOnLine(pointHeavy(p2), lineHeavy(p0, p4), 8))
+				) {
+					let c1L = findIntersection([pointLight(p0), pointLight(p1), pointLight(p4), pointLight(p5)]);
+					let c1H = findIntersection([pointHeavy(p0), pointHeavy(p1), pointHeavy(p4), pointHeavy(p5)]);
+					newContour[p4I] = {
+						x: makeVariance(c1L.x, c1H.x),
+						y: makeVariance(c1L.y, c1H.y),
+						kind: 0,
+					};
+					let indices = [p1I, p2I, p3I];
+					for (const idx of indices) {
+						if (!redundantPoints.includes(idx)) redundantPoints.push(idx);
+					}
+					continue;
 				}
  			}
 
