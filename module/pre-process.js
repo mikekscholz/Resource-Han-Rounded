@@ -33,6 +33,18 @@ function circularIndex(array, index) {
 	return isNaN(idx) ? index : idx;
 }
 
+function isPointOnLine(point, line, tolerance) {
+	const { x0, y0 } = point;
+	const { p1, p2 } = line;
+	const A = p2.y - p1.y;
+	const B = p1.x - p2.x;
+	const C = p2.x * p1.y - p1.x * p2.y;
+
+	const distance = abs(A * x0 + B * y0 + C) / sqrt(A * A + B * B);
+
+	return distance <= tolerance;
+}
+
 // function abs(num) {
 // 	return num >= 0 ? num : -num;
 // }
@@ -684,7 +696,11 @@ function preProcess(font, references) {
 				let b7H = bearingHeavy(p8, p7);
 				let b8H = bearingHeavy(p9, p8);
 				let kinds = (p0.kind === 2 || p0.kind === 0) && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && p5.kind === 0 && p6.kind === 1 && p7.kind === 2 && p8.kind === 0 && (p9.kind === 1 || p9.kind === 0);
-				if ((kinds && distanceLight(p3, p4) > 0 && distanceLight(p5, p6) > 0 && angle(b3L, b4L).isBetween(-91,-75) && angle(b4L, b5L).isBetween(-90,-75) && abs(turn(b0L, b1L)) < 8 && abs(turn(b8L, b7L)) < 8 && abs(turn(b0L, b8L)) < 8 && angle(b0L, b4L).isBetween(-95,-85)) || (kinds && distanceHeavy(p3, p4) > 0 && distanceHeavy(p5, p6) > 0 && angle(b3H, b4H).isBetween(-91,-75) && angle(b4H, b5H).isBetween(-90,-75) && abs(turn(b0H, b1H)) < 8 && abs(turn(b8H, b7H)) < 8 && abs(turn(b0H, b8H)) < 8 && angle(b0H, b4H).isBetween(-95,-85))) {
+
+				if (
+					(kinds && ((distanceLight(p3, p4) > 0 && angle(b3L, b4L).isBetween(-91,-75)) || distanceLight(p3, p4) === 0) && ((distanceLight(p5, p6) > 0 && angle(b4L, b5L).isBetween(-90,-75)) || distanceLight(p5, p6) === 0) && distanceLight(p1, p4) < 200 && distanceLight(p5, p8) < 200  && abs(turn(b0L, b1L)) < 8 && abs(turn(b8L, b7L)) < 8 && abs(turn(b0L, b8L)) < 8 && angle(b0L, b4L).isBetween(-95,-85)) || 
+					(kinds && distanceHeavy(p3, p4) > 0 && distanceHeavy(p5, p6) > 0 && distanceHeavy(p1, p4) < 300 && distanceHeavy(p5, p8) < 300 && angle(b3H, b4H).isBetween(-91,-75) && angle(b4H, b5H).isBetween(-90,-75) && abs(turn(b0H, b1H)) < 8 && abs(turn(b8H, b7H)) < 8 && abs(turn(b0H, b8H)) < 8 && angle(b0H, b4H).isBetween(-95,-85))
+				) {
 					let c1L = findIntersection([pointLight(p0), pointLight(p1), pointLight(p4), pointLight(p5)]);
 					let c1H = findIntersection([pointHeavy(p0), pointHeavy(p1), pointHeavy(p4), pointHeavy(p5)]);
 					let c2L = findIntersection([pointLight(p9), pointLight(p8), pointLight(p4), pointLight(p5)]);
@@ -704,7 +720,24 @@ function preProcess(font, references) {
 						if (!redundantPoints.includes(idx)) redundantPoints.push(idx);
 					}
 				}
-				
+
+				let kinds2 = (p0.kind === 2 || p0.kind === 0) && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && p5.kind === 1 && p6.kind === 2 && p7.kind === 0 && (p8.kind === 1 || p8.kind === 0);
+				if (
+					(kinds2 && distanceLight(p3, p4) > 0 && distanceLight(p4, p5) > 0 && distanceLight(p1, p4) < 200 && distanceLight(p4, p7) < 200 && angle(b3L, b4L).isBetween(-91,-75) && abs(turn(b0L, b1L)) < 8 && abs(turn(bearingLight(p7, p8), b6L)) < 8 && angle(b0L, bearingLight(p7, p8)).isBetween(-95,-85)) || 
+					(kinds2 && distanceHeavy(p3, p4) > 0 && distanceHeavy(p4, p5) > 0 && distanceHeavy(p1, p4) < 300 && distanceHeavy(p4, p7) < 300 && angle(b3H, b4H).isBetween(-91,-75) && abs(turn(b0H, b1H)) < 8 && abs(turn(bearingHeavy(p7, p8), b6H)) < 8 && angle(b0H, bearingHeavy(p7, p8)).isBetween(-95,-85))
+				) {
+					let c1L = findIntersection([pointLight(p0), pointLight(p1), pointLight(p7), pointLight(p8)]);
+					let c1H = findIntersection([pointHeavy(p0), pointHeavy(p1), pointHeavy(p7), pointHeavy(p8)]);
+					newContour[p4I] = {
+						x: makeVariance(c1L.x, c1H.x),
+						y: makeVariance(c1L.y, c1H.y),
+						kind: 0,
+					};
+					let indices = [p1I, p2I, p3I, p5I, p6I, p7I];
+					for (const idx of indices) {
+						if (!redundantPoints.includes(idx)) redundantPoints.push(idx);
+					}
+				}
  			}
 
 			if (redundantPoints.length > 0) {
@@ -712,8 +745,10 @@ function preProcess(font, references) {
 				for (const i of redundantPoints) {
 					newContour.splice(i, 1);
 				}
+				if (newContour[0].kind === 1) newContour.unshift(newContour.pop());
 			}
 			newContour = [...newContour, newContour[0]];
+			if (name === "uni30AD") console.log(newContour);
 			
 			glyph.geometry.contours.push(newContour);
 		}
