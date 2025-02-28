@@ -334,7 +334,7 @@ function preProcess(font, references) {
 			if (contour.length < 4) {
 				continue;
 			}
-
+			if (name === "uni2318") console.log(contour);
 			// fix all 人's starting on midpoint of horizontal line and start on corner
 			if (contour.length === 22) {
 				const tlefty = originLight(contour[1].y);
@@ -655,28 +655,52 @@ function preProcess(font, references) {
 
 			
 			let redundantPoints = [];
+
+			for (let idxP1 = 0; idxP1 < newContour.length; idxP1++) {
+				let p1I = circularIndex(newContour, idxP1);
+				let p2I = circularIndex(newContour, idxP1 + 1);
+				let p3I = circularIndex(newContour, idxP1 + 2);
+				let p1 = newContour[p1I];
+				let p2 = newContour[p2I];
+				let p3 = newContour[p3I];
+				if (p1.kind === 2 && p2.kind === 0 && p3.kind === 1 && distanceLight(p1, p2) === 0 && distanceLight(p1, p3) === 0 && distanceHeavy(p1, p2) === 0 && distanceHeavy(p1, p3) === 0) {
+					let indices = [p1I, p3I];
+					for (const idx of indices) {
+						if (!redundantPoints.includes(idx)) redundantPoints.push(idx);
+					}
+					continue;
+				}
+			}
+
+			if (redundantPoints.length > 0) {
+				redundantPoints.sort((a,b) => b - a);
+				for (const i of redundantPoints) {
+					newContour.splice(i, 1);
+				}
+				redundantPoints = [];
+			}
 			
-			for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
-				let p0I = previousNode(contour, idxP1);
-				let p1I = circularIndex(contour, idxP1);
-				let p2I = circularIndex(contour, idxP1 + 1);
-				let p3I = circularIndex(contour, idxP1 + 2);
-				let p4I = circularIndex(contour, idxP1 + 3);
-				let p5I = circularIndex(contour, idxP1 + 4);
-				let p6I = circularIndex(contour, idxP1 + 5);
-				let p7I = circularIndex(contour, idxP1 + 6);
-				let p8I = circularIndex(contour, idxP1 + 7);
-				let p9I = nextNode(contour, p8I);
-				let p0 = contour[p0I];
-				let p1 = contour[p1I];
-				let p2 = contour[p2I];
-				let p3 = contour[p3I];
-				let p4 = contour[p4I]; // corner1
-				let p5 = contour[p5I]; // corner2
-				let p6 = contour[p6I];
-				let p7 = contour[p7I];
-				let p8 = contour[p8I];
-				let p9 = contour[p9I];
+			for (let idxP1 = 0; idxP1 < newContour.length; idxP1++) {
+				let p0I = previousNode(newContour, idxP1);
+				let p1I = circularIndex(newContour, idxP1);
+				let p2I = circularIndex(newContour, idxP1 + 1);
+				let p3I = circularIndex(newContour, idxP1 + 2);
+				let p4I = circularIndex(newContour, idxP1 + 3);
+				let p5I = circularIndex(newContour, idxP1 + 4);
+				let p6I = circularIndex(newContour, idxP1 + 5);
+				let p7I = circularIndex(newContour, idxP1 + 6);
+				let p8I = circularIndex(newContour, idxP1 + 7);
+				let p9I = nextNode(newContour, p8I);
+				let p0 = newContour[p0I];
+				let p1 = newContour[p1I];
+				let p2 = newContour[p2I];
+				let p3 = newContour[p3I];
+				let p4 = newContour[p4I]; // corner1
+				let p5 = newContour[p5I]; // corner2
+				let p6 = newContour[p6I];
+				let p7 = newContour[p7I];
+				let p8 = newContour[p8I];
+				let p9 = newContour[p9I];
 				let b0L = bearingLight(p0, p1);
 				let b1L = bearingLight(p1, p2);
 				let b2L = bearingLight(p2, p3);
@@ -695,6 +719,8 @@ function preProcess(font, references) {
 				let b6H = bearingHeavy(p6, p7);
 				let b7H = bearingHeavy(p8, p7);
 				let b8H = bearingHeavy(p9, p8);
+
+				// flared stroke end
 				let kinds = (p0.kind === 2 || p0.kind === 0) && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && p5.kind === 0 && p6.kind === 1 && p7.kind === 2 && p8.kind === 0 && (p9.kind === 1 || p9.kind === 0);
 
 				if (
@@ -721,7 +747,7 @@ function preProcess(font, references) {
 					}
 					continue;
 				}
-
+				// flared corner
 				let kinds2 = (p0.kind === 2 || p0.kind === 0) && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && p5.kind === 1 && p6.kind === 2 && p7.kind === 0 && (p8.kind === 1 || p8.kind === 0);
 				if (
 					(kinds2 && distanceLight(p3, p4) > 0 && distanceLight(p4, p5) > 0 && distanceLight(p1, p4) < 200 && distanceLight(p4, p7) < 200 && angle(b3L, b4L).isBetween(-91,-75) && abs(turn(b0L, b1L)) < 8 && abs(turn(bearingLight(p7, p8), b6L)) < 8 && angle(b0L, bearingLight(p7, p8)).isBetween(-95,-85)) || 
@@ -740,10 +766,11 @@ function preProcess(font, references) {
 					}
 					continue;
 				}
+				// leading single corner
 				let kinds3 = (p0.kind === 2 || p0.kind === 0) && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && (p5.kind === 1 || p5.kind === 0);
 				if (
-					(kinds3 && angle(b0L, b4L).isBetween(-95,-80) && isPointOnLine(pointLight(p1), lineLight(p0, p4), 4) && isPointOnLine(pointLight(p2), lineLight(p0, p4), 4)) && 
-					(kinds3 && angle(b0H, b4H).isBetween(-95,-80) && isPointOnLine(pointHeavy(p1), lineHeavy(p0, p4), 8) && isPointOnLine(pointHeavy(p2), lineHeavy(p0, p4), 8))
+					(kinds3 && angle(b0L, b4L).isBetween(-95,-70) && isPointOnLine(pointLight(p1), lineLight(p0, p4), 2) && isPointOnLine(pointLight(p2), lineLight(p0, p4), 2) && isPointOnLine(pointLight(p3), lineLight(p0, p4), 6)) && 
+					(kinds3 && angle(b0H, b4H).isBetween(-95,-70) && isPointOnLine(pointHeavy(p1), lineHeavy(p0, p4), 4) && isPointOnLine(pointHeavy(p2), lineHeavy(p0, p4), 4) && isPointOnLine(pointHeavy(p3), lineHeavy(p0, p4), 8))
 				) {
 					let c1L = findIntersection([pointLight(p0), pointLight(p1), pointLight(p4), pointLight(p5)]);
 					let c1H = findIntersection([pointHeavy(p0), pointHeavy(p1), pointHeavy(p4), pointHeavy(p5)]);
@@ -758,6 +785,25 @@ function preProcess(font, references) {
 					}
 					continue;
 				}
+				// trailing single corner
+				let kinds4 = (p0.kind === 2 || p0.kind === 0) && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && (p5.kind === 1 || p5.kind === 0);
+				if (
+					(kinds3 && angle(b0L, b1L).isBetween(-95,-70) && isPointOnLine(pointLight(p2), lineLight(p1, p5), 8) && isPointOnLine(pointLight(p3), lineLight(p1, p5), 8) && isPointOnLine(pointLight(p4), lineLight(p1, p5), 4)) && 
+					(kinds3 && angle(b0H, b1H).isBetween(-95,-70) && isPointOnLine(pointHeavy(p2), lineHeavy(p1, p5), 8) && isPointOnLine(pointHeavy(p3), lineHeavy(p1, p5), 8) && isPointOnLine(pointHeavy(p4), lineHeavy(p1, p5), 4))
+				) {
+					let c1L = findIntersection([pointLight(p0), pointLight(p1), pointLight(p4), pointLight(p5)]);
+					let c1H = findIntersection([pointHeavy(p0), pointHeavy(p1), pointHeavy(p4), pointHeavy(p5)]);
+					newContour[p1I] = {
+						x: makeVariance(c1L.x, c1H.x),
+						y: makeVariance(c1L.y, c1H.y),
+						kind: 0,
+					};
+					let indices = [p2I, p3I, p4I];
+					for (const idx of indices) {
+						if (!redundantPoints.includes(idx)) redundantPoints.push(idx);
+					}
+					continue;
+				}
  			}
 
 			if (redundantPoints.length > 0) {
@@ -766,9 +812,39 @@ function preProcess(font, references) {
 					newContour.splice(i, 1);
 				}
 				if (newContour[0].kind === 1) newContour.unshift(newContour.pop());
+				redundantPoints = [];
 			}
+
+			for (let idxP1 = 0; idxP1 < newContour.length; idxP1++) {
+				let p1I = circularIndex(newContour, idxP1);
+				let p2I = circularIndex(newContour, idxP1 + 1);
+				let p3I = circularIndex(newContour, idxP1 + 2);
+				let p4I = circularIndex(newContour, idxP1 + 3);
+				let p1 = newContour[p1I];
+				let p2 = newContour[p2I];
+				let p3 = newContour[p3I];
+				let p4 = newContour[p4I];
+				let kinds = p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0;
+				if (
+					(kinds && isPointOnLine(pointLight(p2), lineLight(p1, p4), 1) && isPointOnLine(pointLight(p3), lineLight(p1, p4), 1)) && 
+					(kinds && isPointOnLine(pointHeavy(p2), lineHeavy(p1, p4), 1) && isPointOnLine(pointHeavy(p3), lineHeavy(p1, p4), 1))
+				) {
+					let indices = [p2I, p3I];
+					for (const idx of indices) {
+						if (!redundantPoints.includes(idx)) redundantPoints.push(idx);
+					}
+				}
+			}
+
+			if (redundantPoints.length > 0) {
+				redundantPoints.sort((a,b) => b - a);
+				for (const i of redundantPoints) {
+					newContour.splice(i, 1);
+				}
+			}
+			
 			newContour = [...newContour, newContour[0]];
-			if (name === "uni30AD") console.log(newContour);
+
 			
 			glyph.geometry.contours.push(newContour);
 		}
