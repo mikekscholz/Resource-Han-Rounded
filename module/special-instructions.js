@@ -1,4 +1,5 @@
 const specialInstructions = {
+	preProcessSkip: ["uni2318", "uni23CE", "uni2603"],
 	negativeGlyphs: [
 		"uni1F150","uni1F151","uni1F152","uni1F153","uni1F154","uni1F155","uni1F156","uni1F157","uni1F158","uni1F159","uni1F15A","uni1F15B","uni1F15C","uni1F15D","uni1F15E","uni1F15F","uni1F160","uni1F161","uni1F162","uni1F163","uni1F164","uni1F165","uni1F166","uni1F167","uni1F168","uni1F169","uni1F170","uni1F171","uni1F172","uni1F173","uni1F174","uni1F175","uni1F176","uni1F177","uni1F178","uni1F179","uni1F17A","uni1F17B","uni1F17C","uni1F17D","uni1F17E","uni1F17F","uni1F180","uni1F181","uni1F182","uni1F183","uni1F184","uni1F185","uni1F186","uni1F187","uni1F188","uni1F189","uni1F18B","uni1F18C","uni1F18D","uni1F18E","uni1F18F","uni24EB","uni24EC","uni24ED","uni24EE","uni24EF","uni24F0","uni24F1","uni24F2","uni24F3","uni24F4"
 	],

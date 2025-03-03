@@ -137,7 +137,7 @@ function extendShortStroke(font, references) {
 			originHeavy(topRight.x) - originHeavy(topLeft.x) <= params.strokeWidth.heavy;
 	}
 
-	function isBetween(a, x, b) {
+	function isBetweenPoints(a, x, b) {
 		return (originLight(a) - 2) <= originLight(x) &&
 			originLight(x) <= (originLight(b) + 2) &&
 			(originHeavy(a) - 2) <= originHeavy(x) &&
@@ -237,7 +237,7 @@ function extendShortStroke(font, references) {
 	function canBeStrokeEnd(p1, p2, p3, p4) {
 		let cornerPoints = p2.kind === 0 && p3.kind === 0;
 		let strokeWidthLight = approxEq(distanceLight(p2, p3), params.strokeWidth.light, 20);
-		let strokeWidthHeavy = approxEq(distanceHeavy(p2, p3), params.strokeWidth.heavy, 36);
+		let strokeWidthHeavy = approxEq(distanceHeavy(p2, p3), params.strokeWidth.heavy, 46);
 		let bearingLight1 = bearing(lineLight(p1, p2));
 		let bearingLight2 = bearing(lineLight(p2, p3));
 		let bearingLight3 = bearing(lineLight(p3, p4));
@@ -391,7 +391,7 @@ function extendShortStroke(font, references) {
 				const p3 = circularArray(contour, p3I);
 				const p4 = circularArray(contour, p4I);
 				if (canBeStrokeEnd(p1, p2, p3, p4)) {
-					setCustomRadius(name, idxC1, distanceLight(p2, p3) / 2, distanceHeavy(p2, p3) / 1.8);
+					setCustomRadius(name, idxC1, distanceLight(p2, p3) / 2, distanceHeavy(p2, p3) / 2);
 				}
 			}
 			
@@ -461,10 +461,10 @@ function extendShortStroke(font, references) {
 									//    ┆  ⇨  │
 									// ───┼──┘  │
 									//    │     │
-									isBetween(verticalTopLeft.x, horizontalBottomRight.x, verticalTopRight.x) &&
+									isBetweenPoints(verticalTopLeft.x, horizontalBottomRight.x, verticalTopRight.x) &&
 									(
-										isBetween(verticalBottomLeft.y, horizontalTopRight.y, verticalTopLeft.y) ||
-										isBetween(verticalBottomRight.y, horizontalTopRight.y, verticalTopRight.y)
+										isBetweenPoints(verticalBottomLeft.y, horizontalTopRight.y, verticalTopLeft.y) ||
+										isBetweenPoints(verticalBottomRight.y, horizontalTopRight.y, verticalTopRight.y)
 									) && horizontalAngle > 45 && horizontalAngle < 135 &&
 									(
 										(
@@ -531,8 +531,8 @@ function extendShortStroke(font, references) {
 											kind: 0,
 										};
 									}
-									// extended = true;
-									// break;
+									extended = true;
+									break;
 								}
 							}
 							
@@ -548,10 +548,10 @@ function extendShortStroke(font, references) {
 								const verticalTopLeft = circularArray(contour2, idxP2 - 1);
 								if (
 									// and 横's (horizontal's) right end inside 竖 (vertical)
-									isBetween(verticalBottomLeft.x, horizontalBottomRight.x, verticalTopRight.x) &&
+									isBetweenPoints(verticalBottomLeft.x, horizontalBottomRight.x, verticalTopRight.x) &&
 									(
-										isBetween(verticalBottomLeft.y, horizontalTopRight.y, verticalTopLeft.y) ||
-										isBetween(verticalBottomRight.y, horizontalTopRight.y, verticalTopRight.y)
+										isBetweenPoints(verticalBottomLeft.y, horizontalTopRight.y, verticalTopLeft.y) ||
+										isBetweenPoints(verticalBottomRight.y, horizontalTopRight.y, verticalTopRight.y)
 									) && horizontalAngle > 45 && horizontalAngle < 135 &&
 									(
 										(
@@ -582,8 +582,8 @@ function extendShortStroke(font, references) {
 										y: horizontalBottomRight.y,
 										kind: 0,
 									};
-									// extended = true;
-									// break;
+									extended = true;
+									break;
 								}
 							}
 						}
@@ -650,8 +650,8 @@ function extendShortStroke(font, references) {
 								const horizontalTopRight = circularArray(contour2, horizontalTopRightIdx) || circularArray(contour2, idxP2 - 1);
 								if (
 									// and 竖's (vertical's) bottom inside 横's (horizontal's) left end
-									isBetween(horizontalTopLeft.x, verticalBottomLeft.x, horizontalTopRight.x) &&
-									isBetween(horizontalBottomLeft.y, verticalBottomLeft.y, horizontalTopLeft.y) &&
+									isBetweenPoints(horizontalTopLeft.x, verticalBottomLeft.x, horizontalTopRight.x) &&
+									isBetweenPoints(horizontalBottomLeft.y, verticalBottomLeft.y, horizontalTopLeft.y) &&
 									(
 										(
 											inside(point2GeoJsonLight(verticalBottomLeft), polygonLight) !== false &&
@@ -686,8 +686,8 @@ function extendShortStroke(font, references) {
 										y: makeVariance(originLight(side.y) + yOffsetL, originHeavy(side.y) + yOffsetH),
 										kind: 0,
 									};
-									// extended = true;
-									// break;
+									extended = true;
+									break;
 								}
 							}
 						}
@@ -759,8 +759,8 @@ function extendShortStroke(font, references) {
 									// │  ⇦  ┊   
 									// │  └──┼───
 									// │     │   
-									isBetween(verticalTopLeft.x, horizontalTopLeft.x, verticalTopRight.x) &&
-									isBetween(verticalBottomRight.y, horizontalTopLeft.y, verticalTopRight.y) &&
+									isBetweenPoints(verticalTopLeft.x, horizontalTopLeft.x, verticalTopRight.x) &&
+									isBetweenPoints(verticalBottomRight.y, horizontalTopLeft.y, verticalTopRight.y) &&
 									(
 										(
 											inside(point2GeoJsonLight(horizontalTopLeft), polygonLight) !== false &&
@@ -812,8 +812,8 @@ function extendShortStroke(font, references) {
 								if (!Number.isFinite(verticalLeftSlopeLight) || !Number.isFinite(verticalLeftSlopeHeavy)) continue;
 								if (
 									// and 横's (horizontal's) left end inside 竖 (vertical)
-									isBetween(verticalBottomLeft.x, horizontalBottomLeft.x, verticalBottomRight.x) &&
-									isBetween(verticalBottomRight.y, horizontalBottomLeft.y, verticalTopRight.y) &&
+									isBetweenPoints(verticalBottomLeft.x, horizontalBottomLeft.x, verticalBottomRight.x) &&
+									isBetweenPoints(verticalBottomRight.y, horizontalBottomLeft.y, verticalTopRight.y) &&
 									(
 										(
 											inside(point2GeoJsonLight(horizontalTopLeft), polygonLight) !== false &&
@@ -941,8 +941,8 @@ function extendShortStroke(font, references) {
 									// ├─⇧─┐
 									// ├╌╌╌┤────
 									// │   │
-									isBetween(horizontalTopLeft.x, verticalBottomRight.x, horizontalTopRight.x) &&
-									isBetween(horizontalBottomLeft.y, verticalTopLeft.y, horizontalTopRight.y) &&
+									isBetweenPoints(horizontalTopLeft.x, verticalBottomRight.x, horizontalTopRight.x) &&
+									isBetweenPoints(horizontalBottomLeft.y, verticalTopLeft.y, horizontalTopRight.y) &&
 									(
 										(
 											inside(point2GeoJsonLight(verticalTopRight), polygonLight) !== false &&

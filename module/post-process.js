@@ -718,10 +718,11 @@ function postProcess(font, references) {
 	
 	// let len = references.horizontalLeftFalling.length + references.horizontalLeftFalling2.length + references.horizontalLeftFalling3.length + references.horizontalLeftFalling4.length;
 
+	// let len = 200;
 	let len = progressLength;
 	let consoleWidth = process.stdout.columns || 150
 	let bar = new ProgressBar('\u001b[38;5;82mpostProcessing\u001b[0m [5/6]    :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
-	
+	let count = 0;
 	function progressTick() {
 		if (len) {
 			var chunk = 1;
@@ -732,6 +733,7 @@ function postProcess(font, references) {
 			if (bar.curr === len - 1) { 
 				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
 			}
+			// count++
 		}
 	}
 	// let bar = new ProgressBar('\u001b[38;5;82mpostProcessing\u001b[0m [5/6]    :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
@@ -749,16 +751,9 @@ function postProcess(font, references) {
 	// 	}
 	// }
 
-	let count = 0;
+
 	for (const glyph of font.glyphs.items) {
 		const name = glyph.name;
-		// console.log(name);
-		// if (replacements.includes(name)) {
-		// 	glyph.geometry.contours = JSON.parse(fs.readFileSync(`${__dirname}/../replacements/${name}.json`, 'utf-8'));
-		// 	if (name === "alpha") console.log(JSON.stringify(glyph));
-		// progressTick();
-		// 	continue;
-		// }
 		if (!references.extendSkip.includes(name)) checkSingleGlyph(glyph);
 		// count++;
 		// if (count % 200 == 0) console.log("postProcessing: ", count, " glyphs processed.");

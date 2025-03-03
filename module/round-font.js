@@ -71,7 +71,7 @@ let curGlyph = "";
 	// transform
 	//
 
-	const radius = { min: 18, max: 72, inner: 12 };
+	const radius = { min: 18, max: 72, inner: 10 };
 
 	// extract values of 2 masters.
 	const instanceShsWghtMax = new Map([[dimWght, 1]]);
@@ -419,7 +419,7 @@ let curGlyph = "";
 	function transformContour(contour, name, idxC) {
 		const segments = splitContour(contour);
 		debug && console.log(JSON.stringify(segments));
-		let spec = false, specSgmt;
+		let spec = false;
 		// if (name in invertRadius) {
 		// 	const invertedContours = invertRadius[name];
 		// 	if (invertedContours.includes(segments.length)) {
@@ -467,16 +467,7 @@ let curGlyph = "";
 				if (idxLF === idxC) spec = "leftFalling";
 			}
 		}
-		// if (name in references.horizontalLeftFalling2) {
-		// 	let refs = references.horizontalLeftFalling2[name];
-		// 	for (const ref of refs) {
-		// 		let idxLF = ref.leftFalling;
-		// 		if (idxLF === idxC) {
-		// 			spec = "leftFalling2";
-		// 			specSgmt = ref.leftFallingTopRight;
-		// 		}
-		// 	}
-		// }
+
 		const length = segments.length;
 		const result = [];
 		if (length < 2) // malformed
@@ -492,7 +483,6 @@ let curGlyph = "";
 			// const shsM1Seg = [];
 			const kind = [];
 
-			// if ((spec === "leftFalling" && i > length - 4) || (spec === "leftFalling2" && i === specSgmt)) {
 			if (spec === "leftFalling" && i > length - 4) {
 				m0Seg.push(cur.m0.p1);
 				m1Seg.push(cur.m1.p1);
@@ -526,15 +516,11 @@ let curGlyph = "";
 			const [m0T1, m0T2, m1T1, m1T2] = calculateRadius(prev, cur, next, name, idxC, spec);
 			const m0Coeff = coefficientForm(cur.m0, cur.type);
 			const m1Coeff = coefficientForm(cur.m1, cur.type);
-			debug && console.log("m0T1", m0T1, "m0T2", m0T2, "m1T1", m1T1, "m1T2", m1T2);
-			debug && console.log("m0Coeff", m0Coeff, "m1Coeff", m1Coeff);
 			let m0Sub, m1Sub;
 			if (cur.type == "curve") {
 				m0Sub = subdivide(cur.m0, m0T1, m0T2);
 				m1Sub = subdivide(cur.m1, m1T1, m1T2);
 			}
-			debug && console.log("m0Sub", m0Sub);
-			debug && console.log("m1Sub", m1Sub);
 
 			// handle the first end point and control point
 			// if (m0T1 == 0 && m1T1 == 0) { // almost linear, keep this end point and control point
@@ -557,12 +543,6 @@ let curGlyph = "";
 				const m1NewP1 = pointAt(m1Coeff, m1T1);
 				let m1Radius = distance(cur.m1.p1, m1NewP1);
 				const m1NewT1Direction = normalize(derivativeAt(m1Coeff, m1T1));
-				debug && console.log("m0NewP1", m0NewP1);
-				debug && console.log("m0Radius", m0Radius);
-				debug && console.log("m0NewT1Direction", m0NewT1Direction);
-				debug && console.log("m1NewP1", m1NewP1);
-				debug && console.log("m1Radius", m1Radius);
-				debug && console.log("m1NewT1Direction", m1NewT1Direction);
 				m0Seg.push({ // control point
 					x: m0NewP1.x - 0.6 * m0NewT1Direction.x * m0Radius,
 					y: m0NewP1.y - 0.6 * m0NewT1Direction.y * m0Radius,
@@ -593,7 +573,6 @@ let curGlyph = "";
 					kind.push(Ot.Glyph.PointType.Lead);
 				}
 			// }
-			// if ((spec === "leftFalling" && i === length - 4) || (spec === "leftFalling2" && i === specSgmt)) {
 			if (spec === "leftFalling" && i === length - 4) {
 				if (cur.type == "curve") {
 					m0Seg.push(cur.m0.c2);
@@ -634,12 +613,6 @@ let curGlyph = "";
 				const m1NewP2 = pointAt(m1Coeff, m1T2);
 				 m1Radius = distance(cur.m1.p2, m1NewP2);
 				const m1NewT2Direction = normalize(derivativeAt(m1Coeff, m1T2));
-				debug && console.log("m0NewP2", m0NewP2);
-				debug && console.log("m0Radius", m0Radius);
-				debug && console.log("m0NewT2Direction", m0NewT2Direction);
-				debug && console.log("m1NewP2", m1NewP2);
-				debug && console.log("m1Radius", m1Radius);
-				debug && console.log("m1NewT2Direction", m1NewT2Direction);
 				if (cur.type == "curve") {
 					m0Seg.push(m0Sub.c2);
 					m1Seg.push(m1Sub.c2);
@@ -689,33 +662,33 @@ let curGlyph = "";
 	
 	let len = font.glyphs.items.length;
 	let consoleWidth = process.stdout.columns || 150
-	let bar = new ProgressBar('\u001b[38;5;82mroundingGlyphs\u001b[0m [4/6]    :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
-	// let bar = new ProgressBar('\u001b[38;5;82mroundingGlyphs\u001b[0m [4/6]    :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+	// let bar = new ProgressBar('\u001b[38;5;82mroundingGlyphs\u001b[0m [4/6]    :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+	let bar = new ProgressBar('\u001b[38;5;82mroundingGlyphs\u001b[0m [4/6]    :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
 	
-	function progressTick() {
-		if (len) {
-			var chunk = 1;
-			bar.tick(chunk);
-			if (bar.curr > 0 && bar.curr < len - 2) { 
-				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
-			}
-			if (bar.curr === len - 1) { 
-				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
-			}
-		}
-	}
-	// function progressTick(info = "") {
+	// function progressTick() {
 	// 	if (len) {
 	// 		var chunk = 1;
 	// 		bar.tick(chunk);
 	// 		if (bar.curr > 0 && bar.curr < len - 2) { 
-	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
 	// 		}
 	// 		if (bar.curr === len - 1) { 
-	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
 	// 		}
 	// 	}
 	// }
+	function progressTick(info = "") {
+		if (len) {
+			var chunk = 1;
+			bar.tick(chunk);
+			if (bar.curr > 0 && bar.curr < len - 2) { 
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+			}
+			if (bar.curr === len - 1) { 
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+			}
+		}
+	}
 	
 	let count = 0;
 	for (const glyph of font.glyphs.items) {

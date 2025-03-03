@@ -5,16 +5,7 @@ const ProgressBar = require('./node-progress');
 const { base60, bearing, horizontalSlope, roundTo, turn, verticalSlope } = require("./util");
 const { abs, ceil, floor, max, min, pow, round, sqrt, trunc } = Math;
 const { writeFile, mkdirSync } = require("node:fs");
-const path = require("path");
-const fsp = require("fs/promises");
-// const writeFile = async(filename, data, increment = 0) => {
-// 	const name = `/mnt/c/Users/Michael/${path.basename(filename, path.extname(filename))}${"(" + increment + ")" || ""}${path.extname(filename)}`;
-// 	// const name = `${path.dirname(filename)}/${path.basename(filename, path.extname(filename))}${ increment ? "(" + increment + ")" : ""}${path.extname(filename)}`;
-// 	return await fsp.writeFile(name, data, { encoding: 'utf8', flag: 'wx' }).catch(async ex => {
-// 		if (ex.code === "EEXIST") return await writeFile(filename, data, increment += 1)
-// 		throw ex
-// 	}) || name
-// };
+
 const htmlHeader = /*html*/`
 <!DOCTYPE html>
 <html lang="en">
@@ -718,10 +709,6 @@ function circularIndex(array, index) {
 	return isNaN(idx) ? index : idx;
 }
 
-// function abs(num) {
-// 	return num >= 0 ? num : -num;
-// }
-
 function inspect(font, references, subfamily) {
 	const dimWght = font.fvar.axes[0].dim;
 	const instanceShsWghtMax = new Map([[dimWght, 1]]);
@@ -908,33 +895,33 @@ function inspect(font, references, subfamily) {
 
 	let len = font.glyphs.items.length;
 	let consoleWidth = process.stdout.columns - 10 || 150
-	// let bar = new ProgressBar('\u001b[38;5;82mmakingPreview\u001b[0m [6/6]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete: '\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
-	let bar = new ProgressBar('\u001b[38;5;82mmakingPreview\u001b[0m [1/5]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete: '\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+	let bar = new ProgressBar('\u001b[38;5;82mmakingPreview\u001b[0m [6/6]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete: '\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+	// let bar = new ProgressBar('\u001b[38;5;82mmakingPreview\u001b[0m [6/6]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete: '\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
 
-	function progressTick(info = "") {
-		if (len) {
-			var chunk = 1;
-			bar.tick(chunk);
-			if (bar.curr > 0 && bar.curr < len - 2) {
-				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
-			}
-			if (bar.curr === len - 1) {
-				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
-			}
-		}
-	}
-	// function progressTick() {
+	// function progressTick(info = "") {
 	// 	if (len) {
 	// 		var chunk = 1;
 	// 		bar.tick(chunk);
 	// 		if (bar.curr > 0 && bar.curr < len - 2) {
-	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
+	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
 	// 		}
 	// 		if (bar.curr === len - 1) {
-	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
+	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
 	// 		}
 	// 	}
 	// }
+	function progressTick() {
+		if (len) {
+			var chunk = 1;
+			bar.tick(chunk);
+			if (bar.curr > 0 && bar.curr < len - 2) {
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
+			}
+			if (bar.curr === len - 1) {
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
+			}
+		}
+	}
 
 	let pages = Math.ceil(len / 500);
 	let currentHtml;
@@ -970,7 +957,7 @@ function inspect(font, references, subfamily) {
 				0, range(totalPages - sideWidth + 1, totalPages));
 	}
 	function newHtml() {
-		let pagination = getPageList(pages, page, 10);
+		let pagination = getPageList(pages, page, 12);
 		let navbar = `
 		<div class="nav-bar">
 			<div class="nav-bar-pages">
