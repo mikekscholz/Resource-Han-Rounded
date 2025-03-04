@@ -1083,7 +1083,8 @@ function preProcess(font, references) {
 				newContour.unshift(newContour.pop());
 			}
 			
-			newContour = [...newContour, newContour[0]];
+			if (circularArray(newContour, -1).kind !== 0) newContour = [...newContour, newContour[0]];
+			
 			if (name === "uni2318") console.log(newContour);
 			
 			glyph.geometry.contours.push(newContour);

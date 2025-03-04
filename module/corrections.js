@@ -532,10 +532,10 @@ function correctGlyphs(font, references) {
 			for (let i = 0; i < oldContours.length - 1; i++) {
 				console.log("hangulSios", `${oldContours[i].length} - ${oldContours[i + 1].length}`)
 				if (
-					oldContours[i].length === 11 && oldContours[i + 1].length === 11 &&
+					oldContours[i].length === 10 && oldContours[i + 1].length === 10 &&
 					originHeavy(oldContours[i][0].y) === originHeavy(oldContours[i + 1][0].y) &&
 					originHeavy(oldContours[i + 1][0].x) - originHeavy(oldContours[i][0].x) > 0 &&
-					originHeavy(oldContours[i + 1][0].x) - originHeavy(oldContours[i][0].x) < 60
+					originHeavy(oldContours[i + 1][0].x) - originHeavy(oldContours[i][0].x) <= 60
 				) {
 					const m0x1 = originLight(oldContours[i][0].x);
 					const m0x2 = originLight(oldContours[i + 1][9].x);
@@ -563,11 +563,11 @@ function correctGlyphs(font, references) {
 						y: makeVariance(originLight(oldContours[i][0].y), originHeavy(oldContours[i][0].y)),
 						kind: oldContours[i][0].kind,
 					};
-					oldContours[i][10] = {
-						x: makeVariance(m0x1, m1x1 - m1xc),
-						y: makeVariance(originLight(oldContours[i][0].y), originHeavy(oldContours[i][0].y)),
-						kind: oldContours[i][0].kind,
-					};
+					// oldContours[i][10] = {
+					// 	x: makeVariance(m0x1, m1x1 - m1xc),
+					// 	y: makeVariance(originLight(oldContours[i][0].y), originHeavy(oldContours[i][0].y)),
+					// 	kind: oldContours[i][0].kind,
+					// };
 					oldContours[i][1] = {
 						x: makeVariance(m0x1, m1x1 - m1xc),
 						y: makeVariance(originLight(oldContours[i][1].y) - m0v, originHeavy(oldContours[i][1].y) - m1v),
@@ -598,11 +598,11 @@ function correctGlyphs(font, references) {
 						y: makeVariance(originLight(oldContours[i + 1][0].y), originHeavy(oldContours[i + 1][0].y)),
 						kind: oldContours[i + 1][0].kind,
 					};
-					oldContours[i + 1][10] = {
-						x: makeVariance(m0x1, m1x1 - m1xc),
-						y: makeVariance(originLight(oldContours[i + 1][0].y), originHeavy(oldContours[i + 1][0].y)),
-						kind: oldContours[i + 1][0].kind,
-					};
+					// oldContours[i + 1][10] = {
+					// 	x: makeVariance(m0x1, m1x1 - m1xc),
+					// 	y: makeVariance(originLight(oldContours[i + 1][0].y), originHeavy(oldContours[i + 1][0].y)),
+					// 	kind: oldContours[i + 1][0].kind,
+					// };
 					oldContours[i + 1][1] = {
 						x: makeVariance(m0x1, m1x1 - m1xc),
 						y: makeVariance(originLight(oldContours[i + 1][1].y) - m0v, originHeavy(oldContours[i + 1][1].y) - m1v),
