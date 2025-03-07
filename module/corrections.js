@@ -693,6 +693,11 @@ function correctGlyphs(font, references) {
 							kind: verticalBottomRight.kind,
 						};
 					}
+						verticalTopRight = {
+							x: makeVariance(originLight(verticalTopRight.x), originHeavy(verticalTopRight.x)),
+							y: makeVariance(originLight(verticalTopRight.y), originHeavy(verticalTopRight.y) + 20),
+							kind: verticalTopRight.kind,
+						};
 					let verticalLight = { p1: {x:originLight(verticalTopRight.x), y:originLight(verticalTopRight.y)}, p2: {x:originLight(verticalBottomRight.x), y:originLight(verticalBottomRight.y)} };
 					let verticalHeavy = { p1: {x:originHeavy(verticalTopRight.x), y:originHeavy(verticalTopRight.y)}, p2: {x:originHeavy(verticalBottomRight.x), y:originHeavy(verticalBottomRight.y)} };
 					let topLeftDiffLightX = originLight(verticalTopLeft.x) - originLight(l4.x);
@@ -1950,6 +1955,45 @@ function correctGlyphs(font, references) {
 				};
 				newContour.splice(7,2);
 			}
+
+			// fix ㈤
+			if (glyph.name === "uni21A45" && idxC === 10) {
+				newContour[0] = {
+					x: makeVariance(originLight(contour[0].x), originHeavy(contour[0].x)),
+					y: makeVariance(originLight(contour[0].y), originHeavy(contour[0].y) + 8),
+					kind: contour[0].kind,
+				};
+				newContour[1] = {
+					x: makeVariance(originLight(contour[1].x), originHeavy(contour[1].x)),
+					y: makeVariance(originLight(contour[1].y), originHeavy(contour[1].y) - 14),
+					kind: contour[1].kind,
+				};
+				newContour[2] = {
+					x: makeVariance(originLight(contour[2].x), originHeavy(contour[2].x)),
+					y: makeVariance(originLight(contour[2].y), originHeavy(contour[2].y) - 14),
+					kind: contour[2].kind,
+				};
+				newContour[3] = {
+					x: makeVariance(originLight(contour[3].x), originHeavy(contour[3].x)),
+					y: makeVariance(originLight(contour[3].y), originHeavy(contour[3].y) + 8),
+					kind: contour[3].kind,
+				};
+				setCustomRadius("uni21A45", 10, 15, 48, true);
+			}
+			if (glyph.name === "uni30EDE" && idxC === 57) {
+				newContour[4] = {
+					x: makeVariance(originLight(contour[4].x), originHeavy(contour[4].x) + 40),
+					y: makeVariance(originLight(contour[4].y), originHeavy(contour[4].y)),
+					kind: contour[4].kind,
+				};
+				newContour[5] = {
+					x: makeVariance(originLight(contour[5].x), originHeavy(contour[5].x) + 40),
+					y: makeVariance(originLight(contour[5].y), originHeavy(contour[5].y)),
+					kind: contour[5].kind,
+				};
+				setCustomRadius("uni30EDE", 57, 14.5, 41, true);
+			}
+
 
 			function findExtraTopRightIdx(contour, topRightIdx) {
 				for (let i = 0; i < contour.length; i++) {

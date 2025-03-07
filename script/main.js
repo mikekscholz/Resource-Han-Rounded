@@ -37,12 +37,12 @@ extendShortStroke(font, references);
 correctGlyphs(font, references);
 // console.log(JSON.stringify(references));
 roundFont(font, references);
-postProcess(font, references);
+// postProcess(font, references);
 inspect(font, references, param.subfamily);
 console.log('\u001b[38;5;82mCompiling OpenType font file.\u001b[0m This may take several minutes.');
 buildVFMetaData(font, param);
 writeOtf(font, filename.cff2Vf(param.subfamily), false);
 
-// const string = JSON.stringify(references, null, "\t");
-// const filename2 = `/mnt/c/Users/Michael/${param.subfamily}-references.json`;
-// writeFile(filename2, string);
+const string = JSON.stringify(references, null, "\t");
+const filename2 = `/mnt/c/Users/Michael/${param.subfamily}-references.json`;
+writeFile(filename2, string);
