@@ -612,7 +612,7 @@ function preProcess(font, references) {
 							if (name in references.extendIgnoreContourIdx === false) {
 								references.extendIgnoreContourIdx[name] = [];
 							}
-							references.extendIgnoreContourIdx[name].push(idxC2);
+							references.extendIgnoreContourIdx[name].push(idxC1, idxC2);
 							if (name in references.skipRedundantPoints === false) {
 								references.skipRedundantPoints[name] = [];
 							}

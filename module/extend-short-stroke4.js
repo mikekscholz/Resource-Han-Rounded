@@ -648,65 +648,54 @@ function extendShortStroke(font, references) {
 		let rawPolyHeavy = [];
 		let rawPolyLightCW = [];
 		let rawPolyHeavyCW = [];
-		let cwPolyIdx = [];
 		
 		for (let [idxC1, contour] of oldContours.entries()) {
-			if (skipContours.includes(idxC1)) {
-				rawPolyLight.push("skip");
-				rawPolyHeavy.push("skip");
-				continue;
-			}
 			let polyLight = contour2GeoJsonLight(contour);
 			let polyHeavy = contour2GeoJsonHeavy(contour);
 			if (polyClockwise(polyLight)) {
 				rawPolyLightCW.push(polyLight);
 				rawPolyHeavyCW.push(polyHeavy);
-				rawPolyLight.push("cw");
-				rawPolyHeavy.push("cw");
+				rawPolyLight.push(undefined);
+				rawPolyHeavy.push(undefined);
 				skipContours.push(idxC1);
 			} else {
 				rawPolyLight.push(polyLight);
 				rawPolyHeavy.push(polyHeavy);
+				rawPolyLightCW.push(undefined);
+				rawPolyHeavyCW.push(undefined);
 			}
-			// cwPolyIdx.push(idxC1);
 		}
 		
 		for (let idxN1 = 0; idxN1 < rawPolyLight.length; idxN1++) {
-			if (skipContours.includes(idxN1) || typeof rawPolyLight[idxN1] === "string") {
-				polyGlyphLight.push(undefined);
-				polyGlyphHeavy.push(undefined);
+			if (rawPolyLight[idxN1] === undefined) {
+				polyGlyphLight[idxN1] = undefined;
+				polyGlyphHeavy[idxN1] = undefined;
 				continue;
 			}
 			let polyLight = [];
 			let polyHeavy = [];
-			let matchedCW = [];
 			polyLight.push(rawPolyLight[idxN1]);
 			polyHeavy.push(rawPolyHeavy[idxN1]);
-			if (rawPolyLightCW.length > 0) {
-				for (let [idxN2, polygonCW] of rawPolyLightCW.entries()) {
-					let fail = false;
-					for (let coord of polygonCW) {
-						let test = inside(coord, polyLight);
-						if (test !== true) {
-							fail = true;
-							break;
-						}
-					}
-					if (fail) continue;
-					polyLight.push(rawPolyLightCW[idxN2]);
-					polyHeavy.push(rawPolyHeavyCW[idxN2]);
-					matchedCW.push(idxN2);
-				}
-				if (matchedCW.length > 0) {
-					matchedCW.reverse();
-					for (let idxN3 of matchedCW) {
-						rawPolyLightCW.splice(idxN3, 1);
-						rawPolyHeavyCW.splice(idxN3, 1);
+			for (let [idxN2, polygonCW] of rawPolyLightCW.entries()) {
+				if (polygonCW === undefined) continue;
+				let fail = false;
+				for (let coord of polygonCW) {
+					let test = inside(coord, polyLight);
+					if (test !== true) {
+						fail = true;
+						break;
 					}
 				}
+				if (fail) continue;
+				polyLight.push(rawPolyLightCW[idxN2]);
+				polyHeavy.push(rawPolyHeavyCW[idxN2]);
+				polyGlyphLight[idxN2] = idxN1;
+				polyGlyphHeavy[idxN2] = idxN1;
+				rawPolyLightCW[idxN2] = undefined;
+				rawPolyHeavyCW[idxN2] = undefined;
 			}
-			polyGlyphLight.push(polyLight);
-			polyGlyphHeavy.push(polyHeavy);
+			polyGlyphLight[idxN1] = polyLight;
+			polyGlyphHeavy[idxN1] = polyHeavy;
 		}
 		
 		for (let [idxC1, contour] of oldContours.entries()) {

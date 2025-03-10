@@ -146,15 +146,17 @@ function midpoint(p1, p2) {
  * @returns {boolean}
  */
 const isBetween = (function () {
-	Object.defineProperty(Number.prototype, "isBetween", {
-		value: function (a, b) {
-			if (b < a) {
-				return b <= this.valueOf() && this.valueOf() <= a;
-			} else {
-				return a <= this.valueOf() && this.valueOf() <= b;
+	if (!Object.hasOwn(Number.prototype, "isBetween")) {
+		Object.defineProperty(Number.prototype, "isBetween", {
+			value: function (a, b) {
+				if (b < a) {
+					return b <= this.valueOf() && this.valueOf() <= a;
+				} else {
+					return a <= this.valueOf() && this.valueOf() <= b;
+				}
 			}
-		}
-	});
+		});
+	}
 })();
 
 module.exports = {

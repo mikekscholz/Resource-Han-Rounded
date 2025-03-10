@@ -423,18 +423,20 @@ function correctGlyphs(font, references) {
 		return valueFactory.create(valueDefault, [[masterWghtMax, valueWghtMax - valueDefault]]);
 	}
 	
-	function setCustomRadius(glyphName, contourIdx, radiusMin, radiusMax, force = false) {
+	function setCustomRadius(glyphName, idx, radiusMin, radiusMax, force = false) {
+		let light = parseFloat(radiusMin.toFixed(1));
+		let heavy = parseFloat(radiusMax.toFixed(1));
 		if (glyphName in references.customRadiusList === false) {
 			references.customRadiusList[glyphName] = [];
 		}
 		let refArray = references.customRadiusList[glyphName];
-		let objIndex = refArray.findIndex((obj) => obj["idx"] === contourIdx);
+		let objIndex = refArray.findIndex((obj) => obj["idx"] === idx);
 		if (objIndex === -1) {
-			refArray.push({light: radiusMin, heavy: radiusMax, idx: contourIdx});
+			refArray.push({light, heavy, idx});
 		} else {
 			let ref = refArray[objIndex];
-			if (radiusMin > ref.light || force) ref.light = radiusMin;
-			if (radiusMax > ref.heavy || force) ref.heavy = radiusMax;
+			if (light > ref.light || force) ref.light = light;
+			if (heavy > ref.heavy || force) ref.heavy = heavy;
 		}
 	}
 	
@@ -530,7 +532,6 @@ function correctGlyphs(font, references) {
 		
 		if (hangulSios.includes(glyph.name)) {
 			for (let i = 0; i < oldContours.length - 1; i++) {
-				console.log("hangulSios", `${oldContours[i].length} - ${oldContours[i + 1].length}`)
 				if (
 					oldContours[i].length === 10 && oldContours[i + 1].length === 10 &&
 					originHeavy(oldContours[i][0].y) === originHeavy(oldContours[i + 1][0].y) &&
@@ -882,7 +883,7 @@ function correctGlyphs(font, references) {
 			// fix upward right hooks
 			if (contour.length > 12) {
 				for (let idxP = 0; idxP < contour.length; idxP++) {
-					let p0 = circularArray(contour, idxP - 1);
+					let p0 = circularArray(contour, previousNode(contour, idxP));
 					let p1 = circularArray(contour, idxP);
 					let p2 = circularArray(contour, idxP + 1);
 					let p3 = circularArray(contour, idxP + 2);
@@ -910,19 +911,20 @@ function correctGlyphs(font, references) {
 						let p1p4Distance = distanceHeavy(p1, p4);
 						let p4p7Distance = distanceHeavy(p4, p7);
 						let hookHeight = originHeavy(p7.y) - originHeavy(p10.y);
-						let yOffset = hookHeight < 75 ? 75 - hookHeight : 0;
+						let minHeight = abs(originHeavy(p4.x) - originHeavy(p7.x)) * 0.66;
+						let yOffset = hookHeight < minHeight ? minHeight - hookHeight : 0;
 						if (
 							p0p1Bearing.isBetween(85, 110) &&
 							p1p2Bearing.isBetween(85, 110) &&
 							p10p9Bearing.isBetween(85, 110) &&
 							p11p10Bearing.isBetween(85, 110) &&
-							p1p2Distance.isBetween(50, 175) &&
+							p1p2Distance.isBetween(25, 175) &&
 							p3p4Bearing.isBetween(0, 12) &&
 							corner1Angle.isBetween(-145, -85) &&
 							corner2Angle.isBetween(-75, -25) &&
 							combinedAngle.isBetween(-170, -145) &&
-							p4p7Distance.isBetween(100, 160) &&
-							p1p4Distance.isBetween(185, 320)
+							p4p7Distance.isBetween(60, 160) &&
+							p1p4Distance.isBetween(80, 320)
 						) {
 							// let p3I = circularIndex(contour, idxP + 2);
 							let p4I = circularIndex(contour, idxP + 3);
