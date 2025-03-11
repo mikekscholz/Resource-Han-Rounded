@@ -453,8 +453,8 @@ function extendShortStroke(font, references) {
 					strokeEnds.push([p2,p3]);
 				}
 			}
-			
-			if (strokeEnds.length === 2 && !skipContours.includes(idxC1)) {
+			let corners = contour.filter((point) => point.kind === 0);
+			if (strokeEnds.length === 2 && corners.length.isBetween(4,5) && !skipContours.includes(idxC1)) {
 				let endsHidden = false;
 				for (const end of strokeEnds) {
 					const [ p1, p2 ] = end;
@@ -574,8 +574,8 @@ function extendShortStroke(font, references) {
 									let horizontalRightCenterYHeavy = (originHeavy(horizontalTopRight.y) + originHeavy(horizontalBottomRight.y)) / 2;
 									let distanceLight = originLight(verticalTopRight.y) - horizontalRightCenterYLight;
 									let distanceHeavy = originHeavy(verticalTopRight.y) - horizontalRightCenterYHeavy;
-									let xOffsetL = (distanceLight * verticalRightSlopeLight) + (verticalRightSlopeLight === 0 ? 2 : 6);
-									let xOffsetH = (distanceHeavy * verticalRightSlopeHeavy) + 4;
+									let xOffsetL = (distanceLight * verticalRightSlopeLight) + (verticalRightSlopeLight === 0 ? 4 : 6);
+									let xOffsetH = (distanceHeavy * verticalRightSlopeHeavy) + 20;
 									let topDistance = abs(horizontalRightCenterYLight - originLight(verticalTopRight.y));
 									let bottomDistance = abs(horizontalRightCenterYLight - originLight(verticalBottomRight.y));
 									let side = topDistance < bottomDistance ? isCorner ? verticalTopRight : verticalTopRight : isCorner ? verticalBottomRight : verticalTopRight;
@@ -652,7 +652,7 @@ function extendShortStroke(font, references) {
 										)
 									)
 								) {
-									let isCorner = (approxEq(horizontalTopRight.y, verticalTopRight.y, 30) || approxEq(horizontalBottomRight.y, verticalBottomRight.y, 30));
+									let isCorner = (approxEq(horizontalTopRight.y, verticalTopRight.y, 5) || approxEq(horizontalBottomRight.y, verticalBottomRight.y, 5));
 									let xOffsetL = isCorner ? 0 : 4;
 									let xOffsetH = isCorner ? 0 : 20;
 									newContour[topRightIdx] = {
@@ -883,7 +883,7 @@ function extendShortStroke(font, references) {
 
 						let polygonLight = polyGlyphLight[idxC2];
 						let polygonHeavy = polyGlyphHeavy[idxC2];
-
+						let extended = false;
 						for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
 							if (
 								// is top end
@@ -937,6 +937,8 @@ function extendShortStroke(font, references) {
 										y: horizontalBottomLeft.y,
 										kind: 0,
 									};
+									extended = true;
+									break;
 								}
 							}
 							if (
@@ -1004,6 +1006,8 @@ function extendShortStroke(font, references) {
 											),
 											kind: 0,
 										};
+										extended = true;
+										break;
 									} else {
 										newContour[topLeftIdx] = {
 											x: makeVariance(
@@ -1021,9 +1025,13 @@ function extendShortStroke(font, references) {
 											y: horizontalBottomLeft.y,
 											kind: 0,
 										};
+										extended = true;
+										break;
 									}
 								}
 							}
+							if (extended)
+							break;
 						}
 					}
 				}
@@ -1127,6 +1135,8 @@ function extendShortStroke(font, references) {
 										),
 										kind: 0,
 									};
+									extended = true;
+									break;
 								}
 							}
 							if (
@@ -1186,6 +1196,8 @@ function extendShortStroke(font, references) {
 										),
 										kind: 0,
 									};
+									extended = true;
+									break;
 								}
 							}
 						}
