@@ -620,8 +620,8 @@ function extendShortStroke(font, references) {
 											kind: 0,
 										};
 									}
-									extended = true;
-									break;
+									// extended = true;
+									// break;
 								}
 							}
 							
@@ -671,8 +671,8 @@ function extendShortStroke(font, references) {
 										y: horizontalBottomRight.y,
 										kind: 0,
 									};
-									extended = true;
-									break;
+									// extended = true;
+									// break;
 								}
 							}
 						}
@@ -777,8 +777,8 @@ function extendShortStroke(font, references) {
 										y: makeVariance(originLight(side.y) + yOffsetL, originHeavy(side.y) + yOffsetH),
 										kind: 0,
 									};
-									extended = true;
-									break;
+									// extended = true;
+									// break;
 								}
 							}
 							if (
@@ -833,8 +833,8 @@ function extendShortStroke(font, references) {
 										y: makeVariance(originLight(side.y) + yOffsetL, originHeavy(side.y) + yOffsetH),
 										kind: 0,
 									};
-									extended = true;
-									break;
+									// extended = true;
+									// break;
 								}
 							}
 						}
@@ -937,8 +937,8 @@ function extendShortStroke(font, references) {
 										y: horizontalBottomLeft.y,
 										kind: 0,
 									};
-									extended = true;
-									break;
+									// extended = true;
+									// break;
 								}
 							}
 							if (
@@ -949,11 +949,11 @@ function extendShortStroke(font, references) {
 							) {
 								const verticalBottomLeft = contour2[idxP2];
 								const verticalBottomRight = circularArray(contour2, nextNode(contour2, idxP2));
-								// const verticalTopRight = nextNode(contour2, idxP2 + 1);
-								// const verticalTopLeft = previousNode(contour2, idxP2);
+								const verticalTopRight = contour2[nextNode(contour2, idxP2 + 1)];
+								const verticalTopLeft = contour2[previousNode(contour2, idxP2)];
 
-								const verticalTopRight = circularArray(contour2, findTopRightCorner(contour2)) || circularArray(contour2, idxP2 + 2);
-								const verticalTopLeft = circularArray(contour2, findTopLeftCorner(contour2)) || circularArray(contour2, previousNode(contour2, idxP2));
+								// const verticalTopRight = circularArray(contour2, findTopRightCorner(contour2)) || circularArray(contour2, idxP2 + 2);
+								// const verticalTopLeft = circularArray(contour2, findTopLeftCorner(contour2)) || circularArray(contour2, previousNode(contour2, idxP2));
 								// const verticalTopRight = circularArray(contour2, idxP2 + 2);
 								// const verticalTopLeft = circularArray(contour2, idxP2 - 1);
 								const verticalLeftSlopeLight = verticalSlope(lineLight(verticalBottomLeft, verticalTopLeft));
@@ -1006,8 +1006,8 @@ function extendShortStroke(font, references) {
 											),
 											kind: 0,
 										};
-										extended = true;
-										break;
+										// extended = true;
+										// break;
 									} else {
 										newContour[topLeftIdx] = {
 											x: makeVariance(
@@ -1025,8 +1025,8 @@ function extendShortStroke(font, references) {
 											y: horizontalBottomLeft.y,
 											kind: 0,
 										};
-										extended = true;
-										break;
+										// extended = true;
+										// break;
 									}
 								}
 							}
@@ -1135,8 +1135,8 @@ function extendShortStroke(font, references) {
 										),
 										kind: 0,
 									};
-									extended = true;
-									break;
+									// extended = true;
+									// break;
 								}
 							}
 							if (
@@ -1196,8 +1196,8 @@ function extendShortStroke(font, references) {
 										),
 										kind: 0,
 									};
-									extended = true;
-									break;
+									// extended = true;
+									// break;
 								}
 							}
 						}
