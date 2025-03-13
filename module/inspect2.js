@@ -4,7 +4,7 @@ const { Ot } = require("ot-builder");
 const ProgressBar = require('./node-progress');
 const { base60, bearing, horizontalSlope, roundTo, turn, verticalSlope } = require("./util");
 const { abs, ceil, floor, max, min, pow, round, sqrt, trunc } = Math;
-const { writeFile, mkdirSync } = require("node:fs");
+const { writeFileSync, mkdirSync } = require("node:fs");
 
 const htmlHeader = /*html*/`
 <!DOCTYPE html>
@@ -1494,10 +1494,7 @@ function inspect(font, references, subfamily) {
 			let outputDir = `/mnt/c/Users/Michael/ResourceHanRounded/Inspect-${subfamily}`;
 			mkdirSync(outputDir, { recursive: true });
 			let filename = `${outputDir}/page-${page}.html`;
-			writeFile(filename, currentHtml, (err) => {
-				if (err) throw err;
-				// console.log('The file has been saved!');
-			});
+			writeFileSync(filename, currentHtml, { flush: true });
 			// writeFile(filename, htmlHeader);
 			page++
 			newHtml();

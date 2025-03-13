@@ -918,7 +918,7 @@ function extendShortStroke(font, references) {
 										)
 									)
 								) {
-									let isCorner = (abs(originLight(horizontalTopLeft.y) - originLight(verticalTopLeft.y)) < 30) || (abs(originLight(horizontalBottomLeft.y) - originLight(verticalBottomLeft.y)) < 30);
+									let isCorner = (abs(originLight(horizontalTopLeft.y) - originLight(verticalTopLeft.y)) < 5) || (abs(originLight(horizontalBottomLeft.y) - originLight(verticalBottomLeft.y)) < 5);
 									let xOffsetL = isCorner ? 0 : 4;
 									let xOffsetH = isCorner ? 0 : 20;
 									newContour[topLeftIdx] = {
@@ -973,7 +973,7 @@ function extendShortStroke(font, references) {
 										)
 									)
 								) {
-									let isCorner = (abs(originLight(horizontalTopLeft.y) - originLight(verticalTopLeft.y)) < 5) || (abs(originLight(horizontalBottomLeft.y) - originLight(verticalBottomLeft.y)) < 5);
+									let isCorner = (abs(originLight(horizontalTopLeft.y) - originLight(verticalTopLeft.y)) < 2) || (abs(originLight(horizontalBottomLeft.y) - originLight(verticalBottomLeft.y)) < 2);
 									let horizontalLeftCenterYLight = (originLight(horizontalTopLeft.y) + originLight(horizontalBottomLeft.y)) / 2;
 									let horizontalLeftCenterYHeavy = (originHeavy(horizontalTopLeft.y) + originHeavy(horizontalBottomLeft.y)) / 2;
 									let distanceLight = horizontalLeftCenterYLight - originLight(verticalBottomLeft.y);
