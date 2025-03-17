@@ -242,12 +242,12 @@ function extendShortStroke(font, references) {
 		let bearingLight2 = bearing(lineLight(p2, p3));
 		let bearingLight3 = bearing(lineLight(p3, p4));
 		let anglesLight = angle(bearingLight1, bearingLight2) + angle(bearingLight2, bearingLight3);
-		let trapezoidalLight = anglesLight > -190 && anglesLight < -170;
+		let trapezoidalLight = anglesLight > -195 && anglesLight < -165;
 		let bearingHeavy1 = bearing(lineHeavy(p1, p2));
 		let bearingHeavy2 = bearing(lineHeavy(p2, p3));
 		let bearingHeavy3 = bearing(lineHeavy(p3, p4));
 		let anglesHeavy = angle(bearingHeavy1, bearingHeavy2) + angle(bearingHeavy2, bearingHeavy3);
-		let trapezoidalHeavy = anglesHeavy > -190 && anglesHeavy < -170;
+		let trapezoidalHeavy = anglesHeavy > -195 && anglesHeavy < -165;
 		return (cornerPoints && strokeWidthLight && strokeWidthHeavy && trapezoidalLight && trapezoidalHeavy);
 	}
 
@@ -435,7 +435,7 @@ function extendShortStroke(font, references) {
 		}
 		
 		for (let [idxC1, contour] of oldContours.entries()) {
-			// NOTE - Compute each contours radius for better rounding
+			// NOTE - Compute each contour's radius for improved rounding
 			let strokeEnds = [];
 			for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
 				const p1I = previousNode(contour, idxP1);
@@ -449,7 +449,6 @@ function extendShortStroke(font, references) {
 				const p4 = circularArray(contour, p4I);
 				if (canBeStrokeEnd(p1, p2, p3, p4)) {
 					setCustomRadius(name, idxC1, distanceLight(p2, p3) / 2, distanceHeavy(p2, p3) / 2);
-					// if (strokeEnds?.[0]?.[0] !== p2 && strokeEnds?.[0]?.[1] !== p3) strokeEnds.push([p2,p3]);
 					strokeEnds.push([p2,p3]);
 				}
 			}
@@ -575,10 +574,11 @@ function extendShortStroke(font, references) {
 									let distanceLight = originLight(verticalTopRight.y) - horizontalRightCenterYLight;
 									let distanceHeavy = originHeavy(verticalTopRight.y) - horizontalRightCenterYHeavy;
 									let xOffsetL = (distanceLight * verticalRightSlopeLight) + (verticalRightSlopeLight === 0 ? 4 : 6);
-									let xOffsetH = (distanceHeavy * verticalRightSlopeHeavy) + 20;
+									let xOffsetH = (distanceHeavy * verticalRightSlopeHeavy) + 24;
 									let topDistance = abs(horizontalRightCenterYLight - originLight(verticalTopRight.y));
 									let bottomDistance = abs(horizontalRightCenterYLight - originLight(verticalBottomRight.y));
-									let side = topDistance < bottomDistance ? isCorner ? verticalTopRight : verticalTopRight : isCorner ? verticalBottomRight : verticalTopRight;
+									// let side = topDistance < bottomDistance ? isCorner ? verticalTopRight : verticalTopRight : isCorner ? verticalBottomRight : verticalTopRight;
+									let side = isCorner ? topDistance < bottomDistance ? verticalTopRight : verticalBottomRight : verticalTopRight;
 									if (abs(originLight(horizontalTopRight.y) - originLight(verticalTopRight.y)) < 2) {
 										newContour[topRightIdx] = {
 											x: makeVariance(
@@ -654,7 +654,7 @@ function extendShortStroke(font, references) {
 								) {
 									let isCorner = (approxEq(horizontalTopRight.y, verticalTopRight.y, 5) || approxEq(horizontalBottomRight.y, verticalBottomRight.y, 5));
 									let xOffsetL = isCorner ? 0 : 4;
-									let xOffsetH = isCorner ? 0 : 20;
+									let xOffsetH = isCorner ? 0 : 24;
 									newContour[topRightIdx] = {
 										x: makeVariance(
 											originLight(verticalBottomRight.x) - xOffsetL,
@@ -765,7 +765,7 @@ function extendShortStroke(font, references) {
 									let yOffsetH = isCorner ? 0 : (distanceHeavy * horizontalBottomSlopeHeavy) + 30;
 									let rightDistance = abs(verticalBottomCenterXLight - originLight(horizontalBottomRight.x));
 									let leftDistance = abs(verticalBottomCenterXLight - originLight(horizontalBottomLeft.x));
-									let side = rightDistance < leftDistance ? isCorner ? horizontalBottomRight : horizontalBottomLeft : isCorner ? horizontalBottomLeft : horizontalBottomLeft;
+									let side = isCorner ? rightDistance < leftDistance ? horizontalBottomRight : horizontalBottomLeft : horizontalBottomLeft;
 									
 									newContour[bottomLeftIdx] = {
 										x: verticalBottomLeft.x,
@@ -796,7 +796,7 @@ function extendShortStroke(font, references) {
 								const horizontalTopLeft = circularArray(contour2, idxP2 + 2);
 								const horizontalBottomLeft =  circularArray(contour2, idxP2 - 1);
 								if (
-									// and 竖's (vertical's) bottom inside 横's (horizontal's) left end
+									// and 竖's (vertical's) bottom inside 横's (horizontal's) right end
 									isBetweenPoints(horizontalTopLeft.x, verticalBottomLeft.x, horizontalTopRight.x) &&
 									isBetweenPoints(horizontalBottomLeft.y, verticalBottomLeft.y, horizontalTopLeft.y) &&
 									(
@@ -821,7 +821,7 @@ function extendShortStroke(font, references) {
 									let yOffsetH = isCorner ? 0 : (distanceHeavy * horizontalBottomSlopeHeavy) + 30;
 									let rightDistance = abs(verticalBottomCenterXLight - originLight(horizontalBottomRight.x));
 									let leftDistance = abs(verticalBottomCenterXLight - originLight(horizontalBottomLeft.x));
-									let side = rightDistance < leftDistance ? isCorner ? horizontalBottomRight : horizontalBottomLeft : isCorner ? horizontalBottomLeft : horizontalBottomLeft;
+									let side = isCorner ? rightDistance < leftDistance ? horizontalBottomRight : horizontalBottomLeft : horizontalBottomLeft;
 									
 									newContour[bottomLeftIdx] = {
 										x: verticalBottomLeft.x,
@@ -920,7 +920,7 @@ function extendShortStroke(font, references) {
 								) {
 									let isCorner = (abs(originLight(horizontalTopLeft.y) - originLight(verticalTopLeft.y)) < 5) || (abs(originLight(horizontalBottomLeft.y) - originLight(verticalBottomLeft.y)) < 5);
 									let xOffsetL = isCorner ? 0 : 4;
-									let xOffsetH = isCorner ? 0 : 20;
+									let xOffsetH = isCorner ? 0 : 24;
 									newContour[topLeftIdx] = {
 										x: makeVariance(
 											originLight(verticalTopLeft.x) + xOffsetL,
@@ -978,11 +978,11 @@ function extendShortStroke(font, references) {
 									let horizontalLeftCenterYHeavy = (originHeavy(horizontalTopLeft.y) + originHeavy(horizontalBottomLeft.y)) / 2;
 									let distanceLight = horizontalLeftCenterYLight - originLight(verticalBottomLeft.y);
 									let distanceHeavy = horizontalLeftCenterYHeavy - originHeavy(verticalBottomLeft.y);
-									let xOffsetL = (distanceLight * verticalLeftSlopeLight) + (verticalLeftSlopeLight === 0 ? 2 : 4);
-									let xOffsetH = (distanceHeavy * verticalLeftSlopeHeavy) + 20;
+									let xOffsetL = (distanceLight * verticalLeftSlopeLight) + (verticalLeftSlopeLight === 0 ? 4 : 6);
+									let xOffsetH = (distanceHeavy * verticalLeftSlopeHeavy) + 24;
 									let topDistance = abs(horizontalLeftCenterYLight - originLight(verticalTopLeft.y));
 									let bottomDistance = abs(horizontalLeftCenterYLight - originLight(verticalBottomLeft.y));
-									let side = topDistance < bottomDistance ? isCorner ? verticalTopLeft : verticalBottomLeft : isCorner ? verticalBottomLeft : verticalBottomLeft;
+									let side = isCorner ? topDistance < bottomDistance ? verticalTopLeft : verticalBottomLeft : verticalBottomLeft;
 									if (abs(originLight(horizontalBottomLeft.y) - originLight(verticalBottomLeft.y)) < 2) {
 										newContour[bottomLeftIdx] = {
 											x: makeVariance(

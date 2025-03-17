@@ -911,33 +911,59 @@ function correctGlyphs(font, references) {
 						let p1p4Distance = distanceHeavy(p1, p4);
 						let p4p7Distance = distanceHeavy(p4, p7);
 						let hookHeight = originHeavy(p7.y) - originHeavy(p10.y);
-						let minHeight = abs(originHeavy(p4.x) - originHeavy(p7.x)) * 0.66;
+						let hookWidth = originHeavy(p4.x) - originHeavy(p7.x);
+						let strokeWidth = originHeavy(p10.y) - originHeavy(p1.y);
+						let minHeight = max(strokeWidth, hookWidth) * 0.75;
 						let yOffset = hookHeight < minHeight ? minHeight - hookHeight : 0;
+						let xOffset = hookWidth < strokeWidth ? strokeWidth - hookWidth : 0
 						if (
+							hookHeight > 10 &&
 							p0p1Bearing.isBetween(85, 110) &&
 							p1p2Bearing.isBetween(85, 110) &&
 							p10p9Bearing.isBetween(85, 110) &&
 							p11p10Bearing.isBetween(85, 110) &&
-							p1p2Distance.isBetween(25, 175) &&
-							p3p4Bearing.isBetween(0, 12) &&
+							p1p2Distance.isBetween(25, 200) &&
+							p3p4Bearing.isBetween(0, 15) &&
 							corner1Angle.isBetween(-145, -85) &&
 							corner2Angle.isBetween(-75, -25) &&
 							combinedAngle.isBetween(-170, -145) &&
 							p4p7Distance.isBetween(60, 160) &&
-							p1p4Distance.isBetween(80, 320)
+							p1p4Distance.isBetween(80, 330)
 						) {
-							// let p3I = circularIndex(contour, idxP + 2);
+							let p0I = previousNode(contour, idxP);
+							let p1I = circularIndex(contour, idxP);
+							let p2I = circularIndex(contour, idxP + 1);
+							let p3I = circularIndex(contour, idxP + 2);
 							let p4I = circularIndex(contour, idxP + 3);
 							let p5I = circularIndex(contour, idxP + 4);
 							let p6I = circularIndex(contour, idxP + 5);
 							let p7I = circularIndex(contour, idxP + 6);
-							// newContour[p3I] = {
-							// 	x: makeVariance(originLight(contour[p3I].x), originHeavy(contour[p3I].x) + 20),
-							// 	y: makeVariance(originLight(contour[p3I].y), originHeavy(contour[p3I].y) - 20),
-							// 	kind: contour[p3I].kind,
-							// };
+							let p8I = circularIndex(contour, idxP + 7);
+							let p9I = circularIndex(contour, idxP + 8);
+							let p10I = circularIndex(contour, idxP + 9);
+							let p11I = circularIndex(contour, idxP + 10);
+							newContour[p0I] = {
+								x: makeVariance(originLight(contour[p0I].x), originHeavy(contour[p0I].x)),
+								y: makeVariance(originLight(contour[p0I].y), originHeavy(contour[p0I].y)),
+								kind: contour[p0I].kind,
+							};
+							newContour[p1I] = {
+								x: makeVariance(originLight(contour[p1I].x), originHeavy(contour[p1I].x) - (xOffset * 0.8)),
+								y: makeVariance(originLight(contour[p1I].y), originHeavy(contour[p1I].y)),
+								kind: contour[p1I].kind,
+							};
+							newContour[p2I] = {
+								x: makeVariance(originLight(contour[p2I].x), originHeavy(contour[p2I].x)),
+								y: makeVariance(originLight(contour[p2I].y), originHeavy(contour[p2I].y)),
+								kind: contour[p2I].kind,
+							};
+							newContour[p3I] = {
+								x: makeVariance(originLight(contour[p3I].x), originHeavy(contour[p4I].x) + (xOffset * 0.2)),
+								y: makeVariance(originLight(contour[p3I].y), originHeavy(contour[p3I].y) + yOffset),
+								kind: contour[p3I].kind,
+							};
 							newContour[p4I] = {
-								x: makeVariance(originLight(contour[p4I].x), originHeavy(contour[p4I].x)),
+								x: makeVariance(originLight(contour[p4I].x), originHeavy(contour[p4I].x) + (xOffset * 0.2)),
 								y: makeVariance(originLight(contour[p4I].y), originHeavy(contour[p7I].y) + yOffset),
 								kind: contour[p4I].kind,
 							};
@@ -952,9 +978,29 @@ function correctGlyphs(font, references) {
 								kind: contour[p6I].kind,
 							};
 							newContour[p7I] = {
-								x: makeVariance(originLight(contour[p7I].x), originHeavy(contour[p7I].x)),
+								x: makeVariance(originLight(contour[p7I].x), originHeavy(contour[p7I].x) - (xOffset * 0.8)),
 								y: makeVariance(originLight(contour[p7I].y), originHeavy(contour[p7I].y) + yOffset),
 								kind: contour[p7I].kind,
+							};
+							newContour[p8I] = {
+								x: makeVariance(originLight(contour[p8I].x), originHeavy(contour[p7I].x) - (xOffset * 0.8)),
+								y: makeVariance(originLight(contour[p8I].y), originHeavy(contour[p8I].y) + (yOffset * 0.4)),
+								kind: contour[p8I].kind,
+							};
+							newContour[p9I] = {
+								x: makeVariance(originLight(contour[p9I].x), originHeavy(contour[p9I].x) - (xOffset * 0.8)),
+								y: makeVariance(originLight(contour[p9I].y), originHeavy(contour[p9I].y)),
+								kind: contour[p9I].kind,
+							};
+							newContour[p10I] = {
+								x: makeVariance(originLight(contour[p10I].x), originHeavy(contour[p10I].x) - (xOffset * 0.8)),
+								y: makeVariance(originLight(contour[p10I].y), originHeavy(contour[p10I].y)),
+								kind: contour[p10I].kind,
+							};
+							newContour[p11I] = {
+								x: makeVariance(originLight(contour[p11I].x), originHeavy(contour[p11I].x)),
+								y: makeVariance(originLight(contour[p11I].y), originHeavy(contour[p11I].y)),
+								kind: contour[p11I].kind,
 							};
 							break;
 						}
@@ -964,6 +1010,13 @@ function correctGlyphs(font, references) {
 			// if (["uni31A1"].includes(name)) console.log(name, contour);
 			// if (["uni3105", "uni30A7", "uni3041", "uni3042", "uni31A0"].includes(name)) console.log(name, contour);
 			
+			if (["six","uni2465","uni246F","uni2479","uni2483","uni248D","uni2497","uni24FA","uni324D","uni3256","uni32B1","uni32BB","uni32C5","uni335E","uni3368","uni33E5","uni33EF","uni33F9","uniFF16","uni1F107"].includes(glyph.name)) {
+				
+			}
+			
+			if (["nine","uni2468","uni2472","uni247C","uni2486","uni2490","uni249A","uni24FD","uni3259","uni32B4","uni32BE","uni32C8","uni3361","uni336B","uni33E8","uni33F2","uni33FC","uniFF19","uni1F10A"].includes(glyph.name)) {
+				
+			}
 			// fix ˇ and ̌
 			if (glyph.name == "caron" || glyph.name == "uni030C") {
 				newContour[0] = {

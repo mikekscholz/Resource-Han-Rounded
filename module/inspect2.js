@@ -82,10 +82,12 @@ const htmlHeader = /*html*/`
 			display: flex;
 			flex-wrap: wrap;
 			gap: 30px 10px;
+			padding-top: 50px;
 		}
 		.glyph-wrap {
 			display: flex;
 			flex-direction: column;
+			scroll-margin-top: 50px;
 		}
 		.glyph {
 			width: min-content;
@@ -579,7 +581,7 @@ const htmlHeader = /*html*/`
 			width: 100%;
 		}
 		dialog#glyphDialog {
-			background-color: #1c1c1c;
+			background-color: #101010;
 			height: 90vh;
 			padding: 0;
 			width: auto;
@@ -688,9 +690,83 @@ const htmlHeader = /*html*/`
 				cssVariableSet('--glyph-size', zoom + 'px');
 			}
 		}
+		window.addEventListener("click", function(e) {
+			var href = e.target.getAttribute("href");
+			if(href) {
+				let urlSearch = document.location.search;
+				let params = new URLSearchParams(urlSearch);
+				let horizontalRules = (checkboxHorizontal?.checked ?? params.get('hr')) ?? true;
+				let verticalRules = (checkboxVertical?.checked ?? params.get('vr')) ?? true;
+				let points = (checkboxPoints?.checked ?? params.get('p')) ?? true;
+				let handles = (checkboxHandles?.checked ?? params.get('h')) ?? true;
+				let stroke = (checkboxStroke?.checked ?? params.get('s')) ?? true;
+				let fill = (inputFill?.value ?? params.get('f')) ?? 10;
+				let zoom = (zoomSize?.value ?? params.get('zoom')) ?? 300;
+				let params = '?hr=' + horizontalRules + '&vr=' + verticalRules + '&p=' + points + '&h=' + handles + '&s=' + stroke + '&f=' + fill + '&zoom=' + zoom;
+				location.href = href + params;
+				e.preventDefault();
+			}
+		});
 	</script>
 </head>
-<body>`;
+<body>
+<dialog class="modal" id="glyphDialog">
+<div class="dialog-header">
+	<p id="dialogTitle">Modal Dialog</p>
+	<div class="dialog-toggles">
+		<button id="dialogGlyphPrev">&lt;</button>
+		<button id="dialogGlyphNext">&gt;</button>
+		<div class="spacer"></div>
+		<input class="checkbox" type="checkbox" name="toggleDialogVerticalRules" id="toggleDialogVerticalRules" checked/>
+		<label class="for-checkbox" for="toggleDialogVerticalRules">
+			<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+			<line stroke="#FFF" stroke-width="8" x1="4" y1="4" x2="4" y2="252" stroke-linecap="round"/>
+			<line stroke="#FFF" stroke-width="8" x1="252" y1="4" x2="252" y2="252" stroke-linecap="round"/>
+				<path d="m110 55.3h36l53.6 143.2h-34.4l-11-32h-52.4l-11 32h-34.4zm34.2 82.8-10.4-30-4.8-17.6h-2l-4.8 17.6-10.4 30z" fill="#fff"/>
+			</svg>
+		</label>
+		<input class="checkbox" type="checkbox" name="toggleDialogHorizontalRules" id="toggleDialogHorizontalRules" checked/>
+		<label class="for-checkbox" for="toggleDialogHorizontalRules">
+			<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+			<line stroke="#FFF" stroke-width="8" x1="4" y1="4" x2="252" y2="4" stroke-linecap="round"/>
+			<line stroke="#FFF" stroke-width="8" x1="4" y1="60" x2="252" y2="60" stroke-linecap="round"/>
+			<line stroke="#FFF" stroke-width="8" x1="4" y1="100" x2="252" y2="100" stroke-linecap="round"/>
+			<line stroke="#FFF" stroke-width="8" x1="4" y1="196" x2="252" y2="196" stroke-linecap="round"/>
+			<line stroke="#FFF" stroke-width="8" x1="4" y1="252" x2="252" y2="252" stroke-linecap="round"/>
+			<path d="m110 55.3h36l53.6 143.2h-34.4l-11-32h-52.4l-11 32h-34.4zm34.2 82.8-10.4-30-4.8-17.6h-2l-4.8 17.6-10.4 30z" fill="#fff"/>
+			</svg>
+		</label>
+		<input class="checkbox" type="checkbox" name="toggleDialogPoints" id="toggleDialogPoints" checked/>
+		<label class="for-checkbox" for="toggleDialogPoints">
+			<svg version="1.1" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+			<path d="m5 96L160 96L160 251" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="10"/>
+			<circle cx="160" cy="96" r="48" fill="#c70032" stroke="#ff004c" stroke-width="10"/>
+		</svg>
+		</label>
+		<input class="checkbox" type="checkbox" name="toggleDialogHandles" id="toggleDialogHandles" checked/>
+		<label class="for-checkbox" for="toggleDialogHandles">
+		<svg version="1.1" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+			<path d="m5 251L192 64" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="10" stroke-dasharray="30px 30px"/>
+			<circle cx="192" cy="64" r="48" fill="#85d800" stroke="#9dff00" stroke-width="10"/>
+		</svg>
+		</label>
+		<input class="checkbox" type="checkbox" name="toggleDialogStroke" id="toggleDialogStroke" checked/>
+		<label class="for-checkbox" for="toggleDialogStroke">
+			<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+				<rect x="29" y="29" width="198" height="198" rx="24" fill="none" stroke="#fff" stroke-width="8"/>
+			</svg>
+		</label>
+		<span style="color: var(--textcolor)">Fill</span>
+		<div class="form-group shrink grow-0 stepper">
+			<input class="form-control virtual-keyboard number-keyboard w-unset mt-0" id="dialogfillOpacity" type="text" data-decimals="0" data-step="10" data-min="0" data-max="100" value="10" size="2" autocomplete="off" spellcheck="false" />
+			<button class="minus"><svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" height="10px" fill="#FFFFFF"><path d="m50 206h412c28 0 50 22 50 50s-22 50-50 50h-412c-28 0-50-22-50-50s22-50 50-50z"/></svg></button>
+			<button class="plus"><svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" height="10px" fill="#FFFFFF"><path d="m256 0c-28 0-50 22-50 50v156h-156c-28 0-50 22-50 50s22 50 50 50h156v156c0 28 22 50 50 50s50-22 50-50v-156h156c28 0 50-22 50-50s-22-50-50-50h-156v-156c0-28-22-50-50-50z"/></svg></button>
+		</div>
+	</div>
+	<button class="close-modal close-button" id="closeGlyphDialog" autofocus>&times;</button>
+</div>
+<div id="dialogGlyphContainer" data-zoom-on-wheel="max-scale: 20; zoom-amount: 0.002;" data-pan-on-drag></div>
+</dialog>`;
 
 // based on measurement of SHS
 const params = {
@@ -890,7 +966,7 @@ function inspect(font, references, subfamily) {
 				</g>
 			</g>
 		</svg>`;
-		currentHtml += /*html*/ `<div class="glyph-wrap"><div class="glyph">${svgHeader}</div><span class="glyph-label">${glyph.name}</span></div>`;
+		currentHtml += /*html*/ `<div class="glyph-wrap" id="${glyph.name}"><div class="glyph">${svgHeader}</div><span class="glyph-label">${glyph.name}</span></div>`;
 	}
 
 	let len = font.glyphs.items.length;
@@ -1024,21 +1100,9 @@ function inspect(font, references, subfamily) {
 						<button class="minus"><svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" height="10px" fill="#FFFFFF"><path d="m50 206h412c28 0 50 22 50 50s-22 50-50 50h-412c-28 0-50-22-50-50s22-50 50-50z"/></svg></button>
 						<button class="plus"><svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" height="10px" fill="#FFFFFF"><path d="m256 0c-28 0-50 22-50 50v156h-156c-28 0-50 22-50 50s22 50 50 50h156v156c0 28 22 50 50 50s50-22 50-50v-156h156c28 0 50-22 50-50s-22-50-50-50h-156v-156c0-28-22-50-50-50z"/></svg></button>
 					</div>
-					<!--<button id="toggleFill">
-						<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
-							<rect x="29" y="29" width="198" height="198" rx="24" fill="#fffdfe" fill-opacity=".7"/>
-						</svg>
-					</button>-->
-					<!--<input class="checkbox" type="checkbox" name="toggleFill" id="toggleFill" checked/>
-					<label class="for-checkbox" for="toggleFill">
-						<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
-							<rect x="29" y="29" width="198" height="198" rx="24" fill="#fffdfe" fill-opacity=".7"/>
-						</svg>
-					</label>-->
 				</div>
 			</div>
 		`;
-//<span class="form-control form-unit">Zoom</span>
 		currentHtml = htmlHeader;
 		currentHtml += navbar;
 		currentHtml += `<div class="wrapper">`;
@@ -1055,79 +1119,10 @@ function inspect(font, references, subfamily) {
 		// 	progressTick();
 		// }
 		if (glyph?.geometry?.contours) checkSingleGlyph(glyph, idxG);
-		// count++;
-		if (idxG > 0 && (idxG % 500 === 0 || idxG === len - 1)) {
+		count++;
+		if (idxG > 0 && (idxG % 500 === 0 || count === len - 1)) {
 			currentHtml += /*html*/`
 			</div>
-			<dialog class="modal" id="glyphDialog">
-				<div class="dialog-header">
-					<p id="dialogTitle">Modal Dialog</p>
-					<div class="dialog-toggles">
-						<button id="dialogGlyphPrev">&lt;</button>
-						<button id="dialogGlyphNext">&gt;</button>
-						<div class="spacer"></div>
-						<input class="checkbox" type="checkbox" name="toggleDialogVerticalRules" id="toggleDialogVerticalRules" checked/>
-						<label class="for-checkbox" for="toggleDialogVerticalRules">
-							<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
-							<line stroke="#FFF" stroke-width="8" x1="4" y1="4" x2="4" y2="252" stroke-linecap="round"/>
-							<line stroke="#FFF" stroke-width="8" x1="252" y1="4" x2="252" y2="252" stroke-linecap="round"/>
-								<path d="m110 55.3h36l53.6 143.2h-34.4l-11-32h-52.4l-11 32h-34.4zm34.2 82.8-10.4-30-4.8-17.6h-2l-4.8 17.6-10.4 30z" fill="#fff"/>
-							</svg>
-						</label>
-						<input class="checkbox" type="checkbox" name="toggleDialogHorizontalRules" id="toggleDialogHorizontalRules" checked/>
-						<label class="for-checkbox" for="toggleDialogHorizontalRules">
-							<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
-							<line stroke="#FFF" stroke-width="8" x1="4" y1="4" x2="252" y2="4" stroke-linecap="round"/>
-							<line stroke="#FFF" stroke-width="8" x1="4" y1="60" x2="252" y2="60" stroke-linecap="round"/>
-							<line stroke="#FFF" stroke-width="8" x1="4" y1="100" x2="252" y2="100" stroke-linecap="round"/>
-							<line stroke="#FFF" stroke-width="8" x1="4" y1="196" x2="252" y2="196" stroke-linecap="round"/>
-							<line stroke="#FFF" stroke-width="8" x1="4" y1="252" x2="252" y2="252" stroke-linecap="round"/>
-							<path d="m110 55.3h36l53.6 143.2h-34.4l-11-32h-52.4l-11 32h-34.4zm34.2 82.8-10.4-30-4.8-17.6h-2l-4.8 17.6-10.4 30z" fill="#fff"/>
-							</svg>
-						</label>
-						<input class="checkbox" type="checkbox" name="toggleDialogPoints" id="toggleDialogPoints" checked/>
-						<label class="for-checkbox" for="toggleDialogPoints">
-							<svg version="1.1" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
-							<path d="m5 96L160 96L160 251" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="10"/>
-							<circle cx="160" cy="96" r="48" fill="#c70032" stroke="#ff004c" stroke-width="10"/>
-						</svg>
-						</label>
-						<input class="checkbox" type="checkbox" name="toggleDialogHandles" id="toggleDialogHandles" checked/>
-						<label class="for-checkbox" for="toggleDialogHandles">
-						<svg version="1.1" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
-							<path d="m5 251L192 64" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="10" stroke-dasharray="30px 30px"/>
-							<circle cx="192" cy="64" r="48" fill="#85d800" stroke="#9dff00" stroke-width="10"/>
-						</svg>
-						</label>
-						<input class="checkbox" type="checkbox" name="toggleDialogStroke" id="toggleDialogStroke" checked/>
-						<label class="for-checkbox" for="toggleDialogStroke">
-							<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
-								<rect x="29" y="29" width="198" height="198" rx="24" fill="none" stroke="#fff" stroke-width="8"/>
-							</svg>
-						</label>
-						<span style="color: var(--textcolor)">Fill</span>
-						<div class="form-group shrink grow-0 stepper">
-							<input class="form-control virtual-keyboard number-keyboard w-unset mt-0" id="dialogfillOpacity" type="text" data-decimals="0" data-step="10" data-min="0" data-max="100" value="10" size="2" autocomplete="off" spellcheck="false" />
-							<button class="minus"><svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" height="10px" fill="#FFFFFF"><path d="m50 206h412c28 0 50 22 50 50s-22 50-50 50h-412c-28 0-50-22-50-50s22-50 50-50z"/></svg></button>
-							<button class="plus"><svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" height="10px" fill="#FFFFFF"><path d="m256 0c-28 0-50 22-50 50v156h-156c-28 0-50 22-50 50s22 50 50 50h156v156c0 28 22 50 50 50s50-22 50-50v-156h156c28 0 50-22 50-50s-22-50-50-50h-156v-156c0-28-22-50-50-50z"/></svg></button>
-						</div>
-						<!--<input class="checkbox" type="checkbox" name="toggleDialogFill"  checked/>
-						<button id="toggleDialogFill">
-							<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
-								<rect x="29" y="29" width="198" height="198" rx="24" fill="#fffdfe" fill-opacity=".7"/>
-							</svg>
-						</button>-->
-						<!--<input class="checkbox" type="checkbox" name="toggleDialogFill" id="toggleDialogFill" checked/>
-						<label class="for-checkbox" for="toggleDialogFill">
-							<svg height="100%" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
-								<rect x="29" y="29" width="198" height="198" rx="24" fill="#fffdfe" fill-opacity=".7"/>
-							</svg>
-						</label>-->
-					</div>
-					<button class="close-modal close-button" id="closeGlyphDialog" autofocus>&times;</button>
-				</div>
-				<div id="dialogGlyphContainer" data-zoom-on-wheel="max-scale: 20; zoom-amount: 0.002;" data-pan-on-drag></div>
-			</dialog>
 			${'<script>var svgPanZoomContainer=function(e){"use strict";const t=(e,t)=>{const n=new DOMMatrix(t.style.transform);return[n.a,e.scrollLeft-n.e,e.scrollTop-n.f]},n=(e,t,n,o,i)=>{const l=Math.round(Math.max(o,0)),r=Math.round(Math.max(i,0));t.setAttribute("transform",t.style.transform=`matrix(${n},0,0,${n},${l-o},${r-i})`),t.style.margin=0,e.scrollLeft=l,e.scrollTop=r,e.scrollLeft!==l&&(t.style.marginRight=`${l}px`,e.scrollLeft=l),e.scrollTop!==r&&(t.style.marginBottom=`${r}px`,e.scrollTop=r)},o=e=>{const t={};if(e)for(const n of e.split(";")){const e=n.indexOf(":");t[n.slice(0,e).trim().replace(/[a-zA-Z0-9_]-[a-z]/g,(e=>e[0]+e[2].toUpperCase()))]=n.slice(e+1).trim()}return t},i=(e,t)=>{const n=e?.closest(`[${t}]`);return n instanceof HTMLElement?[n,o(n.getAttribute(t))]:[]},l=(e,o,i)=>{const l=e.firstElementChild,[r,a,s]=t(e,l);n(e,l,r,a+o,s+i)},r=e=>t(e,e.firstElementChild)[0],a=(e,o,i={})=>{const l=((e,t,n)=>e<t?t:e>n?n:e)(o,i.minScale||1,i.maxScale||10),r=i.origin,a=e.firstElementChild,[s,c,m]=t(e,a);if(l===s)return;const d=l/s-1,u=a.getBoundingClientRect(),f=(r&&r.clientX||0)-u.left,v=(r&&r.clientY||0)-u.top;n(e,a,l,c+d*f,m+d*v)},s=(e,t,n)=>a(e,r(e)*t,n);var c;return c={button:"left"},addEventListener("mousedown",(e=>{if(0!==e.button&&2!==e.button)return;const[t,n]=i(e.target,"data-pan-on-drag");if(!t||!n||!((e,t,n)=>(!t.modifier||e.getModifierState(t.modifier))&&e.button===("right"===(t.button||n.button)?2:0))(e,n,c))return;e.preventDefault();let o=e.clientX*window.devicePixelRatio,r=e.clientY*window.devicePixelRatio;const a=e=>{l(t,o-e.clientX*window.devicePixelRatio,r-e.clientY*window.devicePixelRatio),o=e.clientX*window.devicePixelRatio,r=e.clientY*window.devicePixelRatio,e.preventDefault()},s=e=>e.preventDefault(),m=()=>{removeEventListener("mouseup",m),removeEventListener("mousemove",a),setTimeout((()=>removeEventListener("contextmenu",s)))};addEventListener("mouseup",m),addEventListener("mousemove",a),addEventListener("contextmenu",s)})),((e,t,n={})=>{n.noEmitStyle||((document.head||document.body||document.documentElement).appendChild(document.createElement("style")).textContent=`[${e}]{overflow:scroll}[${e}]>:first-child{width:100%;height:100%;vertical-align:middle;transform-origin:0 0}`),addEventListener("wheel",(n=>{const[o,l]=i(n.target,e);if(o instanceof HTMLElement){const e=+l.zoomAmount||t.zoomAmount;s(o,(1+e)**-n.deltaY,{origin:n,minScale:+l.minScale||t.minScale,maxScale:+l.maxScale||t.maxScale}),n.preventDefault()}}),{passive:!1}),addEventListener("resize",(()=>{const t=document.querySelectorAll(`[${e}]`);for(let n=0;n<t.length;n++){const i=t[n];if(i instanceof HTMLElement){const t=o(i.getAttribute(e));s(i,1,t)}}}))})("data-zoom-on-wheel",{minScale:1,maxScale:10,zoomAmount:.002}),e.getScale=r,e.pan=l,e.resetScale=e=>{const t=e.firstElementChild;t.style.margin=e.scrollLeft=e.scrollTop=0,t.removeAttribute("transform"),t.style.transform=""},e.setScale=a,e.zoom=s,Object.defineProperty(e,"__esModule",{value:!0}),e}({});</script>'}
 			<script>
 				const { pan, zoom, getScale, setScale, resetScale } = svgPanZoomContainer;
@@ -1290,21 +1285,23 @@ function inspect(font, references, subfamily) {
 				zoomSize.addEventListener('change', zoomSizeHandler);
 				zoomSize.addEventListener('input', zoomSizeHandler);
 				
-				window.addEventListener("click", function(e) {
-					var href = e.target.getAttribute("href");
-					if(href) {
-						let horizontalRules = checkboxHorizontal.checked;
-						let verticalRules = checkboxVertical.checked;
-						let points = checkboxPoints.checked;
-						let handles = checkboxHandles.checked;
-						let stroke = checkboxStroke.checked;
-						let fill = inputFill.value;
-						let zoom = zoomSize.value;
-						let params = '?hr=' + horizontalRules + '&vr=' + verticalRules + '&p=' + points + '&h=' + handles + '&s=' + stroke + '&f=' + fill + '&zoom=' + zoom;
-						location.href = href + params;
-						e.preventDefault();
-					}
-				});
+				// window.addEventListener("click", function(e) {
+				// 	var href = e.target.getAttribute("href");
+				// 	if(href) {
+				// 		let urlSearch = document.location.search;
+				// 		let params = new URLSearchParams(urlSearch);
+				// 		let horizontalRules = (checkboxHorizontal?.checked ?? params.get('hr')) ?? true;
+				// 		let verticalRules = (checkboxVertical?.checked ?? params.get('vr')) ?? true;
+				// 		let points = (checkboxPoints?.checked ?? params.get('p')) ?? true;
+				// 		let handles = (checkboxHandles?.checked ?? params.get('h')) ?? true;
+				// 		let stroke = (checkboxStroke?.checked ?? params.get('s')) ?? true;
+				// 		let fill = (inputFill?.value ?? params.get('f')) ?? 10;
+				// 		let zoom = (zoomSize?.value ?? params.get('zoom')) ?? 300;
+				// 		let params = '?hr=' + horizontalRules + '&vr=' + verticalRules + '&p=' + points + '&h=' + handles + '&s=' + stroke + '&f=' + fill + '&zoom=' + zoom;
+				// 		location.href = href + params;
+				// 		e.preventDefault();
+				// 	}
+				// });
 				
 				window.addEventListener("DOMContentLoaded", (event) => {
 					let urlSearch = document.location.search;
@@ -1464,7 +1461,7 @@ function inspect(font, references, subfamily) {
 						attributeFilter: ['transform'],
 					});
 					glyphDialog.showModal();
-					
+					node.parentElement.parentElement.scrollIntoView();
 				}
 				document.querySelectorAll('.glyph svg').forEach((el) => { 
 					el.addEventListener("click", function(e) {

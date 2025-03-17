@@ -277,6 +277,7 @@ function postProcess(font, references) {
 			let contour = oldContours[idxC1];
 			let contour2 = oldContours[idxC2];
 			let idxP1 = findBottomRight(contour);
+			let h0I = circularIndex(contour, idxP1 - 1);
 			let h1I = circularIndex(contour, idxP1);
 			let h2I = circularIndex(contour, idxP1 + 1);
 			let h3I = circularIndex(contour, idxP1 + 2);
@@ -286,6 +287,7 @@ function postProcess(font, references) {
 			let h7I = circularIndex(contour, idxP1 + 6);
 			let h8I = circularIndex(contour, idxP1 + 7);
 			let h9I = circularIndex(contour, idxP1 + 8);
+			let h0 = contour[h0I];
 			let h1 = contour[h1I];
 			let h2 = contour[h2I];
 			let h3 = contour[h3I];
@@ -379,27 +381,50 @@ function postProcess(font, references) {
 			
 			let vCurveLight;
 			let vCurveHeavy;
-			
-			// let hSL = slope(lineLight(h0, h1));
-			// let hSH = slope(lineHeavy(h0, h1));
-			let horizontalSlope = ref?.horizontalSlope || 0;
-			
-			let hXL = 0;
-			let hYL = 0;
-			let hXH = 0;
-			let hYH = 0;
-			let hXLMax = ((r4xH - h1xL) + 800);
-			let hXHMax = ((r4xH - h1xH) + 800);
-			let hCurveLight;
-			let hCurveHeavy;
-			let intersectLight = [];
-			let intersectHeavy = [];
 			function generateCurve1Light() {
 				vCurveLight = new Bezier(r1xL,r1yL,r2xL + r2xLC,r2yL + r2yLC,r3xL + r3xLC,r3yL + r3yLC,r4xL,r4yL);
 			}
 			function generateCurve1Heavy() {
 				vCurveHeavy = new Bezier(r1xH,r1yH,r2xH + r2xHC,r2yH + r2yHC,r3xH + r3xHC,r3yH + r3yHC,r4xH,r4yH);
 			}
+			generateCurve1Light();
+			generateCurve1Heavy();
+			
+			let horizontalSlope = ref?.horizontalSlope || 0;
+			
+			// horizontal X and Y offsets for light and heavy
+			let hXL = 0;
+			let hYL = 0;
+			let hXH = 0;
+			let hYH = 0;
+			
+			// should have triggered before here so don't continue to infinity
+			let hXLMax = ((r4xH - h1xL) + 800);
+			let hXHMax = ((r4xH - h1xH) + 800);
+			
+			let hLineLight = extendLineRight(lineLight(h0, h1), 1000);
+			let hLineHeavy = extendLineRight(lineHeavy(h0, h1), 1000);
+			let hXLDefault = 0;
+			let hXHDefault = 0;
+			let testIntersectLight = vCurveLight.intersects(hLineLight);
+			if (testIntersectLight.length) {
+				let testCoordLight = vCurveLight.compute(testIntersectLight[0]);
+				hXLDefault = testCoordLight.x - (h4xL + 5);
+				hXL = hXLDefault;
+				hYL = hXLDefault * horizontalSlope;
+			}
+			let testIntersectHeavy = vCurveHeavy.intersects(hLineHeavy);
+			if (testIntersectHeavy.length) {
+				let testCoordHeavy = vCurveHeavy.compute(testIntersectHeavy[0]);
+				hXHDefault = testCoordHeavy.x - (h4xH + 10);
+				hXH = hXHDefault;
+				hYH = hXHDefault * horizontalSlope;
+			}
+			
+			let hCurveLight;
+			let hCurveHeavy;
+			let intersectLight = [];
+			let intersectHeavy = [];
 			function generateCurve2Light() {
 				hCurveLight = new Bezier(h1xL + hXL, h1yL + hYL, h2xL + hXL, h2yL + hYL, h3xL + hXL, h3yL + hYL, h4xL + hXL, h4yL + hYL);
 			}
@@ -421,7 +446,7 @@ function postProcess(font, references) {
 					// console.log(idxP1, "horizontalBottomRight");
 					// console.log(idxC2, "contour");
 					// console.log(name, "correcting for light degenerated bezier curve.");
-					hXL = 0;
+					hXL = hXLDefault;
 					generateCurve2Light();
 					r2xLC++;
 					r3xLC++;
@@ -429,7 +454,7 @@ function postProcess(font, references) {
 					// badCurve = true;
 					// break;
 				}
-				hXL = hXL + 6;
+				hXL = hXL + 2;
 				hYL = hXL * horizontalSlope;
 				generateCurve2Light();
 				checkIntersectLight(2);
@@ -456,30 +481,30 @@ function postProcess(font, references) {
 					// console.log(idxP1, "horizontalBottomRight");
 					// console.log(idxC2, "contour");
 					// console.log(name, "correcting for heavy degenerated bezier curve.");
-					hXH = 0;
+					hXH = hXHDefault;
 					generateCurve2Heavy();
 					r2xHC++;
 					generateCurve1Heavy();
 					// badCurve = true;
 					// break;
 				}
-				hXH = hXH + 30;
-				hYH = hXH * horizontalSlope;
-				generateCurve2Heavy();
-				checkIntersectHeavy(20);
-			}
-			while (intersectHeavy.length !== 0) {
-				hXH = hXH - 10;
-				hYH = hXH * horizontalSlope;
-				generateCurve2Heavy();
-				checkIntersectHeavy(10);
-			}
-			while (intersectHeavy.length === 0) {
 				hXH = hXH + 2;
 				hYH = hXH * horizontalSlope;
 				generateCurve2Heavy();
-				checkIntersectHeavy(5);
+				checkIntersectHeavy(1);
 			}
+			// while (intersectHeavy.length !== 0) {
+			// 	hXH = hXH - 10;
+			// 	hYH = hXH * horizontalSlope;
+			// 	generateCurve2Heavy();
+			// 	checkIntersectHeavy(10);
+			// }
+			// while (intersectHeavy.length === 0) {
+			// 	hXH = hXH + 2;
+			// 	hYH = hXH * horizontalSlope;
+			// 	generateCurve2Heavy();
+			// 	checkIntersectHeavy(5);
+			// }
 			while (intersectHeavy.length !== 0) {
 				hXH = hXH - 1;
 				hYH = hXH * horizontalSlope;
