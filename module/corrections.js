@@ -1011,7 +1011,8 @@ function correctGlyphs(font, references) {
 			// if (["uni3105", "uni30A7", "uni3041", "uni3042", "uni31A0"].includes(name)) console.log(name, contour);
 			
 			if (["six","uni2465","uni246F","uni2479","uni2483","uni248D","uni2497","uni24FA","uni324D","uni3256","uni32B1","uni32BB","uni32C5","uni335E","uni3368","uni33E5","uni33EF","uni33F9","uniFF16","uni1F107"].includes(glyph.name)) {
-				
+				newContour.splice(10,0,newContour[10]);
+				newContour.splice(9,0,newContour[10]);
 			}
 			
 			if (["nine","uni2468","uni2472","uni247C","uni2486","uni2490","uni249A","uni24FD","uni3259","uni32B4","uni32BE","uni32C8","uni3361","uni336B","uni33E8","uni33F2","uni33FC","uniFF19","uni1F10A"].includes(glyph.name)) {
