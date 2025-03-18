@@ -35,9 +35,13 @@ function extendLineRight(line, distance) {
 	// let slope = slope(line);
 	let x1 = line.p1.x;
 	let y1 = line.p1.y;
-	let x2 = line.p2.x + distance;
-	let y2 = line.p2.y + round(distance * slope(line));
-	return { p1: { x: x1, y: y1 }, p2: { x: x2, y: y2 }};
+	let x2 = line.p2.x;
+	let y2 = line.p2.y;
+	let alpha = Math.atan2(y2 - y1, x2 - x1);
+	return {
+		x: x2 + distance * Math.cos(alpha),
+		y: y2 + distance * Math.sin(alpha)
+	};
 }
 
 function correctGlyphs(font, references) {
@@ -1010,13 +1014,46 @@ function correctGlyphs(font, references) {
 			// if (["uni31A1"].includes(name)) console.log(name, contour);
 			// if (["uni3105", "uni30A7", "uni3041", "uni3042", "uni31A0"].includes(name)) console.log(name, contour);
 			
-			if (["six","uni2465","uni246F","uni2479","uni2483","uni248D","uni2497","uni24FA","uni324D","uni3256","uni32B1","uni32BB","uni32C5","uni335E","uni3368","uni33E5","uni33EF","uni33F9","uniFF16","uni1F107"].includes(glyph.name)) {
-				newContour.splice(10,0,newContour[10]);
-				newContour.splice(9,0,newContour[10]);
+			if (["six","uni2465","uni246F","uni2479","uni2483","uni248D","uni2497","uni24FA","uni324D","uni3256","uni32B1","uni32BB","uni32C5","uni335E","uni3368","uni33E5","uni33EF","uni33F9","uniFF16","uni1F107"].includes(glyph.name) && contour.length === 39) {
+				let node9 = newContour[9];
+				let node10 = newContour[10];
+				newContour.splice(10,0,node10);
+				newContour.splice(9,0,node9);
+				let p10L = extendLineRight(lineLight(contour[8], contour[9]), 30);
+				let p10H = extendLineRight(lineHeavy(contour[8], contour[9]), 60);
+				let p11L = extendLineRight(lineLight(contour[11], contour[10]), 30);
+				let p11H = extendLineRight(lineHeavy(contour[11], contour[10]), 60);
+				newContour[10] = {
+					x: makeVariance(p10L.x, p10H.x),
+					y: makeVariance(p10L.y, p10H.y),
+					kind: 1,
+				};
+				newContour[11] = {
+					x: makeVariance(p11L.x, p11H.x),
+					y: makeVariance(p11L.y, p11H.y),
+					kind: 2,
+				};
 			}
 			
-			if (["nine","uni2468","uni2472","uni247C","uni2486","uni2490","uni249A","uni24FD","uni3259","uni32B4","uni32BE","uni32C8","uni3361","uni336B","uni33E8","uni33F2","uni33FC","uniFF19","uni1F10A"].includes(glyph.name)) {
-				
+			if (["nine","uni2468","uni2472","uni247C","uni2486","uni2490","uni249A","uni24FD","uni3259","uni32B4","uni32BE","uni32C8","uni3361","uni336B","uni33E8","uni33F2","uni33FC","uniFF19","uni1F10A"].includes(glyph.name) && contour.length === 39) {
+				let node15 = newContour[15];
+				let node16 = newContour[16];
+				newContour.splice(16,0,node16);
+				newContour.splice(15,0,node15);
+				let p16L = extendLineRight(lineLight(contour[14], contour[15]), 30);
+				let p16H = extendLineRight(lineHeavy(contour[14], contour[15]), 60);
+				let p17L = extendLineRight(lineLight(contour[17], contour[16]), 30);
+				let p17H = extendLineRight(lineHeavy(contour[17], contour[16]), 60);
+				newContour[16] = {
+					x: makeVariance(p16L.x, p16H.x),
+					y: makeVariance(p16L.y, p16H.y),
+					kind: 1,
+				};
+				newContour[17] = {
+					x: makeVariance(p17L.x, p17H.x),
+					y: makeVariance(p17L.y, p17H.y),
+					kind: 2,
+				};
 			}
 			// fix ˇ and ̌
 			if (glyph.name == "caron" || glyph.name == "uni030C") {

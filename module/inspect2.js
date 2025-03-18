@@ -689,24 +689,22 @@ const htmlHeader = /*html*/`
 			if (zoom) {
 				cssVariableSet('--glyph-size', zoom + 'px');
 			}
+			window.addEventListener("click", function(e) {
+				let href = e.target.getAttribute("href");
+				if(href) {
+					let horizontalRules = (checkboxHorizontal?.checked ?? params.get('hr')) ?? true;
+					let verticalRules = (checkboxVertical?.checked ?? params.get('vr')) ?? true;
+					let points = (checkboxPoints?.checked ?? params.get('p')) ?? true;
+					let handles = (checkboxHandles?.checked ?? params.get('h')) ?? true;
+					let stroke = (checkboxStroke?.checked ?? params.get('s')) ?? true;
+					let fill = (inputFill?.value ?? params.get('f')) ?? 10;
+					let zoom = (zoomSize?.value ?? params.get('zoom')) ?? 300;
+					let newUrlParams = '?hr=' + horizontalRules + '&vr=' + verticalRules + '&p=' + points + '&h=' + handles + '&s=' + stroke + '&f=' + fill + '&zoom=' + zoom;
+					location.href = href + newUrlParams;
+					e.preventDefault();
+				}
+			});
 		}
-		window.addEventListener("click", function(e) {
-			var href = e.target.getAttribute("href");
-			if(href) {
-				let urlSearch = document.location.search;
-				let params = new URLSearchParams(urlSearch);
-				let horizontalRules = (checkboxHorizontal?.checked ?? params.get('hr')) ?? true;
-				let verticalRules = (checkboxVertical?.checked ?? params.get('vr')) ?? true;
-				let points = (checkboxPoints?.checked ?? params.get('p')) ?? true;
-				let handles = (checkboxHandles?.checked ?? params.get('h')) ?? true;
-				let stroke = (checkboxStroke?.checked ?? params.get('s')) ?? true;
-				let fill = (inputFill?.value ?? params.get('f')) ?? 10;
-				let zoom = (zoomSize?.value ?? params.get('zoom')) ?? 300;
-				let params = '?hr=' + horizontalRules + '&vr=' + verticalRules + '&p=' + points + '&h=' + handles + '&s=' + stroke + '&f=' + fill + '&zoom=' + zoom;
-				location.href = href + params;
-				e.preventDefault();
-			}
-		});
 	</script>
 </head>
 <body>
