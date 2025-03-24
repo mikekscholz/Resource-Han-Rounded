@@ -26,8 +26,8 @@ const htmlHeader = /*html*/`
 			--dialog-toggle-vertical: revert;
 			--dialog-toggle-points: revert;
 			--dialog-toggle-handles: revert;
-			--dialog-contour-fill: 0.1;
-			--contour-fill: 0.1;
+			--dialog-cf: 0.1;
+			--cf: 0.1;
 			--toggle-stroke: revert;
 			--toggle-horizontal: revert;
 			--toggle-vertical: revert;
@@ -112,13 +112,13 @@ const htmlHeader = /*html*/`
 			background-color: #555;
 			height: 20px;
 		}
-		.contour-fill {
+		.cf {
 			fill:   #FFFFFF;
 			fill-rule: nonzero;
 			stroke: none;
-			opacity: var(--contour-fill);
+			opacity: var(--cf);
 		}
-		.contour-stroke {
+		.cs {
 			fill: none;
 			stroke: #d4d4d4;
 			stroke-width: 3px;
@@ -126,7 +126,7 @@ const htmlHeader = /*html*/`
 			stroke-linejoin: round;
 			display: var(--toggle-stroke);
 		}
-		.dotted-rule {
+		.dr {
 			stroke: #FFF3;
 			stroke-dasharray: 10px 10px;
 			stroke-width: 2px;
@@ -134,10 +134,10 @@ const htmlHeader = /*html*/`
 			stroke-linejoin: round;
 			display: var(--toggle-horizontal);
 		}
-		.vertical-rule {
+		.vr {
 			display: var(--toggle-vertical);
 		}
-		.control-vector {
+		.cv {
 			stroke: #FFF;
 			stroke-dasharray: 15px 5px;
 			stroke-width: 1px;
@@ -145,7 +145,7 @@ const htmlHeader = /*html*/`
 			stroke-linejoin: round;
 			display: var(--toggle-handles);
 		}
-		.start-point {
+		.sp {
 			fill: #00d9ff;
 			stroke: #7decff;
 			stroke-width: 3px;
@@ -153,7 +153,7 @@ const htmlHeader = /*html*/`
 			paint-order: stroke;
 			display: var(--toggle-points);
 		}
-		.corner-point {
+		.cor {
 			fill: #ec003b;
 			stroke: #ff5f5f;
 			stroke-width: 3px;
@@ -161,7 +161,7 @@ const htmlHeader = /*html*/`
 			paint-order: stroke;
 			display: var(--toggle-points);
 		}
-		.control-point {
+		.ctrl {
 			fill: #90e900;
 			stroke: #cfff82;
 			stroke-width: 3px;
@@ -169,44 +169,44 @@ const htmlHeader = /*html*/`
 			paint-order: stroke;
 			display: var(--toggle-handles);
 		}
-		#dialogGlyphContainer .contour-stroke {
+		#dialogGlyphContainer .cs {
 			stroke-width: calc(3px / var(--dialog-scale));
 			display: var(--dialog-toggle-stroke);
 		}
-		#dialogGlyphContainer .dotted-rule {
+		#dialogGlyphContainer .dr {
 			stroke-dasharray: calc(10px / var(--dialog-scale)) calc(10px / var(--dialog-scale));
 			stroke-width: calc(2px / var(--dialog-scale));
 			display: var(--dialog-toggle-horizontal);
 		}
-		#dialogGlyphContainer .vertical-rule {
+		#dialogGlyphContainer .vr {
 			stroke-width: calc(2px / var(--dialog-scale));
 			display: var(--dialog-toggle-vertical);
 		}
-		#dialogGlyphContainer .control-vector {
+		#dialogGlyphContainer .cv {
 			stroke-dasharray: calc(15px / var(--dialog-scale)) calc(5px / var(--dialog-scale));
 			stroke-width: calc(1px / var(--dialog-scale));
 			display: var(--dialog-toggle-handles);
 		}
-		#dialogGlyphContainer .start-point {
+		#dialogGlyphContainer .sp {
 			stroke-width: calc(3px / var(--dialog-scale));
 			r: calc(5px / var(--dialog-scale));
 			display: var(--dialog-toggle-points);
 			paint-order: stroke;
 		}
-		#dialogGlyphContainer .corner-point {
+		#dialogGlyphContainer .cor {
 			stroke-width: calc(3px / var(--dialog-scale));
 			r: calc(5px / var(--dialog-scale));
 			display: var(--dialog-toggle-points);
 			paint-order: stroke;
 		}
-		#dialogGlyphContainer .control-point {
+		#dialogGlyphContainer .ctrl {
 			stroke-width: calc(3px / var(--dialog-scale));
 			r: calc(4px / var(--dialog-scale));
 			display: var(--dialog-toggle-handles);
 			paint-order: stroke;
 		}
-		#dialogGlyphContainer .contour-fill {
-			opacity: var(--dialog-contour-fill);
+		#dialogGlyphContainer .cf {
+			opacity: var(--dialog-cf);
 		}
 		[type="checkbox"]:checked,
 		[type="checkbox"]:not(:checked),
@@ -682,15 +682,15 @@ const htmlHeader = /*html*/`
 			let fills = params.get('f');
 			if (fills) {
 				let setting = fills / 100;
-				cssVariableSet('--contour-fill', setting);
+				cssVariableSet('--cf', setting);
 			}
 			
 			let zoom = params.get('zoom');
 			if (zoom) {
 				cssVariableSet('--glyph-size', zoom + 'px');
 			}
-			window.addEventListener("click", function(e) {
-				let href = e.target.getAttribute("href");
+			function preloadHrefHandler(event) {
+				let href = event.target.getAttribute("href");
 				if(href) {
 					let horizontalRules = (checkboxHorizontal?.checked ?? params.get('hr')) ?? true;
 					let verticalRules = (checkboxVertical?.checked ?? params.get('vr')) ?? true;
@@ -701,9 +701,10 @@ const htmlHeader = /*html*/`
 					let zoom = (zoomSize?.value ?? params.get('zoom')) ?? 300;
 					let newUrlParams = '?hr=' + horizontalRules + '&vr=' + verticalRules + '&p=' + points + '&h=' + handles + '&s=' + stroke + '&f=' + fill + '&zoom=' + zoom;
 					location.href = href + newUrlParams;
-					e.preventDefault();
+					event.preventDefault();
 				}
-			});
+			}
+			window.addEventListener("click", preloadHrefHandler);
 		}
 	</script>
 </head>
@@ -786,6 +787,7 @@ function circularIndex(array, index) {
 function inspect(font, references, subfamily) {
 	const dimWght = font.fvar.axes[0].dim;
 	const instanceShsWghtMax = new Map([[dimWght, 1]]);
+	const instanceShsWghtMed = new Map([[dimWght, 0.5]]);
 	const masterDimWghtMax = { dim: dimWght, min: 0, peak: 1, max: 1 };
 	const masterWghtMax = new Ot.Var.Master([masterDimWghtMax]);
 	const masterSet = new Ot.Var.MasterSet();
@@ -853,11 +855,11 @@ function inspect(font, references, subfamily) {
 					pathLight += `M ${l1.x}, ${l1.y}`;
 					pathHeavy += `M ${h1.x}, ${h1.y}`;
 					lightStart += /*svg*/ `
-						<circle class="start-point" cx="${l1.x}" cy="${l1.y}" r="5">
+						<circle class="sp" cx="${l1.x}" cy="${l1.y}" r="5">
 							<title>contour${idxC} node${idxP}\n${l1.x}, ${safeTop - l1.y}</title>
 						</circle>`;
 					heavyStart += /*svg*/ `
-						<circle class="start-point" cx="${h1.x}" cy="${h1.y}" r="5">
+						<circle class="sp" cx="${h1.x}" cy="${h1.y}" r="5">
 							<title>contour${idxC} node${idxP}\n${h1.x}, ${safeTop - h1.y}</title>
 						</circle>`;
 				} else if (idxP > 0 && l1.type === 0) {
@@ -865,11 +867,11 @@ function inspect(font, references, subfamily) {
 					pathHeavy += `L ${h1.x}, ${h1.y}`;
 					if (pointsLight[0].x !== l1.x || pointsLight[0].y !== l1.y) {
 						groupLightPoints += /*svg*/ `
-							<circle class="corner-point" cx="${l1.x}" cy="${l1.y}" r="5">
+							<circle class="cor" cx="${l1.x}" cy="${l1.y}" r="5">
 								<title>contour${idxC} node${idxP}\n${l1.x}, ${safeTop - l1.y}</title>
 							</circle>`;
 						groupHeavyPoints += /*svg*/ `
-							<circle class="corner-point" cx="${h1.x}" cy="${h1.y}" r="5">
+							<circle class="cor" cx="${h1.x}" cy="${h1.y}" r="5">
 								<title>contour${idxC} node${idxP}\n${h1.x}, ${safeTop - h1.y}</title>
 							</circle>`;
 					}
@@ -883,35 +885,35 @@ function inspect(font, references, subfamily) {
 					pathLight += `C ${l1.x}, ${l1.y} ${l2.x}, ${l2.y} ${l3.x}, ${l3.y}`;
 					pathHeavy += `C ${h1.x}, ${h1.y} ${h2.x}, ${h2.y} ${h3.x}, ${h3.y}`;
 					groupLightPoints += /*svg*/ `
-						<circle class="control-point" cx="${l1.x}" cy="${l1.y}" r="4">
+						<circle class="ctrl" cx="${l1.x}" cy="${l1.y}" r="4">
 							<title>contour${idxC} node${idxP}\n${l1.x}, ${safeTop - l1.y}</title>
 						</circle>`;
 					groupHeavyPoints += /*svg*/ `
-						<circle class="control-point" cx="${h1.x}" cy="${h1.y}" r="4">
+						<circle class="ctrl" cx="${h1.x}" cy="${h1.y}" r="4">
 							<title>contour${idxC} node${idxP}\n${h1.x}, ${safeTop - h1.y}</title>
 						</circle>`;
 					groupLightPoints += /*svg*/ `
-						<circle class="control-point" cx="${l2.x}" cy="${l2.y}" r="4">
+						<circle class="ctrl" cx="${l2.x}" cy="${l2.y}" r="4">
 							<title>contour${idxC} node${idxP + 1}\n${l2.x}, ${safeTop - l2.y}</title>
 						</circle>`;
 					groupHeavyPoints += /*svg*/ `
-						<circle class="control-point" cx="${h2.x}" cy="${h2.y}" r="4">
+						<circle class="ctrl" cx="${h2.x}" cy="${h2.y}" r="4">
 							<title>contour${idxC} node${idxP + 1}\n${h2.x}, ${safeTop - h2.y}</title>
 						</circle>`;
 					if (pointsLight[0].x !== l3.x || pointsLight[0].y !== l3.y) {
 						groupLightPoints += /*svg*/ `
-							<circle class="corner-point" cx="${l3.x}" cy="${l3.y}" r="5">
+							<circle class="cor" cx="${l3.x}" cy="${l3.y}" r="5">
 								<title>contour${idxC} node${idxP + 2}\n${l3.x}, ${safeTop - l3.y}</title>
 							</circle>`;
 						groupHeavyPoints += /*svg*/ `
-							<circle class="corner-point" cx="${h3.x}" cy="${h3.y}" r="5">
+							<circle class="cor" cx="${h3.x}" cy="${h3.y}" r="5">
 								<title>contour${idxC} node${idxP + 2}\n${h3.x}, ${safeTop - h3.y}</title>
 							</circle>`;
 					}
-					groupLightHandles += /*svg*/ `<line class="control-vector" x1="${l0.x}" y1="${l0.y}" x2="${l1.x}" y2="${l1.y}" />`;
-					groupHeavyHandles += /*svg*/ `<line class="control-vector" x1="${h0.x}" y1="${h0.y}" x2="${h1.x}" y2="${h1.y}" />`;
-					groupLightHandles += /*svg*/ `<line class="control-vector" x1="${l2.x}" y1="${l2.y}" x2="${l3.x}" y2="${l3.y}" />`;
-					groupHeavyHandles += /*svg*/ `<line class="control-vector" x1="${h2.x}" y1="${h2.y}" x2="${h3.x}" y2="${h3.y}" />`;
+					groupLightHandles += /*svg*/ `<line class="cv" x1="${l0.x}" y1="${l0.y}" x2="${l1.x}" y2="${l1.y}" />`;
+					groupHeavyHandles += /*svg*/ `<line class="cv" x1="${h0.x}" y1="${h0.y}" x2="${h1.x}" y2="${h1.y}" />`;
+					groupLightHandles += /*svg*/ `<line class="cv" x1="${l2.x}" y1="${l2.y}" x2="${l3.x}" y2="${l3.y}" />`;
+					groupHeavyHandles += /*svg*/ `<line class="cv" x1="${h2.x}" y1="${h2.y}" x2="${h3.x}" y2="${h3.y}" />`;
 					idxP += 2;
 				}
 			}
@@ -939,26 +941,26 @@ function inspect(font, references, subfamily) {
 		let svgHeader = /*svg*/ `
 		<svg height="100%" viewBox="0 0 ${viewportWidth} ${viewportHeight}" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" data-glyph-idx="${idxG}" data-glyph-name="${glyph.name}">
 			<g>
-				<line class="dotted-rule" x1="0" y1="${safeTop - (safeBottom + 4)}" x2="${viewportWidth}" y2="${safeTop - (safeBottom + 4)}" />
-				<line class="dotted-rule" x1="0" y1="${safeTop - descender}" x2="${viewportWidth}" y2="${safeTop - descender}" />
-				<line class="dotted-rule" x1="0" y1="${safeTop}" x2="${viewportWidth}" y2="${safeTop}" />
-				<line class="dotted-rule" x1="0" y1="${safeTop - xHeight}" x2="${viewportWidth}" y2="${safeTop - xHeight}" />
-				<line class="dotted-rule" x1="0" y1="${safeTop - capsHeight}" x2="${viewportWidth}" y2="${safeTop - capsHeight}" />
-				<line class="dotted-rule" x1="0" y1="${safeTop - ascender}" x2="${viewportWidth}" y2="${safeTop - ascender}" />
-				<line class="dotted-rule" x1="0" y1="2" x2="${viewportWidth}" y2="2" />
+				<line class="dr" x1="0" y1="${safeTop - (safeBottom + 4)}" x2="${viewportWidth}" y2="${safeTop - (safeBottom + 4)}" />
+				<line class="dr" x1="0" y1="${safeTop - descender}" x2="${viewportWidth}" y2="${safeTop - descender}" />
+				<line class="dr" x1="0" y1="${safeTop}" x2="${viewportWidth}" y2="${safeTop}" />
+				<line class="dr" x1="0" y1="${safeTop - xHeight}" x2="${viewportWidth}" y2="${safeTop - xHeight}" />
+				<line class="dr" x1="0" y1="${safeTop - capsHeight}" x2="${viewportWidth}" y2="${safeTop - capsHeight}" />
+				<line class="dr" x1="0" y1="${safeTop - ascender}" x2="${viewportWidth}" y2="${safeTop - ascender}" />
+				<line class="dr" x1="0" y1="2" x2="${viewportWidth}" y2="2" />
 				<g transform="translate(${abs(minLightX) + 10}, 0)">
-					<line class="vertical-rule" stroke="#FFF6" stroke-width="1" x1="0" y1="${safeTop - safeBottom}" x2="0" y2="${safeTop - safeTop}" />
-					<line class="vertical-rule" stroke="#FFF6" stroke-width="1" x1="${horizontalEndLight}" y1="${safeTop - safeBottom}" x2="${horizontalEndLight}" y2="${safeTop - safeTop}" />
-					<g><path class="contour-fill" d="${groupLightFill}" /></g>
-					<g><path class="contour-stroke" d="${groupLightStroke}" /></g>
+					<line class="vr" stroke="#FFF6" stroke-width="1" x1="0" y1="${safeTop - safeBottom}" x2="0" y2="${safeTop - safeTop}" />
+					<line class="vr" stroke="#FFF6" stroke-width="1" x1="${horizontalEndLight}" y1="${safeTop - safeBottom}" x2="${horizontalEndLight}" y2="${safeTop - safeTop}" />
+					<g><path class="cf" d="${groupLightFill}" /></g>
+					<g><path class="cs" d="${groupLightStroke}" /></g>
 					<g>${groupLightHandles}</g>
 					<g>${groupLightPoints}${lightStart}</g>
 				</g>
 				<g transform="translate(${widthLight + abs(minHeavyX) + 20}, 0)">
-					<line class="vertical-rule" stroke="#FFF6" stroke-width="1" x1="0" y1="${safeTop - safeBottom}" x2="0" y2="${safeTop - safeTop}" />
-					<line class="vertical-rule" stroke="#FFF6" stroke-width="1" x1="${horizontalEndHeavy}" y1="${safeTop - safeBottom}" x2="${horizontalEndHeavy}" y2="${safeTop - safeTop}" />
-					<g><path class="contour-fill" d="${groupHeavyFill}" /></g>
-					<g><path class="contour-stroke" d="${groupHeavyStroke}" /></g>
+					<line class="vr" stroke="#FFF6" stroke-width="1" x1="0" y1="${safeTop - safeBottom}" x2="0" y2="${safeTop - safeTop}" />
+					<line class="vr" stroke="#FFF6" stroke-width="1" x1="${horizontalEndHeavy}" y1="${safeTop - safeBottom}" x2="${horizontalEndHeavy}" y2="${safeTop - safeTop}" />
+					<g><path class="cf" d="${groupHeavyFill}" /></g>
+					<g><path class="cs" d="${groupHeavyStroke}" /></g>
 					<g>${groupHeavyHandles}</g>
 					<g>${groupHeavyPoints}${heavyStart}</g>
 				</g>
@@ -1148,12 +1150,12 @@ function inspect(font, references, subfamily) {
 				let checkboxStroke = document.getElementById('toggleStroke');
 				let inputFill = document.getElementById('fillOpacity');
 				let zoomSize = document.getElementById('zoomSize');
-				// let dottedRules = document.querySelectorAll('.wrapper .dotted-rule');
-				// let verticalRules = document.querySelectorAll('.wrapper .vertical-rule');
-				// let cornerPoints = document.querySelectorAll('.wrapper .start-point, .wrapper .corner-point');
-				// let controlPoints = document.querySelectorAll('.wrapper .control-vector, .wrapper .control-point');
-				// let contourStrokes = document.querySelectorAll('.wrapper .contour-stroke');
-				// let contourFills = document.querySelectorAll('.wrapper .contour-fill');
+				// let dottedRules = document.querySelectorAll('.wrapper .dr');
+				// let verticalRules = document.querySelectorAll('.wrapper .vr');
+				// let cornerPoints = document.querySelectorAll('.wrapper .sp, .wrapper .cor');
+				// let controlPoints = document.querySelectorAll('.wrapper .cv, .wrapper .ctrl');
+				// let contourStrokes = document.querySelectorAll('.wrapper .cs');
+				// let contourFills = document.querySelectorAll('.wrapper .cf');
 				
 				// function setParams() {
 				// 	let horizontalRules = checkboxHorizontal.checked;
@@ -1256,7 +1258,7 @@ function inspect(font, references, subfamily) {
 				function inputDialogFillHandler() {
 					let setting = this.value / 100;
 					if (setting) {
-						cssVariableSet('--dialog-contour-fill', setting);
+						cssVariableSet('--dialog-cf', setting);
 					}
 				}
 				
@@ -1266,7 +1268,7 @@ function inspect(font, references, subfamily) {
 				function inputFillHandler() {
 					let setting = this.value / 100;
 					if (setting) {
-						cssVariableSet('--contour-fill', setting);
+						cssVariableSet('--cf', setting);
 					}
 				}
 				
@@ -1282,24 +1284,22 @@ function inspect(font, references, subfamily) {
 				
 				zoomSize.addEventListener('change', zoomSizeHandler);
 				zoomSize.addEventListener('input', zoomSizeHandler);
-				
-				// window.addEventListener("click", function(e) {
-				// 	var href = e.target.getAttribute("href");
-				// 	if(href) {
-				// 		let urlSearch = document.location.search;
-				// 		let params = new URLSearchParams(urlSearch);
-				// 		let horizontalRules = (checkboxHorizontal?.checked ?? params.get('hr')) ?? true;
-				// 		let verticalRules = (checkboxVertical?.checked ?? params.get('vr')) ?? true;
-				// 		let points = (checkboxPoints?.checked ?? params.get('p')) ?? true;
-				// 		let handles = (checkboxHandles?.checked ?? params.get('h')) ?? true;
-				// 		let stroke = (checkboxStroke?.checked ?? params.get('s')) ?? true;
-				// 		let fill = (inputFill?.value ?? params.get('f')) ?? 10;
-				// 		let zoom = (zoomSize?.value ?? params.get('zoom')) ?? 300;
-				// 		let params = '?hr=' + horizontalRules + '&vr=' + verticalRules + '&p=' + points + '&h=' + handles + '&s=' + stroke + '&f=' + fill + '&zoom=' + zoom;
-				// 		location.href = href + params;
-				// 		e.preventDefault();
-				// 	}
-				// });
+				window.removeEventListener("click", preloadHrefHandler);
+				window.addEventListener("click", function(e) {
+				var href = e.target.getAttribute("href");
+					if (href) {
+						let horizontalRules = checkboxHorizontal?.checked;
+						let verticalRules = checkboxVertical?.checked;
+						let points = checkboxPoints?.checked;
+						let handles = checkboxHandles?.checked;
+						let stroke = checkboxStroke?.checked;
+						let fill = inputFill?.value;
+						let zoom = zoomSize?.value;
+						let params = '?hr=' + horizontalRules + '&vr=' + verticalRules + '&p=' + points + '&h=' + handles + '&s=' + stroke + '&f=' + fill + '&zoom=' + zoom;
+						location.href = href + params;
+						e.preventDefault();
+					}
+				});
 				
 				window.addEventListener("DOMContentLoaded", (event) => {
 					let urlSearch = document.location.search;

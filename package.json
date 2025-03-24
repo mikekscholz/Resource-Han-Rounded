@@ -1,6 +1,7 @@
 {
 	"dependencies": {
 		"bezier-js": "^6.1.4",
+		"geometric": "^2.5.5",
 		"ot-builder": "~1.5.1",
 		"otb-ttc-bundle": "~1.5.1",
 		"point-in-polygon-hao": "^1.2.4",

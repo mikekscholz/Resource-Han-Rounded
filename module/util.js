@@ -69,6 +69,25 @@ function closestPointOnLine(p, line) {
 	};
 }
 
+function pointOnLine(points, line, tolerance = 0, clamp = false) {
+	if (!Array.isArray(points)) points = [points];
+	const { p1, p2 } = line;
+	const A = p2.y - p1.y;
+	const B = p1.x - p2.x;
+	const C = p2.x * p1.y - p1.x * p2.y;
+	const left = Math.min(p1.x, p2.x);
+	const right = Math.max(p1.x, p2.x);
+	const top = Math.min(p1.y, p2.y);
+	const bottom = Math.max(p1.y, p2.y);
+	for (const point of points) {
+		const { x, y } = point;
+		const distance = Math.abs(A * x + B * y + C) / Math.sqrt(A * A + B * B);
+		if (distance > tolerance) return false;
+		if (clamp && (left > x || top > y || bottom < y || right < x)) return false;
+	}
+	return true;
+}
+
 function approximateBezier(p1, cp1, cp2, p2, tolerance = 0.1) {
 	const result = [];
 	subdivideBezier(p1, cp1, cp2, p2, tolerance, result);
@@ -160,5 +179,5 @@ const isBetween = (function () {
 })();
 
 module.exports = {
-	angle, approximateBezier, base60, bearing, closestPointOnLine, findIntersection, horizontalSlope, isBetween, roundTo, turn, verticalSlope
+	angle, approximateBezier, base60, bearing, closestPointOnLine, findIntersection, horizontalSlope, isBetween, midpoint, pointOnLine, roundTo, turn, verticalSlope
 };

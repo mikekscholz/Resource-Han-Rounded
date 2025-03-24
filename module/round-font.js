@@ -10,6 +10,12 @@ function circularArray(array, index) {
 	return array[isNaN(idx) ? index : idx];
 }
 
+function circularIndex(array, index) {
+	var length = array && array.length;
+	var idx = Math.abs(length + index % length) % length;
+	return isNaN(idx) ? index : idx;
+}
+
 function roundFont(font, references) {
 	let debug = false;
 let curGlyph = "";
@@ -82,6 +88,18 @@ let curGlyph = "";
 	
 	function originHeavy(point) {
 		return Ot.Var.Ops.evaluate(point, instanceShsWghtMax);
+	}
+	
+	function pointLight(p) {
+		return { x: originLight(p.x), y: originLight(p.y) };
+	}
+	
+	function pointHeavy(p) {
+		return { x: originHeavy(p.x), y: originHeavy(p.y) };
+	}
+	
+	function pointString(p) {
+		return JSON.stringify({ light: pointLight(p), heavy: pointHeavy(p) });
 	}
 	
 	function extractPoint(point) {
@@ -654,9 +672,45 @@ let curGlyph = "";
 		}
 
 		// adjust result, let it begin with end point
-		if (result[0].kind != Ot.Glyph.PointType.Corner)
+		if (result[0].kind != Ot.Glyph.PointType.Corner) {
 			// if not end point, it must be second control point
 			result.push(result.shift());
+		}
+		
+		if (name === "uni306E") console.log(result);
+		
+		let redundantPoints = [];
+		
+		for (let idxP1 = 0; idxP1 < result.length - 1; idxP1++) {
+			let p1I = circularIndex(result, idxP1);
+			let p2I = circularIndex(result, idxP1 + 1);
+			let p3I = circularIndex(result, idxP1 + 2);
+			let p4I = circularIndex(result, idxP1 + 3);
+			let p1 = result[p1I];
+			let p2 = result[p2I];
+			let p3 = result[p3I];
+			let p4 = result[p4I];
+			let s1 = pointString(p1);
+			if (
+				p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && 
+				s1 === pointString(p2) &&
+				s1 === pointString(p3) &&
+				s1 === pointString(p4)
+			) {
+				let indices = [p2I, p3I, p4I];
+				for (const idx of indices) {
+					if (!redundantPoints.includes(idx) && idx !== 0 && idx !== result.length - 1) redundantPoints.push(idx);
+				}
+			}
+		}
+
+		if (redundantPoints.length > 0) {
+			redundantPoints.sort((a,b) => b - a);
+			for (const i of redundantPoints) {
+				result.splice(i, 1);
+			}
+			redundantPoints = [];
+		}
 		return result;
 	}
 	
