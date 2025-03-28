@@ -1268,13 +1268,13 @@ function correctGlyphs(font, references) {
 
 			
 			// fix horns (Ơ ơ Ư ư)
-			if (["Ohorn","ohorn","Uhorn","uhorn","uni1EDA","uni1EDB","uni1EDC","uni1EDD","uni1EDE","uni1EDF","uni1EE0","uni1EE1","uni1EE2","uni1EE3","uni1EE8","uni1EE9","uni1EEA","uni1EEB","uni1EEC","uni1EED","uni1EEE","uni1EEF","uni1EF0","uni1EF1"].includes(glyph.name) && idxC === 0) {
-				newContour.splice(14, 0, {
-					x: makeVariance(originLight(contour[13].x), originHeavy(contour[13].x)),
-					y: makeVariance(originLight(contour[0].y), originHeavy(contour[0].y)),
-					kind: 0,
-				});
-			}
+			// if (["Ohorn","ohorn","Uhorn","uhorn","uni1EDA","uni1EDB","uni1EDC","uni1EDD","uni1EDE","uni1EDF","uni1EE0","uni1EE1","uni1EE2","uni1EE3","uni1EE8","uni1EE9","uni1EEA","uni1EEB","uni1EEC","uni1EED","uni1EEE","uni1EEF","uni1EF0","uni1EF1"].includes(glyph.name) && idxC === 0) {
+			// 	newContour.splice(14, 0, {
+			// 		x: makeVariance(originLight(contour[13].x), originHeavy(contour[13].x)),
+			// 		y: makeVariance(originLight(contour[0].y), originHeavy(contour[0].y)),
+			// 		kind: 0,
+			// 	});
+			// }
 
 			// fix ɑ
 			if (glyph.name === "uni0251" && idxC === 0) {

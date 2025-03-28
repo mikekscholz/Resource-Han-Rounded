@@ -773,6 +773,7 @@ function preProcess(font, references) {
 				let b8H = bearingHeavy(p9, p8);
 
 				// NOTE - cleanup double flare serifs.
+				// let kinds = false;
 				let kinds = (p0.kind === 2 || p0.kind === 0) && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && p5.kind === 0 && p6.kind === 1 && p7.kind === 2 && p8.kind === 0 && (p9.kind === 1 || p9.kind === 0);
 				if (
 					(
@@ -783,8 +784,8 @@ function preProcess(font, references) {
 						angle(b4L, b5L).isBetween(-90,-75) &&
 						distanceLight(p1, p4) < 200 &&
 						distanceLight(p5, p8) < 200 &&
-						abs(turn(b0L, b1L)) < 8 &&
-						abs(turn(b8L, b7L)) < 8 &&
+						turn(b0L, b1L).isBetween(0, 9) &&
+						turn(b8L, b7L).isBetween(0, 9) &&
 						abs(turn(b0L, b8L)) < 8 &&
 						angle(b0L, b4L).isBetween(-95,-85)
 					) || 
@@ -796,8 +797,8 @@ function preProcess(font, references) {
 						angle(b4H, b5H).isBetween(-90,-75) &&
 						distanceHeavy(p1, p4) < 300 &&
 						distanceHeavy(p5, p8) < 300 &&
-						abs(turn(b0H, b1H)) < 8 &&
-						abs(turn(b8H, b7H)) < 8 &&
+						turn(b0H, b1H).isBetween(0, 9) &&
+						turn(b8H, b7H).isBetween(0, 9) &&
 						abs(turn(b0H, b8H)) < 8 &&
 						angle(b0H, b4H).isBetween(-95,-85)
 					)
@@ -918,11 +919,11 @@ function preProcess(font, references) {
 				let b0H = bearingHeavy(p0, p1);
 				let b4H = bearingHeavy(p4, p5);
 				// NOTE - cleanup flare serif segment end.
-				let kinds3 = false;
-				// let kinds3 = (p0.kind === 2 || p0.kind === 0) && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && (p5.kind === 1 || p5.kind === 0);
+				// let kinds3 = false;
+				let kinds3 = (p0.kind === 2 || p0.kind === 0) && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && (p5.kind === 1 || p5.kind === 0);
 				if (
 					(kinds3 && angle(b0L, b4L).isBetween(-95,-70) && pointOnLine([pointLight(p1), pointLight(p2)], lineLight(p0, p4), 2) && pointOnLine(pointLight(p3), lineLight(p0, p4), 6) && distanceLight(p0, p4) < 200) && 
-					(kinds3 && angle(b0H, b4H).isBetween(-95,-70) && pointOnLine([pointHeavy(p1), pointHeavy(p2)], lineHeavy(p0, p4), 4) && pointOnLine(pointHeavy(p3), lineHeavy(p0, p4), 6) && distanceHeavy(p0, p4) < 300)
+					(kinds3 && angle(b0H, b4H).isBetween(-95,-70) && pointOnLine([pointHeavy(p1), pointHeavy(p2)], lineHeavy(p0, p4), 4) && pointOnLine(pointHeavy(p3), lineHeavy(p0, p4), 8) && distanceHeavy(p0, p4) < 300)
 				) {
 					let c1L = findIntersection([pointLight(p0), pointLight(p1), pointLight(p4), pointLight(p5)]);
 					let c1H = findIntersection([pointHeavy(p0), pointHeavy(p1), pointHeavy(p4), pointHeavy(p5)]);
@@ -961,27 +962,29 @@ function preProcess(font, references) {
 				let p5 = newContour[p5I];
 				let b0L = bearingLight(p0, p1);
 				let b1L = bearingLight(p1, p2);
-				let b2L = bearingLight(p2, p3);
+				let b2L = bearingLight(p3, p4);
 				let b0H = bearingHeavy(p0, p1);
 				let b1H = bearingHeavy(p1, p2);
-				let b2H = bearingHeavy(p2, p3);
+				let b2H = bearingHeavy(p3, p4);
 				// NOTE - cleanup flare serif segment start.
-				let kinds4 = false
-				// let kinds4 = (p0.kind === 2 || p0.kind === 0) && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && (p5.kind === 1 || p5.kind === 0);
+				// let kinds4 = false
+				let kinds4 = (p0.kind === 2 || p0.kind === 0) && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && (p5.kind === 1 || p5.kind === 0);
 				if (
-					(kinds4 && angle(b0L, b1L).isBetween(-95,-70) && turn(b1L, b2L).isBetween(-5, 5) && pointOnLine(pointLight(p2), lineLight(p1, p5), 6) && pointOnLine([pointLight(p3), pointLight(p4)], lineLight(p1, p5), 2) && distanceLight(p1, p5) < 200) && 
-					(kinds4 && angle(b0H, b1H).isBetween(-95,-70) && turn(b1H, b2H).isBetween(-5, 5) && pointOnLine(pointHeavy(p2), lineHeavy(p1, p5), 8) && pointOnLine([pointHeavy(p3), pointHeavy(p4)], lineHeavy(p1, p5), 4) && distanceHeavy(p1, p5) < 300)
+					(kinds4 && angle(b0L, b1L).isBetween(-95,-70) && pointOnLine(pointLight(p2), lineLight(p1, p5), 12) && pointOnLine([pointLight(p3), pointLight(p4)], lineLight(p1, p5), 12) && distanceLight(p1, p4) < 200) && 
+					(kinds4 && angle(b0H, b1H).isBetween(-95,-70) && pointOnLine(pointHeavy(p2), lineHeavy(p1, p5), 12) && pointOnLine([pointHeavy(p3), pointHeavy(p4)], lineHeavy(p1, p5), 12) && distanceHeavy(p1, p4) < 300)
 				) {
 					let c1L = findIntersection([pointLight(p0), pointLight(p1), pointLight(p4), pointLight(p5)]);
 					let c1H = findIntersection([pointHeavy(p0), pointHeavy(p1), pointHeavy(p4), pointHeavy(p5)]);
-					newContour[p1I] = {
-						x: makeVariance(c1L.x, c1H.x),
-						y: makeVariance(c1L.y, c1H.y),
-						kind: 0,
-					};
-					let indices = [p2I, p3I, p4I];
-					for (const idx of indices) {
-						if (!redundantPoints.includes(idx)) redundantPoints.push(idx);
+					if (distanceLight(p0, c1L) < 60 && distanceHeavy(p0, c1H) < 200) {
+						newContour[p1I] = {
+							x: makeVariance(c1L.x, c1H.x),
+							y: makeVariance(c1L.y, c1H.y),
+							kind: 0,
+						};
+						let indices = [p2I, p3I, p4I];
+						for (const idx of indices) {
+							if (!redundantPoints.includes(idx)) redundantPoints.push(idx);
+						}
 					}
 				}
  			}
@@ -1007,12 +1010,12 @@ function preProcess(font, references) {
 				let distL = distanceLight(p1, p4);
 				let distH = distanceHeavy(p1, p4);
 				let toleranceL = distL * 0.022;
-				let toleranceH = distH * 0.015;
+				let toleranceH = distH * 0.03;
 				if (
 					p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && 
 					(
 						(
-							distL < 180 && distH < 180 &&
+							distL < 220 && distH < 220 &&
 							pointOnLine([pointLight(p2), pointLight(p3)], lineLight(p1, p4), toleranceL) && 
 							pointOnLine([pointHeavy(p2), pointHeavy(p3)], lineHeavy(p1, p4), toleranceH)
 						) || (
