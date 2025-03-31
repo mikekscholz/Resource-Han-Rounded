@@ -1268,13 +1268,13 @@ function correctGlyphs(font, references) {
 
 			
 			// fix horns (Ơ ơ Ư ư)
-			// if (["Ohorn","ohorn","Uhorn","uhorn","uni1EDA","uni1EDB","uni1EDC","uni1EDD","uni1EDE","uni1EDF","uni1EE0","uni1EE1","uni1EE2","uni1EE3","uni1EE8","uni1EE9","uni1EEA","uni1EEB","uni1EEC","uni1EED","uni1EEE","uni1EEF","uni1EF0","uni1EF1"].includes(glyph.name) && idxC === 0) {
-			// 	newContour.splice(14, 0, {
-			// 		x: makeVariance(originLight(contour[13].x), originHeavy(contour[13].x)),
-			// 		y: makeVariance(originLight(contour[0].y), originHeavy(contour[0].y)),
-			// 		kind: 0,
-			// 	});
-			// }
+			if (["Ohorn","ohorn","Uhorn","uhorn","uni1EDA","uni1EDB","uni1EDC","uni1EDD","uni1EDE","uni1EDF","uni1EE0","uni1EE1","uni1EE2","uni1EE3","uni1EE8","uni1EE9","uni1EEA","uni1EEB","uni1EEC","uni1EED","uni1EEE","uni1EEF","uni1EF0","uni1EF1"].includes(glyph.name) && idxC === 0) {
+				newContour.splice(14, 0, {
+					x: makeVariance(originLight(contour[13].x), originHeavy(contour[13].x)),
+					y: makeVariance(originLight(contour[0].y), originHeavy(contour[0].y)),
+					kind: 0,
+				});
+			}
 
 			// fix ɑ
 			if (glyph.name === "uni0251" && idxC === 0) {
@@ -1374,7 +1374,7 @@ function correctGlyphs(font, references) {
 
 			// fix Л
 			if (glyph.name == "uni041B") {
-				newContour[20] = {
+				newContour[18] = {
 					x: makeVariance(9, -13),
 					y: makeVariance(originLight(contour[20].y), originHeavy(contour[20].y)),
 					kind: contour[20].kind,
@@ -1383,7 +1383,7 @@ function correctGlyphs(font, references) {
 
 			// fix к
 			if (glyph.name == "uni043A") {
-				newContour[13] = {
+				newContour[11] = {
 					x: makeVariance(475, 581),
 					y: makeVariance(originLight(contour[13].y), originHeavy(contour[13].y)),
 					kind: contour[13].kind,
@@ -1392,7 +1392,7 @@ function correctGlyphs(font, references) {
 
 			// fix л
 			if (glyph.name == "uni043B") {
-				newContour[16] = {
+				newContour[14] = {
 					x: makeVariance(15, 6),
 					y: makeVariance(originLight(contour[16].y), originHeavy(contour[16].y)),
 					kind: contour[16].kind,

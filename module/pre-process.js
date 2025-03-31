@@ -728,10 +728,13 @@ function preProcess(font, references) {
 			if (JSON.stringify(contour[0]) === JSON.stringify(circularArray(contour, - 1))) contour.pop()
 			let newContour = [...contour];
 
-			
+		
 			let redundantPoints = [];
+		
+		
+			// NOTE - cleanup double flare serifs.
+			// <svg width="500px" viewBox="0 4 170 130" xmlns="http://www.w3.org/2000/svg"><style>svg{background-color:#0007}line{stroke:#fff;stroke-dasharray:2px 1px;stroke-width:1}text{fill:#fff;font-size:7px;font-family:sans-serif}circle{r:2.2;stroke:#0005;stroke-width:1}.c{fill:#f06}.h{fill:#9f0}</style><path d="M140,150L140,90C140,65,144,40,150,15L20,15C26,40,30,65,30,90L30,150" fill="#fff1" stroke="#fff6" stroke-width=".5"/><line x1="20" x2="26" y1="15" y2="40"/><line x1="30" x2="30" y1="65" y2="90"/><line x1="30" x2="30" y1="90" y2="122"/><line x1="144" x2="150" y1="40" y2="15"/><line x1="140" x2="140" y1="90" y2="65"/><line x1="140" x2="140" y1="90" y2="122"/><circle cx="30" cy="122" class="h"/><circle cx="30" cy="90" class="c"/><circle cx="30" cy="65" class="h"/><circle cx="144" cy="40" class="h"/><circle cx="150" cy="15" class="c"/><circle cx="20" cy="15" class="c"/><circle cx="26" cy="40" class="h"/><circle cx="140" cy="65" class="h"/><circle cx="140" cy="90" class="c"/><circle cx="140" cy="122" class="h"/><text x="144" y="124">p0</text><text x="144" y="92">p1</text><text x="144" y="67">p2</text><text x="148" y="42">p3</text><text x="154" y="14">p4</text><text x="9" y="14">p5</text><text x="14" y="42">p6</text><text x="18" y="67">p7</text><text x="18" y="92">p8</text><text x="18" y="124">p9</text></svg>
 			
-			// NOTE - cleanup corners.
 			for (let idxP1 = 0; idxP1 < newContour.length; idxP1++) {
 				let p0I = previousNode(newContour, idxP1);
 				let p1I = circularIndex(newContour, idxP1);
@@ -760,8 +763,8 @@ function preProcess(font, references) {
 				let b4L = bearingLight(p4, p5);
 				let b5L = bearingLight(p5, p6);
 				let b6L = bearingLight(p6, p7);
-				let b7L = bearingLight(p8, p7);
-				let b8L = bearingLight(p9, p8);
+				let b7L = bearingLight(p7, p8);
+				let b8L = bearingLight(p8, p9);
 				let b0H = bearingHeavy(p0, p1);
 				let b1H = bearingHeavy(p1, p2);
 				let b2H = bearingHeavy(p2, p3);
@@ -769,38 +772,43 @@ function preProcess(font, references) {
 				let b4H = bearingHeavy(p4, p5);
 				let b5H = bearingHeavy(p5, p6);
 				let b6H = bearingHeavy(p6, p7);
-				let b7H = bearingHeavy(p8, p7);
-				let b8H = bearingHeavy(p9, p8);
+				let b7H = bearingHeavy(p7, p8);
+				let b8H = bearingHeavy(p8, p9);
 
-				// NOTE - cleanup double flare serifs.
 				// let kinds = false;
 				let kinds = (p0.kind === 2 || p0.kind === 0) && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && p5.kind === 0 && p6.kind === 1 && p7.kind === 2 && p8.kind === 0 && (p9.kind === 1 || p9.kind === 0);
 				if (
 					(
 						kinds &&
 						distanceLight(p3, p4) > 0 &&
-						angle(b3L, b4L).isBetween(-91,-75) &&
 						distanceLight(p5, p6) > 0 &&
+						angle(b3L, b4L).isBetween(-91,-75) &&
 						angle(b4L, b5L).isBetween(-90,-75) &&
 						distanceLight(p1, p4) < 200 &&
 						distanceLight(p5, p8) < 200 &&
-						turn(b0L, b1L).isBetween(0, 9) &&
-						turn(b8L, b7L).isBetween(0, 9) &&
-						abs(turn(b0L, b8L)) < 8 &&
-						angle(b0L, b4L).isBetween(-95,-85)
+						turn(b0L, b1L).isBetween(-3, 9) &&
+						turn(b8L, b7L).isBetween(-3, 9) &&
+						turn(b1L, b3L).isBetween(0, 30) &&
+						turn(b5L, b7L).isBetween(0, 30) &&
+						abs(angle(b1L, b7L)) < 8 &&
+						angle(b1L, b4L).isBetween(-95,-85) &&
+						angle(b4L, b7L).isBetween(-95,-85)
 					) || 
 					(
 						kinds &&
 						distanceHeavy(p3, p4) > 0 &&
-						angle(b3H, b4H).isBetween(-91,-75) &&
 						distanceHeavy(p5, p6) > 0 &&
+						angle(b3H, b4H).isBetween(-91,-75) &&
 						angle(b4H, b5H).isBetween(-90,-75) &&
 						distanceHeavy(p1, p4) < 300 &&
 						distanceHeavy(p5, p8) < 300 &&
-						turn(b0H, b1H).isBetween(0, 9) &&
-						turn(b8H, b7H).isBetween(0, 9) &&
-						abs(turn(b0H, b8H)) < 8 &&
-						angle(b0H, b4H).isBetween(-95,-85)
+						turn(b0H, b1H).isBetween(-5, 9) &&
+						turn(b8H, b7H).isBetween(-5, 9) &&
+						turn(b1H, b3H).isBetween(0, 30) &&
+						turn(b5H, b7H).isBetween(0, 30) &&
+						abs(angle(b1H, b7H)) < 8 &&
+						angle(b1H, b4H).isBetween(-95,-85) &&
+						angle(b4H, b7H).isBetween(-95,-85)
 					)
 				) {
 					let c1L = findIntersection([pointLight(p0), pointLight(p1), pointLight(p4), pointLight(p5)]);
@@ -834,6 +842,10 @@ function preProcess(font, references) {
 				redundantPoints = [];
 			}
 			
+			// NOTE - cleanup concave square corners.
+			// <svg width="500px" viewBox="0 4 170 130" xmlns="http://www.w3.org/2000/svg"><style>svg{background-color:#0007}line{stroke:#fff;stroke-dasharray:2px 1px;stroke-width:1}text{fill:#fff;font-size:7px;font-family:sans-serif}circle{r:2.2;stroke:#0005;stroke-width:1}.c{fill:#f06}.h{fill:#9f0}</style><path d="M180,151L180,26L100,26C75,26,45,22,20,15L20,15C28,40,32,65,32,90L32,150" fill="#fff1" stroke="#fff6" stroke-width=".5"/><line x1="133" x2="100" y1="26" y2="26"/><line x1="100" x2="75" y1="26" y2="26"/><line x1="20" x2="45" y1="15" y2="22"/><line x1="20" x2="28" y1="15" y2="40"/><line x1="32" x2="32" y1="65" y2="90"/><line x1="32" x2="32" y1="90" y2="123"/><circle cx="133" cy="26" class="h"/><circle cx="100" cy="26" class="c"/><circle cx="75" cy="26" class="h"/><circle cx="45" cy="22" class="h"/><circle cx="20" cy="15" class="c"/><circle cx="28" cy="40" class="h"/><circle cx="32" cy="65" class="h"/><circle cx="32" cy="90" class="c"/><circle cx="32" cy="123" class="h"/><text x="129" y="20">p0</text><text x="96" y="20">p1</text><text x="71" y="20">p2</text><text x="41" y="16">p3</text><text x="9" y="14">p4</text><text x="15" y="42">p5</text><text x="19" y="67">p6</text><text x="19" y="92">p7</text><text x="19" y="125">p8</text></svg>
+
+
 			for (let idxP1 = 0; idxP1 < newContour.length; idxP1++) {
 				let p0I = previousNode(newContour, idxP1);
 				let p1I = circularIndex(newContour, idxP1);
@@ -873,11 +885,30 @@ function preProcess(font, references) {
 				let b6H = bearingHeavy(p6, p7);
 				let b7H = bearingHeavy(p8, p7);
 				let b8H = bearingHeavy(p9, p8);
-				// NOTE - cleanup concave square corners.
 				let kinds2 = (p0.kind === 2 || p0.kind === 0) && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && p5.kind === 1 && p6.kind === 2 && p7.kind === 0 && (p8.kind === 1 || p8.kind === 0);
 				if (
-					(kinds2 && distanceLight(p3, p4) > 0 && distanceLight(p4, p5) > 0 && distanceLight(p1, p4) < 200 && distanceLight(p4, p7) < 200 && angle(b3L, b4L).isBetween(-91,-75) && abs(turn(b0L, b1L)) < 8 && abs(turn(bearingLight(p7, p8), b6L)) < 8 && angle(b0L, bearingLight(p7, p8)).isBetween(-95,-85)) || 
-					(kinds2 && distanceHeavy(p3, p4) > 0 && distanceHeavy(p4, p5) > 0 && distanceHeavy(p1, p4) < 300 && distanceHeavy(p4, p7) < 300 && angle(b3H, b4H).isBetween(-91,-75) && abs(turn(b0H, b1H)) < 8 && abs(turn(bearingHeavy(p7, p8), b6H)) < 8 && angle(b0H, bearingHeavy(p7, p8)).isBetween(-95,-85))
+					(
+						kinds2 &&
+						distanceLight(p3, p4) > 0 &&
+						distanceLight(p4, p5) > 0 &&
+						distanceLight(p1, p4) < 200 &&
+						distanceLight(p4, p7) < 200 &&
+						angle(b3L, b4L).isBetween(-91,-75) &&
+						abs(turn(b0L, b1L)) < 8 &&
+						abs(turn(bearingLight(p7, p8), b6L)) < 8 &&
+						angle(b0L, bearingLight(p7, p8)).isBetween(-95,-85)
+					) || 
+					(
+						kinds2 &&
+						distanceHeavy(p3, p4) > 0 &&
+						distanceHeavy(p4, p5) > 0 &&
+						distanceHeavy(p1, p4) < 300 &&
+						distanceHeavy(p4, p7) < 300 &&
+						angle(b3H, b4H).isBetween(-91,-75) &&
+						abs(turn(b0H, b1H)) < 8 &&
+						abs(turn(bearingHeavy(p7, p8), b6H)) < 8 &&
+						angle(b0H, bearingHeavy(p7, p8)).isBetween(-95,-85)
+					)
 				) {
 					let c1L = findIntersection([pointLight(p0), pointLight(p1), pointLight(p7), pointLight(p8)]);
 					let c1H = findIntersection([pointHeavy(p0), pointHeavy(p1), pointHeavy(p7), pointHeavy(p8)]);
@@ -901,6 +932,8 @@ function preProcess(font, references) {
 				redundantPoints = [];
 			}
 				
+			// NOTE - cleanup flare serif segment end.
+			// <svg width="500px" viewBox="0 4 170 130" xmlns="http://www.w3.org/2000/svg"><style>svg{background-color:#0007}line{stroke:#fff;stroke-dasharray:2px 1px;stroke-width:1}text{fill:#fff;font-size:7px;font-family:sans-serif}circle{r:2.2;stroke:#0005;stroke-width:1}.c{fill:#f06}.h{fill:#9f0}</style><path d="M140,150L140,90C140,65,144,40,150,15L20,15L20,150" fill="#fff1" stroke="#fff6" stroke-width=".5"/><line x1="144" x2="150" y1="40" y2="15"/><line x1="140" x2="140" y1="90" y2="65"/><line x1="140" x2="140" y1="90" y2="122"/><circle cx="20" cy="122" class="c"/><circle cx="144" cy="40" class="h"/><circle cx="150" cy="15" class="c"/><circle cx="20" cy="15" class="c"/><circle cx="140" cy="65" class="h"/><circle cx="140" cy="90" class="c"/><circle cx="140" cy="122" class="h"/><text x="144" y="124">p0</text><text x="144" y="92">p1</text><text x="144" y="67">p2</text><text x="148" y="42">p3</text><text x="154" y="14">p4</text><text x="9" y="14">p5</text></svg>
 			for (let idxP1 = 0; idxP1 < newContour.length; idxP1++) {
 				let p0I = previousNode(newContour, idxP1);
 				let p1I = circularIndex(newContour, idxP1);
@@ -915,15 +948,30 @@ function preProcess(font, references) {
 				let p4 = newContour[p4I];
 				let p5 = newContour[p5I];
 				let b0L = bearingLight(p0, p1);
+				let b3L = bearingLight(p3, p4);
 				let b4L = bearingLight(p4, p5);
 				let b0H = bearingHeavy(p0, p1);
+				let b3H = bearingHeavy(p3, p4);
 				let b4H = bearingHeavy(p4, p5);
-				// NOTE - cleanup flare serif segment end.
 				// let kinds3 = false;
 				let kinds3 = (p0.kind === 2 || p0.kind === 0) && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && (p5.kind === 1 || p5.kind === 0);
 				if (
-					(kinds3 && angle(b0L, b4L).isBetween(-95,-70) && pointOnLine([pointLight(p1), pointLight(p2)], lineLight(p0, p4), 2) && pointOnLine(pointLight(p3), lineLight(p0, p4), 6) && distanceLight(p0, p4) < 200) && 
-					(kinds3 && angle(b0H, b4H).isBetween(-95,-70) && pointOnLine([pointHeavy(p1), pointHeavy(p2)], lineHeavy(p0, p4), 4) && pointOnLine(pointHeavy(p3), lineHeavy(p0, p4), 8) && distanceHeavy(p0, p4) < 300)
+					(
+						kinds3 &&
+						angle(b3L, b4L).isBetween(-89,-70) &&
+						angle(b0L, b4L).isBetween(-95,-85) &&
+						pointOnLine([pointLight(p1), pointLight(p2)], lineLight(p0, p4), 2) &&
+						pointOnLine(pointLight(p3), lineLight(p0, p4), 6) &&
+						distanceLight(p0, p4) < 200
+					) && 
+					(
+						kinds3 &&
+						angle(b3H, b4H).isBetween(-89,-70) &&
+						angle(b0H, b4H).isBetween(-95,-85) &&
+						pointOnLine([pointHeavy(p1), pointHeavy(p2)], lineHeavy(p0, p4), 4) &&
+						pointOnLine(pointHeavy(p3), lineHeavy(p0, p4), 8) &&
+						distanceHeavy(p0, p4) < 300
+					)
 				) {
 					let c1L = findIntersection([pointLight(p0), pointLight(p1), pointLight(p4), pointLight(p5)]);
 					let c1H = findIntersection([pointHeavy(p0), pointHeavy(p1), pointHeavy(p4), pointHeavy(p5)]);
@@ -947,6 +995,9 @@ function preProcess(font, references) {
 				redundantPoints = [];
 			}
 			
+			// ANCHOR - cleanup flare serif segment start.
+			// <svg width="500px" viewBox="0 4 170 130" xmlns="http://www.w3.org/2000/svg"><style>svg{background-color:#0007}line{stroke:#fff;stroke-dasharray:2px 1px;stroke-width:1}text{fill:#fff;font-size:7px;font-family:sans-serif}circle{r:2.2;stroke:#0005;stroke-width:1}.c{fill:#f06}.h{fill:#9f0}</style><path d="M150,150L150,15L20,15C26,40,30,65,30,90L30,150" fill="#fff1" stroke="#fff6" stroke-width=".5"/><line x1="20" x2="26" y1="15" y2="40"/><line x1="30" x2="30" y1="65" y2="90"/><line x1="30" x2="30" y1="90" y2="122"/><circle cx="30" cy="122" class="h"/><circle cx="30" cy="90" class="c"/><circle cx="30" cy="65" class="h"/><circle cx="150" cy="15" class="c"/><circle cx="20" cy="15" class="c"/><circle cx="26" cy="40" class="h"/><text x="154" y="14">p0</text><text x="9" y="14">p1</text><text x="14" y="42">p2</text><text x="18" y="67">p3</text><text x="18" y="92">p4</text><text x="18" y="124">p5</text></svg>
+			
 			for (let idxP1 = 0; idxP1 < newContour.length; idxP1++) {
 				let p0I = previousNode(newContour, idxP1);
 				let p1I = circularIndex(newContour, idxP1);
@@ -962,16 +1013,32 @@ function preProcess(font, references) {
 				let p5 = newContour[p5I];
 				let b0L = bearingLight(p0, p1);
 				let b1L = bearingLight(p1, p2);
-				let b2L = bearingLight(p3, p4);
+				let b3L = bearingLight(p3, p4);
 				let b0H = bearingHeavy(p0, p1);
 				let b1H = bearingHeavy(p1, p2);
-				let b2H = bearingHeavy(p3, p4);
-				// NOTE - cleanup flare serif segment start.
+				let b3H = bearingHeavy(p3, p4);
 				// let kinds4 = false
-				let kinds4 = (p0.kind === 2 || p0.kind === 0) && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && (p5.kind === 1 || p5.kind === 0);
+				let kinds4 = p0.kind === 0 && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && (p5.kind === 1 || p5.kind === 0);
+				// let kinds4 = (p0.kind === 2 || p0.kind === 0) &&
 				if (
-					(kinds4 && angle(b0L, b1L).isBetween(-95,-70) && pointOnLine(pointLight(p2), lineLight(p1, p5), 12) && pointOnLine([pointLight(p3), pointLight(p4)], lineLight(p1, p5), 12) && distanceLight(p1, p4) < 200) && 
-					(kinds4 && angle(b0H, b1H).isBetween(-95,-70) && pointOnLine(pointHeavy(p2), lineHeavy(p1, p5), 12) && pointOnLine([pointHeavy(p3), pointHeavy(p4)], lineHeavy(p1, p5), 12) && distanceHeavy(p1, p4) < 300)
+					(
+						kinds4 &&
+						angle(b0L, b1L).isBetween(-95,-70) &&
+						angle(b0L, b3L).isBetween(-95,-85) &&
+						turn(b1L, b3L).isBetween(0, 30) &&
+						pointOnLine(pointLight(p2), lineLight(p1, p5), 12) &&
+						pointOnLine([pointLight(p3), pointLight(p4)], lineLight(p1, p5), 12) &&
+						distanceLight(p1, p4) < 200
+					) && 
+					(
+						kinds4 &&
+						angle(b0H, b1H).isBetween(-95,-70) &&
+						angle(b0H, b3H).isBetween(-95,-85) &&
+						turn(b1L, b3L).isBetween(0, 30) &&
+						pointOnLine(pointHeavy(p2), lineHeavy(p1, p5), 12) &&
+						pointOnLine([pointHeavy(p3), pointHeavy(p4)], lineHeavy(p1, p5), 12) &&
+						distanceHeavy(p1, p4) < 300
+					)
 				) {
 					let c1L = findIntersection([pointLight(p0), pointLight(p1), pointLight(p4), pointLight(p5)]);
 					let c1H = findIntersection([pointHeavy(p0), pointHeavy(p1), pointHeavy(p4), pointHeavy(p5)]);
@@ -1015,11 +1082,11 @@ function preProcess(font, references) {
 					p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && 
 					(
 						(
-							distL < 220 && distH < 220 &&
+							distL < 280 && distH < 280 &&
 							pointOnLine([pointLight(p2), pointLight(p3)], lineLight(p1, p4), toleranceL) && 
 							pointOnLine([pointHeavy(p2), pointHeavy(p3)], lineHeavy(p1, p4), toleranceH)
 						) || (
-							pointOnLine([pointLight(p2), pointLight(p3)], lineLight(p1, p4), 1) && 
+							pointOnLine([pointLight(p2), pointLight(p3)], lineLight(p1, p4), 2) && 
 							pointOnLine([pointHeavy(p2), pointHeavy(p3)], lineHeavy(p1, p4), 2)
 						)
 					)
@@ -1051,8 +1118,8 @@ function preProcess(font, references) {
 					p1.kind === 0 && p2.kind === 0 && p3.kind === 0 &&
 					distanceLight(p1, p2) > 10 && distanceLight(p2, p3) > 10 &&
 					distanceHeavy(p1, p2) > 10 && distanceHeavy(p2, p3) > 10 &&
-					pointOnLine(pointLight(p2), lineLight(p1, p3), 4) && 
-					pointOnLine(pointHeavy(p2), lineHeavy(p1, p3), 6)
+					pointOnLine(pointLight(p2), lineLight(p1, p3), 7) && 
+					pointOnLine(pointHeavy(p2), lineHeavy(p1, p3), 8)
 				) {
 					if (!redundantPoints.includes(p2I)) redundantPoints.push(p2I);
 				}
@@ -1096,6 +1163,7 @@ function preProcess(font, references) {
 				}
 				redundantPoints = [];
 			}
+			
 			// NOTE - cleanup tapered endcaps.
 			for (let idxP1 = 0; idxP1 < newContour.length; idxP1++) {
 				let p0I = circularIndex(newContour, idxP1 - 1);

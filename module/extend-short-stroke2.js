@@ -358,6 +358,8 @@ function extendShortStroke(font, references) {
 		glyph.geometry.contours = [];
 		
 		let skipContours = [];
+		let readOnlyContours = [];
+		
 		if (name in references.extendIgnoreContourIdx) {
 			skipContours = references.extendIgnoreContourIdx[name];
 		}
@@ -413,12 +415,14 @@ function extendShortStroke(font, references) {
 				polyGlyphHeavy[idxN2] = idxN1;
 				rawPolyLightCW[idxN2] = undefined;
 				rawPolyHeavyCW[idxN2] = undefined;
+				if (!readOnlyContours.includes(idxN1)) readOnlyContours.push(idxN1);
 			}
 			polyGlyphLight[idxN1] = polyLight;
 			polyGlyphHeavy[idxN1] = polyHeavy;
 		}
 		
 		for (let [idxC1, contour] of oldContours.entries()) {
+			if (glyph.name === "Phi") console.log(contour);
 			// NOTE - Compute each contour's radius for improved rounding
 			let strokeEnds = [];
 			for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
@@ -467,7 +471,7 @@ function extendShortStroke(font, references) {
 				}
 			}
 			
-			if (contour.length < 4 || skipContours.includes(idxC1)) {
+			if (contour.length < 4 || skipContours.includes(idxC1) || readOnlyContours.includes(idxC1)) {
 				glyph.geometry.contours.push(contour);
 				continue;
 			}
@@ -680,7 +684,7 @@ function extendShortStroke(font, references) {
 		
 		for (let [idxC1, contour] of oldContours.entries()) {
 			// find possible 竖s (verticals)
-			if (contour.length < 4 || skipContours.includes(idxC1)) {
+			if (contour.length < 4 || skipContours.includes(idxC1) || readOnlyContours.includes(idxC1)) {
 				glyph.geometry.contours.push(contour);
 				continue;
 			}
@@ -883,7 +887,7 @@ function extendShortStroke(font, references) {
 		// ANCHOR - Extend left stroke end west.
 		for (let [idxC1, contour] of oldContours.entries()) {
 			// find possible 横s (horizontals)
-			if (contour.length < 4 || skipContours.includes(idxC1)) {
+			if (contour.length < 4 || skipContours.includes(idxC1) || readOnlyContours.includes(idxC1)) {
 				glyph.geometry.contours.push(contour);
 				continue;
 			}
@@ -1079,7 +1083,7 @@ function extendShortStroke(font, references) {
 		// ANCHOR - Extend top stroke end north.
 		for (let [idxC1, contour] of oldContours.entries()) {
 			// find possible 竖s (verticals)
-			if (contour.length < 4 || skipContours.includes(idxC1)) {
+			if (contour.length < 4 || skipContours.includes(idxC1) || readOnlyContours.includes(idxC1)) {
 				glyph.geometry.contours.push(contour);
 				continue;
 			}
