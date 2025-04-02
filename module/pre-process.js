@@ -782,32 +782,32 @@ function preProcess(font, references) {
 						kinds &&
 						distanceLight(p3, p4) > 0 &&
 						distanceLight(p5, p6) > 0 &&
-						angle(b3L, b4L).isBetween(-91,-75) &&
-						angle(b4L, b5L).isBetween(-90,-75) &&
+						angle(b3L, b4L).isBetween(-97,-75) &&
+						angle(b4L, b5L).isBetween(-89,-75) &&
 						distanceLight(p1, p4) < 200 &&
 						distanceLight(p5, p8) < 200 &&
-						turn(b0L, b1L).isBetween(-3, 9) &&
-						turn(b8L, b7L).isBetween(-3, 9) &&
-						turn(b1L, b3L).isBetween(0, 30) &&
+						turn(b0L, b1L).isBetween(-5, 9) &&
+						turn(b8L, b7L).isBetween(-5, 9) &&
+						turn(b1L, b3L).isBetween(-5, 30) &&
 						turn(b5L, b7L).isBetween(0, 30) &&
 						abs(angle(b1L, b7L)) < 8 &&
-						angle(b1L, b4L).isBetween(-95,-85) &&
+						angle(b1L, b4L).isBetween(-97,-85) &&
 						angle(b4L, b7L).isBetween(-95,-85)
 					) || 
 					(
 						kinds &&
 						distanceHeavy(p3, p4) > 0 &&
 						distanceHeavy(p5, p6) > 0 &&
-						angle(b3H, b4H).isBetween(-91,-75) &&
-						angle(b4H, b5H).isBetween(-90,-75) &&
+						angle(b3H, b4H).isBetween(-98,-75) &&
+						angle(b4H, b5H).isBetween(-89,-75) &&
 						distanceHeavy(p1, p4) < 300 &&
 						distanceHeavy(p5, p8) < 300 &&
 						turn(b0H, b1H).isBetween(-5, 9) &&
 						turn(b8H, b7H).isBetween(-5, 9) &&
-						turn(b1H, b3H).isBetween(0, 30) &&
+						turn(b1H, b3H).isBetween(-5, 30) &&
 						turn(b5H, b7H).isBetween(0, 30) &&
 						abs(angle(b1H, b7H)) < 8 &&
-						angle(b1H, b4H).isBetween(-95,-85) &&
+						angle(b1H, b4H).isBetween(-98,-85) &&
 						angle(b4H, b7H).isBetween(-95,-85)
 					)
 				) {
@@ -1223,6 +1223,65 @@ function preProcess(font, references) {
 						kind: 0,
 					};
 					let indices = [p1I, p4I];
+					for (const idx of indices) {
+						if (!redundantPoints.includes(idx)) redundantPoints.push(idx);
+					}
+				}
+			}
+			
+			if (redundantPoints.length > 0) {
+				redundantPoints.sort((a,b) => b - a);
+				for (const i of redundantPoints) {
+					newContour.splice(i, 1);
+				}
+				redundantPoints = [];
+			}
+			
+			// NOTE - cleanup tapered segment end.
+			for (let idxP1 = 0; idxP1 < newContour.length; idxP1++) {
+				let p0I = circularIndex(newContour, idxP1 - 1);
+				let p1I = circularIndex(newContour, idxP1);
+				let p2I = circularIndex(newContour, idxP1 + 1);
+				let p3I = circularIndex(newContour, idxP1 + 2);
+				let p4I = circularIndex(newContour, idxP1 + 3);
+				let p5I = circularIndex(newContour, idxP1 + 4);
+				let p0 = newContour[p0I];
+				let p1 = newContour[p1I];
+				let p2 = newContour[p2I];
+				let p3 = newContour[p3I];
+				let p4 = newContour[p4I];
+				let p5 = newContour[p5I];
+				let b0L = bearingLight(p0, p1);
+				let b1L = bearingLight(p1, p2);
+				let b2L = bearingLight(p2, p3);
+				let b3L = bearingLight(p3, p4);
+				let b4L = bearingLight(p4, p5);
+				let b0H = bearingHeavy(p0, p1);
+				let b1H = bearingHeavy(p1, p2);
+				let b2H = bearingHeavy(p2, p3);
+				let b3H = bearingHeavy(p3, p4);
+				let b4H = bearingHeavy(p4, p5);
+				if (
+					(p0.kind === 2 || p0.kind === 0) && p1.kind === 0 && p2.kind === 0 && p3.kind === 0 &&
+					distanceLight(p1, p2).isBetween(5,200) &&
+					distanceHeavy(p1, p2).isBetween(5,200) &&
+					approxEq(distanceLight(p2, p3), params.strokeWidth.light, 20) &&
+					approxEq(distanceHeavy(p2, p3), params.strokeWidth.heavy, 36) &&
+					turn(b0L, b1L).isBetween(-2, 30) &&
+					turn(b0H, b1H).isBetween(-3, 30) &&
+					angle(b1L, b2L).isBetween(-89,-75) &&
+					angle(b0L, b2L).isBetween(-95,-80) &&
+					angle(b1H, b2H).isBetween(-89,-75) &&
+					angle(b0H, b2H).isBetween(-95,-80)
+				) {
+					let c1L = closestPointOnLine(pointLight(p1), lineLight(p2, p3));
+					let c1H = closestPointOnLine(pointHeavy(p1), lineHeavy(p2, p3));
+					newContour[p2I] = {
+						x: makeVariance(c1L.x, c1H.x),
+						y: makeVariance(c1L.y, c1H.y),
+						kind: 0,
+					};
+					let indices = [p1I];
 					for (const idx of indices) {
 						if (!redundantPoints.includes(idx)) redundantPoints.push(idx);
 					}
