@@ -1365,10 +1365,10 @@ function correctGlyphs(font, references) {
 
 			// fix К
 			if (glyph.name == "uni041A") {
-				newContour[13] = {
+				newContour[11] = {
 					x: makeVariance(581, 701),
-					y: makeVariance(originLight(contour[13].y), originHeavy(contour[13].y)),
-					kind: contour[13].kind,
+					y: makeVariance(originLight(contour[11].y), originHeavy(contour[11].y)),
+					kind: contour[11].kind,
 				};
 			}
 
@@ -1376,8 +1376,8 @@ function correctGlyphs(font, references) {
 			if (glyph.name == "uni041B") {
 				newContour[18] = {
 					x: makeVariance(9, -13),
-					y: makeVariance(originLight(contour[20].y), originHeavy(contour[20].y)),
-					kind: contour[20].kind,
+					y: makeVariance(originLight(contour[18].y), originHeavy(contour[18].y)),
+					kind: contour[18].kind,
 				};
 			}
 
@@ -1385,8 +1385,8 @@ function correctGlyphs(font, references) {
 			if (glyph.name == "uni043A") {
 				newContour[11] = {
 					x: makeVariance(475, 581),
-					y: makeVariance(originLight(contour[13].y), originHeavy(contour[13].y)),
-					kind: contour[13].kind,
+					y: makeVariance(originLight(contour[11].y), originHeavy(contour[11].y)),
+					kind: contour[11].kind,
 				};
 			}
 
@@ -1394,8 +1394,8 @@ function correctGlyphs(font, references) {
 			if (glyph.name == "uni043B") {
 				newContour[14] = {
 					x: makeVariance(15, 6),
-					y: makeVariance(originLight(contour[16].y), originHeavy(contour[16].y)),
-					kind: contour[16].kind,
+					y: makeVariance(originLight(contour[14].y), originHeavy(contour[14].y)),
+					kind: contour[14].kind,
 				};
 			}
 			
@@ -1431,98 +1431,98 @@ function correctGlyphs(font, references) {
 			
 			// fix Ж
 			if (glyph.name == "uni0416") {
-				newContour[17] = {
+				newContour[15] = {
 					x: makeVariance(
-						originLight(contour[17].x) + 20,
-						originHeavy(contour[17].x) + 40
+						originLight(contour[15].x) + 20,
+						originHeavy(contour[15].x) + 40
 					),
 					y: makeVariance(
-						originLight(contour[17].y),
-						originHeavy(contour[17].y) + 3
+						originLight(contour[15].y),
+						originHeavy(contour[15].y) + 3
 					),
-					kind: contour[17].kind,
+					kind: contour[15].kind,
 				};
-				newContour[18] = {
+				newContour[16] = {
 					x: makeVariance(
-						originLight(contour[18].x) + 20,
-						originHeavy(contour[18].x) + 40
+						originLight(contour[16].x) + 20,
+						originHeavy(contour[16].x) + 40
 					),
 					y: makeVariance(
-						originLight(contour[18].y) + 2,
-						originHeavy(contour[18].y) + 3
+						originLight(contour[16].y) + 2,
+						originHeavy(contour[16].y) + 3
 					),
-					kind: contour[18].kind,
+					kind: contour[16].kind,
 				};
-				newContour[37] = {
+				newContour[35] = {
 					x: makeVariance(
-						originLight(contour[37].x) - 20,
-						originHeavy(contour[37].x) - 40
+						originLight(contour[35].x) - 20,
+						originHeavy(contour[35].x) - 40
 					),
 					y: makeVariance(
-						originLight(contour[37].y) + 2,
-						originHeavy(contour[37].y) + 3
+						originLight(contour[35].y) + 2,
+						originHeavy(contour[35].y) + 3
 					),
-					kind: contour[37].kind,
+					kind: contour[35].kind,
 				};
-				newContour[38] = {
+				newContour[36] = {
 					x: makeVariance(
-						originLight(contour[38].x) - 20,
-						originHeavy(contour[38].x) - 40
+						originLight(contour[36].x) - 20,
+						originHeavy(contour[36].x) - 40
 					),
 					y: makeVariance(
-						originLight(contour[38].y),
-						originHeavy(contour[38].y) + 3
+						originLight(contour[36].y),
+						originHeavy(contour[36].y) + 3
 					),
-					kind: contour[38].kind,
+					kind: contour[36].kind,
 				};
 				// continue;
 			}
 			
 			// fix ж
 			if (glyph.name == "uni0436") {
-				newContour[17] = {
+				newContour[15] = {
 					x: makeVariance(
-						originLight(contour[17].x) + 20,
-						originHeavy(contour[17].x) + 40
+						originLight(contour[15].x) + 20,
+						originHeavy(contour[15].x) + 40
 					),
 					y: makeVariance(
-						originLight(contour[17].y),
-						originHeavy(contour[17].y) + 3
+						originLight(contour[15].y),
+						originHeavy(contour[15].y) + 3
 					),
-					kind: contour[17].kind,
+					kind: contour[15].kind,
 				};
-				newContour[18] = {
+				newContour[16] = {
 					x: makeVariance(
-						originLight(contour[18].x) + 20,
-						originHeavy(contour[18].x) + 40
+						originLight(contour[16].x) + 20,
+						originHeavy(contour[16].x) + 40
 					),
 					y: makeVariance(
-						originLight(contour[18].y) + 2,
-						originHeavy(contour[18].y) + 3
+						originLight(contour[16].y) + 2,
+						originHeavy(contour[16].y) + 3
 					),
-					kind: contour[18].kind,
+					kind: contour[16].kind,
 				};
-				newContour[37] = {
+				newContour[35] = {
 					x: makeVariance(
-						originLight(contour[37].x) - 20,
-						originHeavy(contour[37].x) - 40
+						originLight(contour[35].x) - 20,
+						originHeavy(contour[35].x) - 40
 					),
 					y: makeVariance(
-						originLight(contour[37].y) + 2,
-						originHeavy(contour[37].y) + 3
+						originLight(contour[35].y) + 2,
+						originHeavy(contour[35].y) + 3
 					),
-					kind: contour[37].kind,
+					kind: contour[35].kind,
 				};
-				newContour[38] = {
+				newContour[36] = {
 					x: makeVariance(
-						originLight(contour[38].x) - 20,
-						originHeavy(contour[38].x) - 40
+						originLight(contour[36].x) - 20,
+						originHeavy(contour[36].x) - 40
 					),
 					y: makeVariance(
-						originLight(contour[38].y),
-						originHeavy(contour[38].y) + 3
+						originLight(contour[36].y),
+						originHeavy(contour[36].y) + 3
 					),
-					kind: contour[38].kind,
+					kind: contour[36].kind,
 				};
 				// continue;
 			}

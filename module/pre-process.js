@@ -1087,7 +1087,10 @@ function preProcess(font, references) {
 							pointOnLine([pointHeavy(p2), pointHeavy(p3)], lineHeavy(p1, p4), toleranceH)
 						) || (
 							pointOnLine([pointLight(p2), pointLight(p3)], lineLight(p1, p4), 2) && 
-							pointOnLine([pointHeavy(p2), pointHeavy(p3)], lineHeavy(p1, p4), 2)
+							pointOnLine([pointHeavy(p2), pointHeavy(p3)], lineHeavy(p1, p4), 3)
+						) || (
+							pointOnLine([pointLight(p2), pointLight(p3)], lineLight(p1, p4), 0) || 
+							pointOnLine([pointHeavy(p2), pointHeavy(p3)], lineHeavy(p1, p4), 0)
 						)
 					)
 				) {
@@ -1147,7 +1150,7 @@ function preProcess(font, references) {
 				if (
 					kinds && 
 					pointOnLine([pointLight(p2), pointLight(p3)], lineLight(p1, p4), 1) && 
-					pointOnLine([pointHeavy(p2), pointHeavy(p3)], lineHeavy(p1, p4), 1)
+					pointOnLine([pointHeavy(p2), pointHeavy(p3)], lineHeavy(p1, p4), 2)
 				) {
 					let indices = [p2I, p3I];
 					for (const idx of indices) {
