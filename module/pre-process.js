@@ -1088,10 +1088,11 @@ function preProcess(font, references) {
 						) || (
 							pointOnLine([pointLight(p2), pointLight(p3)], lineLight(p1, p4), 2) && 
 							pointOnLine([pointHeavy(p2), pointHeavy(p3)], lineHeavy(p1, p4), 3)
-						) || (
-							pointOnLine([pointLight(p2), pointLight(p3)], lineLight(p1, p4), 0) || 
-							pointOnLine([pointHeavy(p2), pointHeavy(p3)], lineHeavy(p1, p4), 0)
 						)
+						//  || (
+						// 	pointOnLine([pointLight(p2), pointLight(p3)], lineLight(p1, p4), 0) || 
+						// 	pointOnLine([pointHeavy(p2), pointHeavy(p3)], lineHeavy(p1, p4), 0)
+						// )
 					)
 				) {
 					let indices = [p2I, p3I];
