@@ -34,7 +34,7 @@ const font = readOtf(filename.shs(param.subfamily));
 preProcess(font, references);
 extendShortStroke(font, references);
 correctGlyphs(font, references);
-roundFont(font, references);
+// roundFont(font, references);
 // postProcess(font, references);
 inspect(font, references, param.subfamily);
 console.log('\u001b[38;5;82mCompiling OpenType font file.\u001b[0m This may take several minutes.');

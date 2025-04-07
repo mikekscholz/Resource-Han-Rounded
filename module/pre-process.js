@@ -717,10 +717,10 @@ function preProcess(font, references) {
 		let skipContours = [];
 		if (name in references.skipRedundantPoints) {
 			skipContours = references.skipRedundantPoints[name];
-		}		
+		}
 		
 		for (let [idxC1, contour] of oldContours.entries()) {
-			if (contour.length < 10 || skipContours.includes(idxC1)) {
+			if (contour.length < 6 || skipContours.includes(idxC1)) {
 				glyph.geometry.contours.push(contour);
 				continue;
 			}
@@ -732,9 +732,9 @@ function preProcess(font, references) {
 			let redundantPoints = [];
 		
 		
-			// NOTE - cleanup double flare serifs.
-			// <svg width="500px" viewBox="0 4 170 130" xmlns="http://www.w3.org/2000/svg"><style>svg{background-color:#0007}line{stroke:#fff;stroke-dasharray:2px 1px;stroke-width:1}text{fill:#fff;font-size:7px;font-family:sans-serif}circle{r:2.2;stroke:#0005;stroke-width:1}.c{fill:#f06}.h{fill:#9f0}</style><path d="M140,150L140,90C140,65,144,40,150,15L20,15C26,40,30,65,30,90L30,150" fill="#fff1" stroke="#fff6" stroke-width=".5"/><line x1="20" x2="26" y1="15" y2="40"/><line x1="30" x2="30" y1="65" y2="90"/><line x1="30" x2="30" y1="90" y2="122"/><line x1="144" x2="150" y1="40" y2="15"/><line x1="140" x2="140" y1="90" y2="65"/><line x1="140" x2="140" y1="90" y2="122"/><circle cx="30" cy="122" class="h"/><circle cx="30" cy="90" class="c"/><circle cx="30" cy="65" class="h"/><circle cx="144" cy="40" class="h"/><circle cx="150" cy="15" class="c"/><circle cx="20" cy="15" class="c"/><circle cx="26" cy="40" class="h"/><circle cx="140" cy="65" class="h"/><circle cx="140" cy="90" class="c"/><circle cx="140" cy="122" class="h"/><text x="144" y="124">p0</text><text x="144" y="92">p1</text><text x="144" y="67">p2</text><text x="148" y="42">p3</text><text x="154" y="14">p4</text><text x="9" y="14">p5</text><text x="14" y="42">p6</text><text x="18" y="67">p7</text><text x="18" y="92">p8</text><text x="18" y="124">p9</text></svg>
-			
+			// ANCHOR - cleanup double flare serifs.
+			// HOVERIMAGE - [img "preprocess-cleanup-doubleflare.svg"]
+
 			for (let idxP1 = 0; idxP1 < newContour.length; idxP1++) {
 				let p0I = previousNode(newContour, idxP1);
 				let p1I = circularIndex(newContour, idxP1);
@@ -775,8 +775,8 @@ function preProcess(font, references) {
 				let b7H = bearingHeavy(p7, p8);
 				let b8H = bearingHeavy(p8, p9);
 
-				// let kinds = false;
-				let kinds = (p0.kind === 2 || p0.kind === 0) && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && p5.kind === 0 && p6.kind === 1 && p7.kind === 2 && p8.kind === 0 && (p9.kind === 1 || p9.kind === 0);
+				let kinds = false;
+				// let kinds = (p0.kind === 2 || p0.kind === 0) && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && p5.kind === 0 && p6.kind === 1 && p7.kind === 2 && p8.kind === 0 && (p9.kind === 1 || p9.kind === 0);
 				if (
 					(
 						kinds &&
@@ -842,9 +842,8 @@ function preProcess(font, references) {
 				redundantPoints = [];
 			}
 			
-			// NOTE - cleanup concave square corners.
-			// <svg width="500px" viewBox="0 4 170 130" xmlns="http://www.w3.org/2000/svg"><style>svg{background-color:#0007}line{stroke:#fff;stroke-dasharray:2px 1px;stroke-width:1}text{fill:#fff;font-size:7px;font-family:sans-serif}circle{r:2.2;stroke:#0005;stroke-width:1}.c{fill:#f06}.h{fill:#9f0}</style><path d="M180,151L180,26L100,26C75,26,45,22,20,15L20,15C28,40,32,65,32,90L32,150" fill="#fff1" stroke="#fff6" stroke-width=".5"/><line x1="133" x2="100" y1="26" y2="26"/><line x1="100" x2="75" y1="26" y2="26"/><line x1="20" x2="45" y1="15" y2="22"/><line x1="20" x2="28" y1="15" y2="40"/><line x1="32" x2="32" y1="65" y2="90"/><line x1="32" x2="32" y1="90" y2="123"/><circle cx="133" cy="26" class="h"/><circle cx="100" cy="26" class="c"/><circle cx="75" cy="26" class="h"/><circle cx="45" cy="22" class="h"/><circle cx="20" cy="15" class="c"/><circle cx="28" cy="40" class="h"/><circle cx="32" cy="65" class="h"/><circle cx="32" cy="90" class="c"/><circle cx="32" cy="123" class="h"/><text x="129" y="20">p0</text><text x="96" y="20">p1</text><text x="71" y="20">p2</text><text x="41" y="16">p3</text><text x="9" y="14">p4</text><text x="15" y="42">p5</text><text x="19" y="67">p6</text><text x="19" y="92">p7</text><text x="19" y="125">p8</text></svg>
-
+			// ANCHOR - cleanup concave square corners.
+			// HOVERIMAGE - [img "preprocess-cleanup-concavesquare.svg"]
 
 			for (let idxP1 = 0; idxP1 < newContour.length; idxP1++) {
 				let p0I = previousNode(newContour, idxP1);
@@ -932,8 +931,9 @@ function preProcess(font, references) {
 				redundantPoints = [];
 			}
 				
-			// NOTE - cleanup flare serif segment end.
-			// <svg width="500px" viewBox="0 4 170 130" xmlns="http://www.w3.org/2000/svg"><style>svg{background-color:#0007}line{stroke:#fff;stroke-dasharray:2px 1px;stroke-width:1}text{fill:#fff;font-size:7px;font-family:sans-serif}circle{r:2.2;stroke:#0005;stroke-width:1}.c{fill:#f06}.h{fill:#9f0}</style><path d="M140,150L140,90C140,65,144,40,150,15L20,15L20,150" fill="#fff1" stroke="#fff6" stroke-width=".5"/><line x1="144" x2="150" y1="40" y2="15"/><line x1="140" x2="140" y1="90" y2="65"/><line x1="140" x2="140" y1="90" y2="122"/><circle cx="20" cy="122" class="c"/><circle cx="144" cy="40" class="h"/><circle cx="150" cy="15" class="c"/><circle cx="20" cy="15" class="c"/><circle cx="140" cy="65" class="h"/><circle cx="140" cy="90" class="c"/><circle cx="140" cy="122" class="h"/><text x="144" y="124">p0</text><text x="144" y="92">p1</text><text x="144" y="67">p2</text><text x="148" y="42">p3</text><text x="154" y="14">p4</text><text x="9" y="14">p5</text></svg>
+			// ANCHOR - cleanup flare serif segment end.
+			// HOVERIMAGE - [img "preprocess-cleanup-flare-end.svg"]
+
 			for (let idxP1 = 0; idxP1 < newContour.length; idxP1++) {
 				let p0I = previousNode(newContour, idxP1);
 				let p1I = circularIndex(newContour, idxP1);
@@ -996,7 +996,7 @@ function preProcess(font, references) {
 			}
 			
 			// ANCHOR - cleanup flare serif segment start.
-			// <svg width="500px" viewBox="0 4 170 130" xmlns="http://www.w3.org/2000/svg"><style>svg{background-color:#0007}line{stroke:#fff;stroke-dasharray:2px 1px;stroke-width:1}text{fill:#fff;font-size:7px;font-family:sans-serif}circle{r:2.2;stroke:#0005;stroke-width:1}.c{fill:#f06}.h{fill:#9f0}</style><path d="M150,150L150,15L20,15C26,40,30,65,30,90L30,150" fill="#fff1" stroke="#fff6" stroke-width=".5"/><line x1="20" x2="26" y1="15" y2="40"/><line x1="30" x2="30" y1="65" y2="90"/><line x1="30" x2="30" y1="90" y2="122"/><circle cx="30" cy="122" class="h"/><circle cx="30" cy="90" class="c"/><circle cx="30" cy="65" class="h"/><circle cx="150" cy="15" class="c"/><circle cx="20" cy="15" class="c"/><circle cx="26" cy="40" class="h"/><text x="154" y="14">p0</text><text x="9" y="14">p1</text><text x="14" y="42">p2</text><text x="18" y="67">p3</text><text x="18" y="92">p4</text><text x="18" y="124">p5</text></svg>
+			// HOVERIMAGE - [img "preprocess-cleanup-flare-start.svg"]
 			
 			for (let idxP1 = 0; idxP1 < newContour.length; idxP1++) {
 				let p0I = previousNode(newContour, idxP1);
@@ -1017,8 +1017,8 @@ function preProcess(font, references) {
 				let b0H = bearingHeavy(p0, p1);
 				let b1H = bearingHeavy(p1, p2);
 				let b3H = bearingHeavy(p3, p4);
-				// let kinds4 = false
-				let kinds4 = p0.kind === 0 && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && (p5.kind === 1 || p5.kind === 0);
+				let kinds4 = false
+				// let kinds4 = p0.kind === 0 && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && (p5.kind === 1 || p5.kind === 0);
 				// let kinds4 = (p0.kind === 2 || p0.kind === 0) &&
 				if (
 					(
@@ -1089,10 +1089,10 @@ function preProcess(font, references) {
 							pointOnLine([pointLight(p2), pointLight(p3)], lineLight(p1, p4), 2) && 
 							pointOnLine([pointHeavy(p2), pointHeavy(p3)], lineHeavy(p1, p4), 3)
 						)
-						//  || (
-						// 	pointOnLine([pointLight(p2), pointLight(p3)], lineLight(p1, p4), 0) || 
-						// 	pointOnLine([pointHeavy(p2), pointHeavy(p3)], lineHeavy(p1, p4), 0)
-						// )
+						 || (
+							(pointOnLine(pointLight(p2), lineLight(p1, p4), 1) || pointOnLine(pointHeavy(p2), lineHeavy(p1, p4), 1)) &&
+							(pointOnLine(pointLight(p3), lineLight(p1, p4), 1) || pointOnLine(pointHeavy(p3), lineHeavy(p1, p4), 1))
+						)
 					)
 				) {
 					let indices = [p2I, p3I];
@@ -1118,12 +1118,18 @@ function preProcess(font, references) {
 				let p1 = newContour[p1I];
 				let p2 = newContour[p2I];
 				let p3 = newContour[p3I];
+				let b1L = bearingLight(p1, p2);
+				let b2L = bearingLight(p2, p3);
+				let b1H = bearingHeavy(p1, p2);
+				let b2H = bearingHeavy(p2, p3);
 				if (
 					p1.kind === 0 && p2.kind === 0 && p3.kind === 0 &&
 					distanceLight(p1, p2) > 10 && distanceLight(p2, p3) > 10 &&
 					distanceHeavy(p1, p2) > 10 && distanceHeavy(p2, p3) > 10 &&
-					pointOnLine(pointLight(p2), lineLight(p1, p3), 7) && 
-					pointOnLine(pointHeavy(p2), lineHeavy(p1, p3), 8)
+					// pointOnLine(pointLight(p2), lineLight(p1, p3), 7) && 
+					// pointOnLine(pointHeavy(p2), lineHeavy(p1, p3), 8)
+					turn(b1L, b2L).isBetween(-5, 3) &&
+					turn(b1H, b2H).isBetween(-7, 5)
 				) {
 					if (!redundantPoints.includes(p2I)) redundantPoints.push(p2I);
 				}
@@ -1582,7 +1588,7 @@ function preProcess(font, references) {
 		// count++;
 		// if (count % 1000 == 0) console.log("preExtension:", count, "glyphs processed.");
 	}
-	delete references.skipRedundantPoints;
+	// delete references.skipRedundantPoints;
 }
 
 module.exports = {

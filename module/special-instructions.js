@@ -73,6 +73,8 @@ const specialInstructions = {
 	},
 	leftFallingCorrections: [],
 	skipRedundantPoints: {
+		"uni228A": [1],
+		"uni228B": [1],
 		"uni3004": [0],
 		"uni30C1": [0],
 		"uni30C2": [2],

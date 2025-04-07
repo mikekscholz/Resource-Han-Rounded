@@ -1529,47 +1529,23 @@ function correctGlyphs(font, references) {
 			// fix ⊊⊋
 			if ((glyph.name === "uni228A" || glyph.name === "uni228B") && idxC === 1) {
 				newContour[3] = {
-					x: makeVariance(
-						originLight(contour[3].x),
-						originHeavy(contour[3].x) + 34
-					),
-					y: makeVariance(
-						originLight(contour[3].y),
-						originHeavy(contour[3].y) + 18
-					),
+					x: makeVariance(originLight(contour[3].x), originHeavy(contour[3].x) + 18),
+					y: makeVariance(originLight(contour[3].y), originHeavy(contour[3].y) + 34),
 					kind: contour[3].kind,
 				};
 				newContour[4] = {
-					x: makeVariance(
-						originLight(contour[4].x),
-						originHeavy(contour[4].x) + 34
-					),
-					y: makeVariance(
-						originLight(contour[4].y),
-						originHeavy(contour[4].y) + 18
-					),
+					x: makeVariance(originLight(contour[4].x), originHeavy(contour[4].x) + 18),
+					y: makeVariance(originLight(contour[4].y), originHeavy(contour[4].y) + 34),
 					kind: contour[4].kind,
 				};
 				newContour[9] = {
-					x: makeVariance(
-						originLight(contour[9].x),
-						originHeavy(contour[9].x) - 34
-					),
-					y: makeVariance(
-						originLight(contour[9].y),
-						originHeavy(contour[9].y) - 18
-					),
+					x: makeVariance(originLight(contour[9].x), originHeavy(contour[9].x) - 18),
+					y: makeVariance(originLight(contour[9].y), originHeavy(contour[9].y) - 34),
 					kind: contour[9].kind,
 				};
 				newContour[10] = {
-					x: makeVariance(
-						originLight(contour[10].x),
-						originHeavy(contour[10].x) - 34
-					),
-					y: makeVariance(
-						originLight(contour[10].y),
-						originHeavy(contour[10].y) - 18
-					),
+					x: makeVariance(originLight(contour[10].x), originHeavy(contour[10].x) - 18),
+					y: makeVariance(originLight(contour[10].y), originHeavy(contour[10].y) - 34),
 					kind: contour[10].kind,
 				};
 				// continue;
@@ -2060,66 +2036,72 @@ function correctGlyphs(font, references) {
 			}
 			
 			// NOTE - sharpen blunted corners.
-			let redundantPoints = [];
-			for (let idxP1 = 0; idxP1 < newContour.length; idxP1++) {
-				let p1I = circularIndex(newContour, idxP1);
-				let p2I = circularIndex(newContour, idxP1 + 1);
-				let p3I = circularIndex(newContour, idxP1 + 2);
-				let p4I = circularIndex(newContour, idxP1 + 3);
-
-				let p1 = newContour[p1I];
-				let p2 = newContour[p2I];
-				let p3 = newContour[p3I];
-				let p4 = newContour[p4I];
-
-				let b1L = bearingLight(p1, p2);
-				let b2L = bearingLight(p2, p3);
-				let b3L = bearingLight(p3, p4);
-
-				let b1H = bearingHeavy(p1, p2);
-				let b2H = bearingHeavy(p2, p3);
-				let b3H = bearingHeavy(p3, p4);
-
-				if (p2.kind !== 0 || p3.kind !== 0) continue;
-				if (
-					(
-						distanceLight(p2, p3).isBetween(4, 8) &&
-						distanceHeavy(p2, p3).isBetween(4, 8) &&
-						angle(b1L, b3L).isBetween(15, 88) &&
-						angle(b1H, b3H).isBetween(15, 88) &&
-						angle(b1L, b2L).isBetween(82, 150) &&
-						angle(b1H, b2H).isBetween(82, 150) &&
-						angle(b2L, b3L).isBetween(82, 150) &&
-						angle(b2H, b3H).isBetween(82, 150)
-					) 
-					// ||
-					// (
-					// 	distanceLight(p2, p3).isBetween(20, 60) &&
-					// 	distanceHeavy(p2, p3).isBetween(120, 225) &&
-					// 	angle(b1L, b3L).isBetween(-15, -88) &&
-					// 	angle(b1H, b3H).isBetween(-15, -88) &&
-					// 	angle(b1L, b2L).isBetween(-82, -150) &&
-					// 	angle(b1H, b2H).isBetween(-82, -150) &&
-					// 	angle(b2L, b3L).isBetween(-82, -150) &&
-					// 	angle(b2H, b3H).isBetween(-82, -150)
-					// )
-				) {
-					let c1L = findIntersection([pointLight(p1), pointLight(p2), pointLight(p3), pointLight(p4)]);
-					let c1H = findIntersection([pointHeavy(p1), pointHeavy(p2), pointHeavy(p3), pointHeavy(p4)]);
-					newContour[p2I] = {
-						x: makeVariance(c1L.x, c1H.x),
-						y: makeVariance(c1L.y, c1H.y),
-						kind: 0,
-					};
-
-					if (!redundantPoints.includes(p3I)) redundantPoints.push(p3I);
-				}
+			let skipContours = [];
+			if (name in references.skipRedundantPoints) {
+				skipContours = references.skipRedundantPoints[name];
 			}
+			if (!skipContours.includes(idxC)) {
+				let redundantPoints = [];
+				for (let idxP1 = 0; idxP1 < newContour.length; idxP1++) {
+					let p1I = circularIndex(newContour, idxP1);
+					let p2I = circularIndex(newContour, idxP1 + 1);
+					let p3I = circularIndex(newContour, idxP1 + 2);
+					let p4I = circularIndex(newContour, idxP1 + 3);
 
-			if (redundantPoints.length > 0) {
-				redundantPoints.sort((a,b) => b - a);
-				for (const i of redundantPoints) {
-					newContour.splice(i, 1);
+					let p1 = newContour[p1I];
+					let p2 = newContour[p2I];
+					let p3 = newContour[p3I];
+					let p4 = newContour[p4I];
+
+					let b1L = bearingLight(p1, p2);
+					let b2L = bearingLight(p2, p3);
+					let b3L = bearingLight(p3, p4);
+
+					let b1H = bearingHeavy(p1, p2);
+					let b2H = bearingHeavy(p2, p3);
+					let b3H = bearingHeavy(p3, p4);
+
+					if (p2.kind !== 0 || p3.kind !== 0) continue;
+					if (
+						(
+							distanceLight(p2, p3).isBetween(4, 8) &&
+							distanceHeavy(p2, p3).isBetween(4, 8) &&
+							angle(b1L, b3L).isBetween(15, 88) &&
+							angle(b1H, b3H).isBetween(15, 88) &&
+							angle(b1L, b2L).isBetween(82, 150) &&
+							angle(b1H, b2H).isBetween(82, 150) &&
+							angle(b2L, b3L).isBetween(82, 150) &&
+							angle(b2H, b3H).isBetween(82, 150)
+						) 
+						// ||
+						// (
+						// 	distanceLight(p2, p3).isBetween(20, 60) &&
+						// 	distanceHeavy(p2, p3).isBetween(120, 225) &&
+						// 	angle(b1L, b3L).isBetween(-15, -88) &&
+						// 	angle(b1H, b3H).isBetween(-15, -88) &&
+						// 	angle(b1L, b2L).isBetween(-82, -150) &&
+						// 	angle(b1H, b2H).isBetween(-82, -150) &&
+						// 	angle(b2L, b3L).isBetween(-82, -150) &&
+						// 	angle(b2H, b3H).isBetween(-82, -150)
+						// )
+					) {
+						let c1L = findIntersection([pointLight(p1), pointLight(p2), pointLight(p3), pointLight(p4)]);
+						let c1H = findIntersection([pointHeavy(p1), pointHeavy(p2), pointHeavy(p3), pointHeavy(p4)]);
+						newContour[p2I] = {
+							x: makeVariance(c1L.x, c1H.x),
+							y: makeVariance(c1L.y, c1H.y),
+							kind: 0,
+						};
+
+						if (!redundantPoints.includes(p3I)) redundantPoints.push(p3I);
+					}
+				}
+
+				if (redundantPoints.length > 0) {
+					redundantPoints.sort((a,b) => b - a);
+					for (const i of redundantPoints) {
+						newContour.splice(i, 1);
+					}
 				}
 			}
 
