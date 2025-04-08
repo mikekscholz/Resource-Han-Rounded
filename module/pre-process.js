@@ -1005,50 +1005,54 @@ function preProcess(font, references) {
 				let p3I = circularIndex(newContour, idxP1 + 2);
 				let p4I = circularIndex(newContour, idxP1 + 3);
 				let p5I = circularIndex(newContour, idxP1 + 4);
+				let p6I = circularIndex(newContour, idxP1 + 4);
 				let p0 = newContour[p0I];
 				let p1 = newContour[p1I];
 				let p2 = newContour[p2I];
 				let p3 = newContour[p3I];
 				let p4 = newContour[p4I];
 				let p5 = newContour[p5I];
+				let p6 = newContour[p6I];
 				let b0L = bearingLight(p0, p1);
 				let b1L = bearingLight(p1, p2);
-				let b3L = bearingLight(p3, p4);
+				let b2L = bearingLight(p2, p3);
+				let b4L = bearingLight(p4, p5);
 				let b0H = bearingHeavy(p0, p1);
 				let b1H = bearingHeavy(p1, p2);
-				let b3H = bearingHeavy(p3, p4);
+				let b2H = bearingHeavy(p2, p3);
+				let b4H = bearingHeavy(p4, p5);
 				let kinds4 = false
 				// let kinds4 = p0.kind === 0 && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && (p5.kind === 1 || p5.kind === 0);
 				// let kinds4 = (p0.kind === 2 || p0.kind === 0) &&
 				if (
 					(
 						kinds4 &&
-						angle(b0L, b1L).isBetween(-95,-70) &&
-						angle(b0L, b3L).isBetween(-95,-85) &&
-						turn(b1L, b3L).isBetween(0, 30) &&
-						pointOnLine(pointLight(p2), lineLight(p1, p5), 12) &&
-						pointOnLine([pointLight(p3), pointLight(p4)], lineLight(p1, p5), 12) &&
-						distanceLight(p1, p4) < 200
+						angle(b1L, b2L).isBetween(-95,-70) &&
+						angle(b1L, b4L).isBetween(-95,-85) &&
+						turn(b2L, b4L).isBetween(0, 30) &&
+						pointOnLine(pointLight(p3), lineLight(p2, p6), 12) &&
+						pointOnLine([pointLight(p4), pointLight(p5)], lineLight(p2, p6), 12) &&
+						distanceLight(p2, p5) < 200
 					) && 
 					(
 						kinds4 &&
-						angle(b0H, b1H).isBetween(-95,-70) &&
-						angle(b0H, b3H).isBetween(-95,-85) &&
-						turn(b1L, b3L).isBetween(0, 30) &&
-						pointOnLine(pointHeavy(p2), lineHeavy(p1, p5), 12) &&
-						pointOnLine([pointHeavy(p3), pointHeavy(p4)], lineHeavy(p1, p5), 12) &&
-						distanceHeavy(p1, p4) < 300
+						angle(b1H, b2H).isBetween(-95,-70) &&
+						angle(b1H, b4H).isBetween(-95,-85) &&
+						turn(b2L, b4L).isBetween(0, 30) &&
+						pointOnLine(pointHeavy(p3), lineHeavy(p2, p6), 12) &&
+						pointOnLine([pointHeavy(p4), pointHeavy(p5)], lineHeavy(p2, p6), 12) &&
+						distanceHeavy(p2, p5) < 300
 					)
 				) {
-					let c1L = findIntersection([pointLight(p0), pointLight(p1), pointLight(p4), pointLight(p5)]);
-					let c1H = findIntersection([pointHeavy(p0), pointHeavy(p1), pointHeavy(p4), pointHeavy(p5)]);
-					if (distanceLight(p0, c1L) < 60 && distanceHeavy(p0, c1H) < 200) {
-						newContour[p1I] = {
-							x: makeVariance(c1L.x, c1H.x),
-							y: makeVariance(c1L.y, c1H.y),
+					let c2L = findIntersection([pointLight(p1), pointLight(p2), pointLight(p5), pointLight(p6)]);
+					let c2H = findIntersection([pointHeavy(p1), pointHeavy(p2), pointHeavy(p5), pointHeavy(p6)]);
+					if (distanceLight(p1, c2L) < 60 && distanceHeavy(p1, c2H) < 200) {
+						newContour[p2I] = {
+							x: makeVariance(c2L.x, c2H.x),
+							y: makeVariance(c2L.y, c2H.y),
 							kind: 0,
 						};
-						let indices = [p2I, p3I, p4I];
+						let indices = [p3I, p4I, p5I];
 						for (const idx of indices) {
 							if (!redundantPoints.includes(idx)) redundantPoints.push(idx);
 						}
