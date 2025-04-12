@@ -775,14 +775,14 @@ function preProcess(font, references) {
 				let b7H = bearingHeavy(p7, p8);
 				let b8H = bearingHeavy(p8, p9);
 
-				let kinds = false;
-				// let kinds = (p0.kind === 2 || p0.kind === 0) && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && p5.kind === 0 && p6.kind === 1 && p7.kind === 2 && p8.kind === 0 && (p9.kind === 1 || p9.kind === 0);
+				// let kinds = false;
+				let kinds = (p0.kind === 2 || p0.kind === 0) && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && p5.kind === 0 && p6.kind === 1 && p7.kind === 2 && p8.kind === 0 && (p9.kind === 1 || p9.kind === 0);
 				if (
 					(
 						kinds &&
 						distanceLight(p3, p4) > 0 &&
 						distanceLight(p5, p6) > 0 &&
-						angle(b3L, b4L).isBetween(-97,-75) &&
+						angle(b3L, b4L).isBetween(-89,-75) &&
 						angle(b4L, b5L).isBetween(-89,-75) &&
 						distanceLight(p1, p4) < 200 &&
 						distanceLight(p5, p8) < 200 &&
@@ -798,7 +798,7 @@ function preProcess(font, references) {
 						kinds &&
 						distanceHeavy(p3, p4) > 0 &&
 						distanceHeavy(p5, p6) > 0 &&
-						angle(b3H, b4H).isBetween(-98,-75) &&
+						angle(b3H, b4H).isBetween(-89,-75) &&
 						angle(b4H, b5H).isBetween(-89,-75) &&
 						distanceHeavy(p1, p4) < 300 &&
 						distanceHeavy(p5, p8) < 300 &&
@@ -1021,8 +1021,8 @@ function preProcess(font, references) {
 				let b1H = bearingHeavy(p1, p2);
 				let b2H = bearingHeavy(p2, p3);
 				let b4H = bearingHeavy(p4, p5);
-				let kinds4 = false
-				// let kinds4 = p0.kind === 0 && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && (p5.kind === 1 || p5.kind === 0);
+				// let kinds4 = false
+				let kinds4 = p0.kind === 0 && p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && (p5.kind === 1 || p5.kind === 0);
 				// let kinds4 = (p0.kind === 2 || p0.kind === 0) &&
 				if (
 					(
@@ -1203,6 +1203,7 @@ function preProcess(font, references) {
 				let b3H = bearingHeavy(p3, p4);
 				let b4H = bearingHeavy(p4, p5);
 				if (
+					// false &&
 					p1.kind === 0 && p2.kind === 0 && p3.kind === 0 && p4.kind === 0 &&
 					distanceLight(p1, p2).isBetween(5,200) &&
 					distanceLight(p3, p4).isBetween(5,200) &&
@@ -1210,14 +1211,16 @@ function preProcess(font, references) {
 					distanceHeavy(p3, p4).isBetween(5,200) &&
 					approxEq(distanceLight(p2, p3), params.strokeWidth.light, 20) &&
 					approxEq(distanceHeavy(p2, p3), params.strokeWidth.heavy, 36) &&
-					abs(turn(b0L, b1L)) < 30 &&
-					abs(turn(b0H, b1H)) < 30 &&
+					turn(b0L, b1L).isBetween(2, 30) &&
+					turn(b0H, b1H).isBetween(2, 30) &&
 					angle(b1L, b2L).isBetween(-92,-75) &&
 					angle(b2L, b3L).isBetween(-92,-75) &&
+					angle(b1L, b2L) + angle(b2L, b3L).isBetween(-178, -120) &&
 					angle(b1H, b2H).isBetween(-92,-75) &&
 					angle(b2H, b3H).isBetween(-92,-75) &&
-					abs(turn(b3L, b4L)) < 30 &&
-					abs(turn(b3H, b4H)) < 30
+					angle(b1H, b2H) + angle(b2H, b3H).isBetween(-178, -120) &&
+					turn(b3L, b4L).isBetween(2, 30) &&
+					turn(b3H, b4H).isBetween(2, 30)
 				) {
 					let c1L = closestPointOnLine(pointLight(p1), lineLight(p2, p3));
 					let c1H = closestPointOnLine(pointHeavy(p1), lineHeavy(p2, p3));
