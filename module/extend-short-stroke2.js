@@ -706,6 +706,10 @@ function extendShortStroke(font, references) {
 					const verticalBottomRight = circularArray(contour, bottomRightIdx);
 					const verticalTopRight = circularArray(contour, topRightIdx);
 					const verticalTopLeft = circularArray(contour, topLeftIdx);
+					const verticalSlopeLeftLight = verticalSlope(lineLight(verticalTopLeft, verticalBottomLeft));
+					const verticalSlopeLeftHeavy = verticalSlope(lineHeavy(verticalTopLeft, verticalBottomLeft));
+					const verticalSlopeRightLight = verticalSlope(lineLight(verticalTopRight, verticalBottomRight));
+					const verticalSlopeRightHeavy = verticalSlope(lineHeavy(verticalTopRight, verticalBottomRight));
 					for (const [idxC2, contour2o] of oldContours.entries()) {
 						// find possible 横s (horizontals)
 						if (idxC2 === idxC1 || contour2o.length < 4 || skipContours.includes(idxC2)) continue;
@@ -756,12 +760,14 @@ function extendShortStroke(font, references) {
 										let side = isCorner ? rightDistance < leftDistance ? horizontalBottomRight : horizontalBottomLeft : horizontalBottomLeft;
 										
 										newContour[bottomLeftIdx] = {
-											x: verticalBottomLeft.x,
+											// x: verticalBottomLeft.x,
+											x: makeVariance(originLight(verticalBottomLeft.x) + (((originLight(side.y) + yOffsetL) - originLight(verticalBottomLeft.y)) * verticalSlopeLeftLight), originHeavy(verticalBottomLeft.x) + (((originHeavy(side.y) + yOffsetH) - originHeavy(verticalBottomLeft.y)) * verticalSlopeLeftHeavy)),
 											y: makeVariance(originLight(side.y) + yOffsetL, originHeavy(side.y) + yOffsetH),
 											kind: 0,
 										};
 										newContour[bottomRightIdx] = {
-											x: verticalBottomRight.x,
+											// x: verticalBottomRight.x,
+											x: makeVariance(originLight(verticalBottomRight.x) + (((originLight(side.y) + yOffsetL) - originLight(verticalBottomRight.y)) * verticalSlopeRightLight), originHeavy(verticalBottomRight.x) + (((originHeavy(side.y) + yOffsetH) - originHeavy(verticalBottomRight.y)) * verticalSlopeRightHeavy)),
 											y: makeVariance(originLight(side.y) + yOffsetL, originHeavy(side.y) + yOffsetH),
 											kind: 0,
 										};
@@ -804,12 +810,14 @@ function extendShortStroke(font, references) {
 										let side = isCorner ? rightDistance < leftDistance ? horizontalBottomRight : horizontalBottomLeft : horizontalBottomLeft;
 										
 										newContour[bottomLeftIdx] = {
-											x: verticalBottomLeft.x,
+											// x: verticalBottomLeft.x,
+											x: makeVariance(originLight(verticalBottomLeft.x) + (((originLight(side.y) + yOffsetL) - originLight(verticalBottomLeft.y)) * verticalSlopeLeftLight), originHeavy(verticalBottomLeft.x) + (((originHeavy(side.y) + yOffsetH) - originHeavy(verticalBottomLeft.y)) * verticalSlopeLeftHeavy)),
 											y: makeVariance(originLight(side.y) + yOffsetL, originHeavy(side.y) + yOffsetH),
 											kind: 0,
 										};
 										newContour[bottomRightIdx] = {
-											x: verticalBottomRight.x,
+											// x: verticalBottomRight.x,
+											x: makeVariance(originLight(verticalBottomRight.x) + (((originLight(side.y) + yOffsetL) - originLight(verticalBottomRight.y)) * verticalSlopeRightLight), originHeavy(verticalBottomRight.x) + (((originHeavy(side.y) + yOffsetH) - originHeavy(verticalBottomRight.y)) * verticalSlopeRightHeavy)),
 											y: makeVariance(originLight(side.y) + yOffsetL, originHeavy(side.y) + yOffsetH),
 											kind: 0,
 										};
@@ -1105,7 +1113,11 @@ function extendShortStroke(font, references) {
 					const verticalTopLeft = circularArray(contour, topLeftIdx);
 					const verticalBottomLeft = circularArray(contour, bottomLeftIdx);
 					const verticalBottomRight = circularArray(contour, bottomRightIdx);
-
+					const verticalSlopeLeftLight = verticalSlope(lineLight(verticalBottomLeft, verticalTopLeft));
+					const verticalSlopeLeftHeavy = verticalSlope(lineHeavy(verticalBottomLeft, verticalTopLeft));
+					const verticalSlopeRightLight = verticalSlope(lineLight(verticalBottomRight, verticalTopRight));
+					const verticalSlopeRightHeavy = verticalSlope(lineHeavy(verticalBottomRight, verticalTopRight));
+					
 					for (const [idxC2, contour2o] of oldContours.entries()) {
 						// find possible 横s (horizontals)
 						if (idxC2 === idxC1 || contour2o.length < 4 || skipContours.includes(idxC2)) continue;
@@ -1155,7 +1167,11 @@ function extendShortStroke(font, references) {
 										let leftDistance = abs(originLight(verticalTopLeft.x) - originLight(horizontalTopLeft.x));
 										let side = isCorner ? rightDistance < leftDistance ? horizontalTopRight : horizontalTopLeft : horizontalBottomLeft;
 										newContour[topRightIdx] = {
-											x: verticalTopRight.x,
+											// x: verticalTopRight.x,
+											x: makeVariance(
+												originLight(verticalTopRight.x) + (((originLight(side.y) + yOffsetL) - originLight(verticalTopRight.y)) * verticalSlopeRightLight),
+												originHeavy(verticalTopRight.x) + (((originHeavy(side.y) + yOffsetH) - originHeavy(verticalTopRight.y)) * verticalSlopeRightHeavy)
+											),
 											y: makeVariance(
 												originLight(side.y) + yOffsetL,
 												originHeavy(side.y) + yOffsetH
@@ -1163,7 +1179,11 @@ function extendShortStroke(font, references) {
 											kind: 0,
 										};
 										newContour[topLeftIdx] = {
-											x: verticalTopLeft.x,
+											// x: verticalTopLeft.x,
+											x: makeVariance(
+												originLight(verticalTopLeft.x) + (((originLight(side.y) + yOffsetL) - originLight(verticalTopLeft.y)) * verticalSlopeLeftLight),
+												originHeavy(verticalTopLeft.x) + (((originHeavy(side.y) + yOffsetH) - originHeavy(verticalTopLeft.y)) * verticalSlopeLeftHeavy)
+											),
 											y: makeVariance(
 												originLight(side.y) + yOffsetL,
 												originHeavy(side.y) + yOffsetH
@@ -1173,6 +1193,9 @@ function extendShortStroke(font, references) {
 										continue;
 										// extended = true;
 										// break;
+										
+										
+										
 									}
 								}
 								if (
@@ -1208,7 +1231,10 @@ function extendShortStroke(font, references) {
 										let leftDistance = abs(originLight(verticalTopLeft.x) - originLight(horizontalTopLeft.x));
 										let side = isCorner ? rightDistance < leftDistance ? horizontalTopRight : horizontalTopLeft : horizontalBottomLeft;
 										newContour[topRightIdx] = {
-											x: verticalTopRight.x,
+											x: makeVariance(
+												originLight(verticalTopRight.x) + (((originLight(side.y) + yOffsetL) - originLight(verticalTopRight.y)) * verticalSlopeRightLight),
+												originHeavy(verticalTopRight.x) + (((originHeavy(side.y) + yOffsetH) - originHeavy(verticalTopRight.y)) * verticalSlopeRightHeavy)
+											),
 											y: makeVariance(
 												originLight(side.y) + yOffsetL,
 												originHeavy(side.y) + yOffsetH
@@ -1216,7 +1242,10 @@ function extendShortStroke(font, references) {
 											kind: 0,
 										};
 										newContour[topLeftIdx] = {
-											x: verticalTopLeft.x,
+											x: makeVariance(
+												originLight(verticalTopLeft.x) + (((originLight(side.y) + yOffsetL) - originLight(verticalTopLeft.y)) * verticalSlopeLeftLight),
+												originHeavy(verticalTopLeft.x) + (((originHeavy(side.y) + yOffsetH) - originHeavy(verticalTopLeft.y)) * verticalSlopeLeftHeavy)
+											),
 											y: makeVariance(
 												originLight(side.y) + yOffsetL,
 												originHeavy(side.y) + yOffsetH
