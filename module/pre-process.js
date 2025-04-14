@@ -1394,12 +1394,12 @@ function preProcess(font, references) {
 							p0p1Bearing.isBetween(85, 132) &&
 							p1p2Bearing.isBetween(85, 132) &&
 							p10p9Bearing.isBetween(85, 125) &&
-							p11p10Bearing.isBetween(85, 125) &&
+							p11p10Bearing.isBetween(62, 125) &&
 							p1p2Distance.isBetween(25, 200) &&
 							(p3p4Bearing.isBetween(0, 15) || p3p4Bearing.isBetween(358, 360)) &&
 							corner1Angle.isBetween(-145, -85) &&
-							corner2Angle.isBetween(-75, -25) &&
-							combinedAngle.isBetween(-170, -145) &&
+							corner2Angle.isBetween(-75, -23) &&
+							combinedAngle.isBetween(-170, -142) &&
 							p4p7DistanceH.isBetween(60, 160) &&
 							p1p4Distance.isBetween(80, 330)
 						) {
