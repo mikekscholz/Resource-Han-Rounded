@@ -1573,6 +1573,18 @@ function preProcess(font, references) {
 			// ANCHOR - fix downward j hooks
 			if (newContour.length > 12) {
 				for (let idxP = 0; idxP < newContour.length; idxP++) {
+					let p0I = previousNode(newContour, idxP);
+					let p1I = circularIndex(newContour, idxP);
+					let p2I = circularIndex(newContour, idxP + 1);
+					let p3I = circularIndex(newContour, idxP + 2);
+					let p4I = circularIndex(newContour, idxP + 3);
+					let p5I = circularIndex(newContour, idxP + 4);
+					let p6I = circularIndex(newContour, idxP + 5);
+					let p7I = circularIndex(newContour, idxP + 6);
+					let p8I = circularIndex(newContour, idxP + 7);
+					let p9I = circularIndex(newContour, idxP + 8);
+					let p10I = circularIndex(newContour, idxP + 9);
+					let p11I = circularIndex(newContour, idxP + 10);
 					let p0 = circularArray(newContour, previousNode(newContour, idxP));
 					let p1 = circularArray(newContour, idxP);
 					let p2 = circularArray(newContour, idxP + 1);
@@ -1610,6 +1622,7 @@ function preProcess(font, references) {
 						let p3AngleCorrectionH = turn(bearing(lineHeavy(p8, p7)), bearing(lineHeavy(p3, p4)));
 						let p9AngleCorrectionL = turn(bearing(lineLight(p11, p10)), bearing(lineLight(p10, p9)));
 						let p9AngleCorrectionH = turn(bearing(lineHeavy(p11, p10)), bearing(lineHeavy(p10, p9)));
+						// (b1H.isBetween(140, 165) === false || b3H.isBetween(165, 185) === false)
 						if (
 							hookHeight > 10 &&
 							p0p1Bearing.isBetween(85, 132) &&
@@ -1624,18 +1637,7 @@ function preProcess(font, references) {
 							p4p7DistanceH.isBetween(60, 160) &&
 							p1p4Distance.isBetween(80, 330)
 						) {
-							let p0I = previousNode(newContour, idxP);
-							let p1I = circularIndex(newContour, idxP);
-							let p2I = circularIndex(newContour, idxP + 1);
-							let p3I = circularIndex(newContour, idxP + 2);
-							let p4I = circularIndex(newContour, idxP + 3);
-							let p5I = circularIndex(newContour, idxP + 4);
-							let p6I = circularIndex(newContour, idxP + 5);
-							let p7I = circularIndex(newContour, idxP + 6);
-							let p8I = circularIndex(newContour, idxP + 7);
-							let p9I = circularIndex(newContour, idxP + 8);
-							let p10I = circularIndex(newContour, idxP + 9);
-							let p11I = circularIndex(newContour, idxP + 10);
+
 							let p2rL = geometric.pointRotate(point2GeoJsonLight(p2), p2AngleCorrectionL, point2GeoJsonLight(p1));
 							let p2rH = geometric.pointRotate(point2GeoJsonHeavy(p2), p2AngleCorrectionH, point2GeoJsonHeavy(p1));
 							let p3rL = geometric.pointRotate(point2GeoJsonLight(p3), p3AngleCorrectionL, point2GeoJsonLight(p4));
