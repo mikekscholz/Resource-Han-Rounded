@@ -7,3 +7,4 @@ Makefile
 glyphnames.txt
 bar.js
 inspector-*.html
+.vslinter.js
