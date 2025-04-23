@@ -2,6 +2,7 @@
 
 const { Ot } = require("ot-builder");
 const geometric = require("geometric");
+const Bezier = require("./bezier.js");
 const ProgressBar = require('./node-progress');
 const { angle, approximateBezier, base60, bearing, closestPointOnLine, findIntersection, horizontalSlope, isBetween, midpoint, pointOnLine, roundTo, turn, verticalSlope } = require("./util");
 const { abs, ceil, floor, pow, round, sqrt, trunc } = Math;
@@ -85,6 +86,14 @@ function preProcess(font, references) {
 	
 	function lineHeavy(p1, p2) {
 		return { p1: pointHeavy(p1) ,p2: pointHeavy(p2) };
+	}
+	
+	function bezierLight(p1, c1, c2, p2) {
+		return new Bezier(pointLight(p1), pointLight(c1), pointLight(c2), pointLight(p2));
+	}
+	
+	function bezierHeavy(p1, c1, c2, p2) {
+		return new Bezier(pointHeavy(p1), pointHeavy(c1), pointHeavy(c2), pointHeavy(p2));
 	}
 	
 	function contour2GeoJsonLight(contour) {
@@ -1085,20 +1094,34 @@ function preProcess(font, references) {
 				let p2I = circularIndex(newContour, idxP1 + 1);
 				let p3I = circularIndex(newContour, idxP1 + 2);
 				let p4I = circularIndex(newContour, idxP1 + 3);
+				let p5I = circularIndex(newContour, idxP1 + 4);
+				let p6I = circularIndex(newContour, idxP1 + 5);
+				let p7I = circularIndex(newContour, idxP1 + 6);
 				let p1 = newContour[p1I];
 				let p2 = newContour[p2I];
 				let p3 = newContour[p3I];
 				let p4 = newContour[p4I];
+				let p5 = newContour[p5I];
+				let p6 = newContour[p6I];
+				let p7 = newContour[p7I];
 				let b1L = bearingLight(p1, p2);
 				let b3L = bearingLight(p3, p4);
 				let b1H = bearingHeavy(p1, p2);
 				let b3H = bearingHeavy(p3, p4);
+				let b4H = bearingHeavy(p4, p5);
+				let b6H = bearingHeavy(p6, p7);
+				let jHook = (b1H.isBetween(140, 165) && b3H.isBetween(165, 185));
+				let jHookAfter = (b4H.isBetween(140, 165) && b6H.isBetween(165, 185));
+				if (jHookAfter) {
+					idxP1 = idxP1 + 8;
+					continue;
+				}
 				let distL = distanceLight(p1, p4);
 				let distH = distanceHeavy(p1, p4);
 				let toleranceL = distL * 0.022;
 				let toleranceH = distH * 0.03;
 				if (
-					p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && (b1H.isBetween(140, 165) === false || b3H.isBetween(165, 185) === false) &&
+					p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && !jHook &&
 					(
 						(
 							distL < 280 && distH < 280 && (turn(b1L, b3L).isBetween(-5, 5) || turn(b1H, b3H).isBetween(-5, 5)) &&
@@ -1168,19 +1191,32 @@ function preProcess(font, references) {
 				let p2I = circularIndex(newContour, idxP1 + 1);
 				let p3I = circularIndex(newContour, idxP1 + 2);
 				let p4I = circularIndex(newContour, idxP1 + 3);
+				let p5I = circularIndex(newContour, idxP1 + 4);
+				let p6I = circularIndex(newContour, idxP1 + 5);
+				let p7I = circularIndex(newContour, idxP1 + 6);
 				let p1 = newContour[p1I];
 				let p2 = newContour[p2I];
 				let p3 = newContour[p3I];
 				let p4 = newContour[p4I];
+				let p5 = newContour[p5I];
+				let p6 = newContour[p6I];
+				let p7 = newContour[p7I];
+				let b4H = bearingHeavy(p4, p5);
+				let b6H = bearingHeavy(p6, p7);
+				let jHookAfter = (b4H.isBetween(140, 165) && b6H.isBetween(165, 185));
+				if (jHookAfter) {
+					idxP1 = idxP1 + 8;
+					continue;
+				}
 				let kinds = p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0;
 				if (
 					kinds && 
-					pointOnLine([pointLight(p2), pointLight(p3)], lineLight(p1, p4), 1) && 
-					pointOnLine([pointHeavy(p2), pointHeavy(p3)], lineHeavy(p1, p4), 2)
+					(pointOnLine([pointLight(p2), pointLight(p3)], lineLight(p1, p4), 1)) && 
+					(pointOnLine([pointHeavy(p2), pointHeavy(p3)], lineHeavy(p1, p4), 2))
 				) {
 					let indices = [p2I, p3I];
 					for (const idx of indices) {
-						if (!redundantPoints.includes(idx)) redundantPoints.push(idx);
+						if (redundantPoints.includes(idx) === false) redundantPoints.push(idx);
 					}
 				}
 			}
@@ -1350,6 +1386,7 @@ function preProcess(font, references) {
 			if (circularArray(newContour, -1).kind !== 0) newContour = [...newContour, newContour[0]];
 			
 			// ANCHOR - fix upward right hooks
+			// HOVERIMAGE - [img "right-upward-hook.svg"]
 			if (newContour.length > 12) {
 				for (let idxP = 0; idxP < newContour.length; idxP++) {
 					let p0 = circularArray(newContour, previousNode(newContour, idxP));
@@ -1571,224 +1608,131 @@ function preProcess(font, references) {
 			}
 			
 			// ANCHOR - fix downward j hooks
+			// HOVERIMAGE - [img "j-hook.svg"]
 			if (newContour.length > 12) {
 				for (let idxP = 0; idxP < newContour.length; idxP++) {
-					let p0I = previousNode(newContour, idxP);
-					let p1I = circularIndex(newContour, idxP);
-					let p2I = circularIndex(newContour, idxP + 1);
-					let p3I = circularIndex(newContour, idxP + 2);
-					let p4I = circularIndex(newContour, idxP + 3);
-					let p5I = circularIndex(newContour, idxP + 4);
-					let p6I = circularIndex(newContour, idxP + 5);
-					let p7I = circularIndex(newContour, idxP + 6);
-					let p8I = circularIndex(newContour, idxP + 7);
-					let p9I = circularIndex(newContour, idxP + 8);
-					let p10I = circularIndex(newContour, idxP + 9);
-					let p11I = circularIndex(newContour, idxP + 10);
-					let p0 = circularArray(newContour, previousNode(newContour, idxP));
-					let p1 = circularArray(newContour, idxP);
-					let p2 = circularArray(newContour, idxP + 1);
-					let p3 = circularArray(newContour, idxP + 2);
-					let p4 = circularArray(newContour, idxP + 3);
-					let p5 = circularArray(newContour, idxP + 4);
-					let p6 = circularArray(newContour, idxP + 5);
-					let p7 = circularArray(newContour, idxP + 6);
-					let p8 = circularArray(newContour, idxP + 7);
-					let p9 = circularArray(newContour, idxP + 8);
-					let p10 = circularArray(newContour, idxP + 9);
-					let p11 = circularArray(newContour, idxP + 10);
-					if (p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0 && p5.kind === 1 && p6.kind === 2 && p7.kind === 0 && p8.kind === 1 && p9.kind === 2 && p10.kind === 0) {
-						let p0p1Bearing = bearing(lineHeavy(p0, p1));
-						let p1p2Bearing = bearing(lineHeavy(p1, p2));
-						let p3p4Bearing = bearing(lineHeavy(p3, p4));
-						let p4p5Bearing = bearing(lineHeavy(p4, p5));
-						let p6p7Bearing = bearing(lineHeavy(p6, p7));
-						let p7p8Bearing = bearing(lineHeavy(p7, p8));
-						let p10p9Bearing = bearing(lineHeavy(p10, p9));
-						let p11p10Bearing = bearing(lineHeavy(p11, p10));
-						let corner1Angle = angle(p3p4Bearing, p4p5Bearing);
-						let corner2Angle = angle(p6p7Bearing, p7p8Bearing);
-						let combinedAngle = corner1Angle + corner2Angle;
-						let p1p2Distance = distanceHeavy(p1, p2);
-						let p1p4Distance = distanceHeavy(p1, p4);
-						let p4p7DistanceL = distanceLight(p4, p7);
-						let p4p7DistanceH = distanceHeavy(p4, p7);
-						let hookHeight = originHeavy(p7.y) - originHeavy(p10.y);
-						let hookWidth = originHeavy(p4.x) - originHeavy(p7.x);
-						let strokeWidth = originHeavy(p10.y) - originHeavy(p1.y);
-						let p2AngleCorrectionL = turn(bearing(lineLight(p0, p1)), bearing(lineLight(p1, p2)));
-						let p2AngleCorrectionH = turn(bearing(lineHeavy(p0, p1)), bearing(lineHeavy(p1, p2)));
-						let p3AngleCorrectionL = turn(bearing(lineLight(p8, p7)), bearing(lineLight(p3, p4)));
-						let p3AngleCorrectionH = turn(bearing(lineHeavy(p8, p7)), bearing(lineHeavy(p3, p4)));
-						let p9AngleCorrectionL = turn(bearing(lineLight(p11, p10)), bearing(lineLight(p10, p9)));
-						let p9AngleCorrectionH = turn(bearing(lineHeavy(p11, p10)), bearing(lineHeavy(p10, p9)));
-						// (b1H.isBetween(140, 165) === false || b3H.isBetween(165, 185) === false)
-						if (
-							hookHeight > 10 &&
-							p0p1Bearing.isBetween(85, 132) &&
-							p1p2Bearing.isBetween(85, 132) &&
-							p10p9Bearing.isBetween(85, 125) &&
-							p11p10Bearing.isBetween(85, 125) &&
-							p1p2Distance.isBetween(25, 200) &&
-							(p3p4Bearing.isBetween(0, 15) || p3p4Bearing.isBetween(358, 360)) &&
-							corner1Angle.isBetween(-145, -85) &&
-							corner2Angle.isBetween(-75, -25) &&
-							combinedAngle.isBetween(-170, -145) &&
-							p4p7DistanceH.isBetween(60, 160) &&
-							p1p4Distance.isBetween(80, 330)
-						) {
+					let p0I = circularIndex(newContour, idxP);
+					let p1I = circularIndex(newContour, idxP + 1);
+					let p2I = circularIndex(newContour, idxP + 2);
+					let p3I = circularIndex(newContour, idxP + 3);
+					let p4I = circularIndex(newContour, idxP + 4);
+					let p5I = circularIndex(newContour, idxP + 5);
+					let p6I = circularIndex(newContour, idxP + 6);
+					let p7I = circularIndex(newContour, idxP + 7);
+					let p8I = circularIndex(newContour, idxP + 8);
+					let p9I = circularIndex(newContour, idxP + 9);
+					let p0 = newContour[p0I]
+					let p1 = newContour[p1I]
+					let p2 = newContour[p2I]
+					let p3 = newContour[p3I]
+					let p4 = newContour[p4I]
+					let p5 = newContour[p5I]
+					let p6 = newContour[p6I]
+					let p7 = newContour[p7I]
+					let p8 = newContour[p8I]
+					let p9 = newContour[p9I]
+					let b2L = bearingLight(p2, p3);
+					let b3L = bearingLight(p3, p4);
+					let b5L = bearingLight(p5, p6);
+					let b6L = bearingLight(p6, p7);
+					let b2H = bearingHeavy(p2, p3);
+					let b3H = bearingHeavy(p3, p4);
+					let b5H = bearingHeavy(p5, p6);
+					let b6H = bearingHeavy(p6, p7);
+					if (
+						p0.kind === 0 && p1.kind === 1 && p2.kind === 2 && p3.kind === 0 &&
+						p4.kind === 1 && p5.kind === 2 && p6.kind === 0 && p7.kind === 1 &&
+						b2L.isBetween(265,275) === true && b2H.isBetween(265,275) === true &&
+						b3H.isBetween(140,165) === true && b5H.isBetween(165, 185) === true
+					) {
+						let c0L = bezierLight(p0,p1,p2,p3);
+						let c0H = bezierHeavy(p0,p1,p2,p3);
+						let projectP6L = c0L.project(pointLight(p6));
+						let projectP6H = c0H.project(pointHeavy(p6));
+						// let p4L = closestPointOnLine(pointLight(p7), lineLight(newContour[p3I], p4));
+						// let p4H = closestPointOnLine(p7p8midH, lineHeavy(newContour[p3I], p4));
+						// let p7L = closestPointOnLine(pointLight(p4), lineLight(p8, p7));
+						// let p7H = closestPointOnLine(pointHeavy(p4), lineHeavy(p8, p7));
+						// if (!pointOnLine(p7H, lineHeavy(p7, p8), 0, true)){
+						// 	newContour[p4I] = {
+						// 		x: makeVariance(p4L.x, p4H.x),
+						// 		y: makeVariance(p4L.y, p4H.y),
+						// 		kind: 0,
+						// 	};
+						// 	newContour[p7I] = {
+						// 		x: makeVariance(originLight(p7.x), p7p8midH.x),
+						// 		y: makeVariance(originLight(p7.y), p7p8midH.y),
+						// 		kind: 0,
+						// 	};
+						// } else {
+						// 	newContour[p7I] = {
+						// 		x: makeVariance(p7L.x, p7H.x),
+						// 		y: makeVariance(p7L.y, p7H.y),
+						// 		kind: 0,
+						// 	};
+						// }
 
-							let p2rL = geometric.pointRotate(point2GeoJsonLight(p2), p2AngleCorrectionL, point2GeoJsonLight(p1));
-							let p2rH = geometric.pointRotate(point2GeoJsonHeavy(p2), p2AngleCorrectionH, point2GeoJsonHeavy(p1));
-							let p3rL = geometric.pointRotate(point2GeoJsonLight(p3), p3AngleCorrectionL, point2GeoJsonLight(p4));
-							let p3rH = geometric.pointRotate(point2GeoJsonHeavy(p3), p3AngleCorrectionH, point2GeoJsonHeavy(p4));
-							let p9rL = geometric.pointRotate(point2GeoJsonLight(p9), p9AngleCorrectionL, point2GeoJsonLight(p10));
-							let p9rH = geometric.pointRotate(point2GeoJsonHeavy(p9), p9AngleCorrectionH, point2GeoJsonHeavy(p10));
-							newContour[p2I] = {
-								x: makeVariance(p2rL[0], p2rH[0]),
-								y: makeVariance(p2rL[1], p2rH[1]),
-								kind: newContour[p2I].kind,
-							};
-							newContour[p3I] = {
-								x: makeVariance(p3rL[0], p3rH[0]),
-								y: makeVariance(p3rL[1], p3rH[1]),
-								kind: 2,
-							};
-							let p7p8midH = midpoint(pointHeavy(p7), pointHeavy(p8));
-							let p4L = closestPointOnLine(pointLight(p7), lineLight(newContour[p3I], p4));
-							let p4H = closestPointOnLine(p7p8midH, lineHeavy(newContour[p3I], p4));
-							let p7L = closestPointOnLine(pointLight(p4), lineLight(p8, p7));
-							let p7H = closestPointOnLine(pointHeavy(p4), lineHeavy(p8, p7));
-							if (!pointOnLine(p7H, lineHeavy(p7, p8), 0, true)){
-								newContour[p4I] = {
-									x: makeVariance(p4L.x, p4H.x),
-									y: makeVariance(p4L.y, p4H.y),
-									kind: 0,
-								};
-								newContour[p7I] = {
-									x: makeVariance(originLight(p7.x), p7p8midH.x),
-									y: makeVariance(originLight(p7.y), p7p8midH.y),
-									kind: 0,
-								};
-							} else {
-								newContour[p7I] = {
-									x: makeVariance(p7L.x, p7H.x),
-									y: makeVariance(p7L.y, p7H.y),
-									kind: 0,
-								};
-							}
-							let p4p7DistanceNewH = distanceHeavy(newContour[p4I], newContour[p7I]);
-							let p4p7OffsetH = p4p7DistanceNewH < p4p7DistanceH ? (p4p7DistanceH * 0.9) - p4p7DistanceNewH : 0;
-							if (p4p7OffsetH) {
-								let p4p7AngleH = geometric.lineAngle([point2GeoJsonHeavy(newContour[p7I]),point2GeoJsonHeavy(newContour[p4I])]);
-								let p4tL = pointLight(newContour[p4I]);
-								let p4tH = geometric.pointTranslate(point2GeoJsonHeavy(newContour[p4I]), p4p7AngleH, p4p7OffsetH);
-								let p3tL = pointLight(newContour[p3I]);
-								let p3tH = geometric.pointTranslate(point2GeoJsonHeavy(newContour[p3I]), p4p7AngleH, p4p7OffsetH);
-								newContour[p4I] = {
-									x: makeVariance(p4tL.x, p4tH[0]),
-									y: makeVariance(p4tL.y, p4tH[1]),
-									kind: 0,
-								};
-								newContour[p3I] = {
-									x: makeVariance(p3tL.x, p3tH[0]),
-									y: makeVariance(p3tL.y, p3tH[1]),
-									kind: 2,
-								};
-							}
-							
-							let p5L = extendLineRight(lineLight(newContour[p3I], newContour[p4I]), p4p7DistanceL * 0.6);
-							let p5H = extendLineRight(lineHeavy(newContour[p3I], newContour[p4I]), p4p7DistanceH * 0.6);
-							let p6L = extendLineRight(lineLight(newContour[p8I], newContour[p7I]), p4p7DistanceL * 0.6);
-							let p6H = extendLineRight(lineHeavy(newContour[p8I], newContour[p7I]), p4p7DistanceH * 0.6);
-							newContour[p5I] = {
-								x: makeVariance(p5L.x, p5H.x),
-								y: makeVariance(p5L.y, p5H.y),
-								kind: 1,
-							};
-							newContour[p6I] = {
-								x: makeVariance(p6L.x, p6H.x),
-								y: makeVariance(p6L.y, p6H.y),
-								kind: 2,
-							};
-							newContour[p9I] = {
-								x: makeVariance(p9rL[0], p9rH[0]),
-								y: makeVariance(p9rL[1], p9rH[1]),
-								kind: newContour[p9I].kind,
-							};
-							if (p4p7OffsetH) {
-								for (let i = 0; i < newContour.length; i++) {
-									let pointL = pointLight(newContour[i]);
-									let pointH = pointHeavy(newContour[i]);
-									newContour[i] = {
-										x: makeVariance(pointL.x, pointH.x - p4p7OffsetH),
-										y: makeVariance(pointL.y, pointH.y),
-										kind: newContour[i].kind,
-									};
-								}
-							}
-							// newContour[p0I] = {
-							// 	x: makeVariance(originLight(contour[p0I].x), originHeavy(contour[p0I].x)),
-							// 	y: makeVariance(originLight(contour[p0I].y), originHeavy(contour[p0I].y)),
-							// 	kind: contour[p0I].kind,
-							// };
-							// newContour[p1I] = {
-							// 	x: makeVariance(originLight(contour[p1I].x), originHeavy(contour[p1I].x) - (xOffset * 0.8)),
-							// 	y: makeVariance(originLight(contour[p1I].y), originHeavy(contour[p1I].y)),
-							// 	kind: contour[p1I].kind,
-							// };
-							// newContour[p2I] = {
-							// 	x: makeVariance(originLight(contour[p2I].x), originHeavy(contour[p2I].x)),
-							// 	y: makeVariance(originLight(contour[p2I].y), originHeavy(contour[p2I].y)),
-							// 	kind: contour[p2I].kind,
-							// };
-							// newContour[p3I] = {
-							// 	x: makeVariance(originLight(contour[p3I].x), originHeavy(contour[p4I].x) + (xOffset * 0.2)),
-							// 	y: makeVariance(originLight(contour[p3I].y), originHeavy(contour[p3I].y) + yOffset),
-							// 	kind: contour[p3I].kind,
-							// };
-							// newContour[p4I] = {
-							// 	x: makeVariance(originLight(contour[p4I].x), originHeavy(contour[p4I].x) + (xOffset * 0.2)),
-							// 	y: makeVariance(originLight(contour[p4I].y), originHeavy(contour[p7I].y) + yOffset),
-							// 	kind: contour[p4I].kind,
-							// };
-							// newContour[p5I] = {
-							// 	x: makeVariance(originLight(contour[p5I].x), originHeavy(contour[p5I].x)),
-							// 	y: makeVariance(originLight(contour[p5I].y), originHeavy(contour[p7I].y) + yOffset),
-							// 	kind: contour[p5I].kind,
-							// };
-							// newContour[p6I] = {
-							// 	x: makeVariance(originLight(contour[p6I].x), originHeavy(contour[p6I].x)),
-							// 	y: makeVariance(originLight(contour[p6I].y), originHeavy(contour[p7I].y) + yOffset),
-							// 	kind: contour[p6I].kind,
-							// };
-							// newContour[p7I] = {
-							// 	x: makeVariance(originLight(contour[p7I].x), originHeavy(contour[p7I].x) - (xOffset * 0.8)),
-							// 	y: makeVariance(originLight(contour[p7I].y), originHeavy(contour[p7I].y) + yOffset),
-							// 	kind: contour[p7I].kind,
-							// };
-							// newContour[p8I] = {
-							// 	x: makeVariance(originLight(contour[p8I].x), originHeavy(contour[p7I].x) - (xOffset * 0.8)),
-							// 	y: makeVariance(originLight(contour[p8I].y), originHeavy(contour[p8I].y) + (yOffset * 0.4)),
-							// 	kind: contour[p8I].kind,
-							// };
-							// newContour[p9I] = {
-							// 	x: makeVariance(originLight(contour[p9I].x), originHeavy(contour[p9I].x) - (xOffset * 0.8)),
-							// 	y: makeVariance(originLight(contour[p9I].y), originHeavy(contour[p9I].y)),
-							// 	kind: contour[p9I].kind,
-							// };
-							// newContour[p10I] = {
-							// 	x: makeVariance(originLight(contour[p10I].x), originHeavy(contour[p10I].x) - (xOffset * 0.8)),
-							// 	y: makeVariance(originLight(contour[p10I].y), originHeavy(contour[p10I].y)),
-							// 	kind: contour[p10I].kind,
-							// };
-							// newContour[p11I] = {
-							// 	x: makeVariance(originLight(contour[p11I].x), originHeavy(contour[p11I].x)),
-							// 	y: makeVariance(originLight(contour[p11I].y), originHeavy(contour[p11I].y)),
-							// 	kind: contour[p11I].kind,
-							// };
-							break;
-						}
+						// newContour[p0I] = {
+						// 	x: makeVariance(originLight(contour[p0I].x), originHeavy(contour[p0I].x)),
+						// 	y: makeVariance(originLight(contour[p0I].y), originHeavy(contour[p0I].y)),
+						// 	kind: contour[p0I].kind,
+						// };
+						// newContour[p1I] = {
+						// 	x: makeVariance(originLight(contour[p1I].x), originHeavy(contour[p1I].x) - (xOffset * 0.8)),
+						// 	y: makeVariance(originLight(contour[p1I].y), originHeavy(contour[p1I].y)),
+						// 	kind: contour[p1I].kind,
+						// };
+						// newContour[p2I] = {
+						// 	x: makeVariance(originLight(contour[p2I].x), originHeavy(contour[p2I].x)),
+						// 	y: makeVariance(originLight(contour[p2I].y), originHeavy(contour[p2I].y)),
+						// 	kind: contour[p2I].kind,
+						// };
+						// newContour[p3I] = {
+						// 	x: makeVariance(originLight(contour[p3I].x), originHeavy(contour[p4I].x) + (xOffset * 0.2)),
+						// 	y: makeVariance(originLight(contour[p3I].y), originHeavy(contour[p3I].y) + yOffset),
+						// 	kind: contour[p3I].kind,
+						// };
+						// newContour[p4I] = {
+						// 	x: makeVariance(originLight(contour[p4I].x), originHeavy(contour[p4I].x) + (xOffset * 0.2)),
+						// 	y: makeVariance(originLight(contour[p4I].y), originHeavy(contour[p7I].y) + yOffset),
+						// 	kind: contour[p4I].kind,
+						// };
+						// newContour[p5I] = {
+						// 	x: makeVariance(originLight(contour[p5I].x), originHeavy(contour[p5I].x)),
+						// 	y: makeVariance(originLight(contour[p5I].y), originHeavy(contour[p7I].y) + yOffset),
+						// 	kind: contour[p5I].kind,
+						// };
+						// newContour[p6I] = {
+						// 	x: makeVariance(originLight(contour[p6I].x), originHeavy(contour[p6I].x)),
+						// 	y: makeVariance(originLight(contour[p6I].y), originHeavy(contour[p7I].y) + yOffset),
+						// 	kind: contour[p6I].kind,
+						// };
+						// newContour[p7I] = {
+						// 	x: makeVariance(originLight(contour[p7I].x), originHeavy(contour[p7I].x) - (xOffset * 0.8)),
+						// 	y: makeVariance(originLight(contour[p7I].y), originHeavy(contour[p7I].y) + yOffset),
+						// 	kind: contour[p7I].kind,
+						// };
+						// newContour[p8I] = {
+						// 	x: makeVariance(originLight(contour[p8I].x), originHeavy(contour[p7I].x) - (xOffset * 0.8)),
+						// 	y: makeVariance(originLight(contour[p8I].y), originHeavy(contour[p8I].y) + (yOffset * 0.4)),
+						// 	kind: contour[p8I].kind,
+						// };
+						// newContour[p9I] = {
+						// 	x: makeVariance(originLight(contour[p9I].x), originHeavy(contour[p9I].x) - (xOffset * 0.8)),
+						// 	y: makeVariance(originLight(contour[p9I].y), originHeavy(contour[p9I].y)),
+						// 	kind: contour[p9I].kind,
+						// };
+						// newContour[p10I] = {
+						// 	x: makeVariance(originLight(contour[p10I].x), originHeavy(contour[p10I].x) - (xOffset * 0.8)),
+						// 	y: makeVariance(originLight(contour[p10I].y), originHeavy(contour[p10I].y)),
+						// 	kind: contour[p10I].kind,
+						// };
+						// newContour[p11I] = {
+						// 	x: makeVariance(originLight(contour[p11I].x), originHeavy(contour[p11I].x)),
+						// 	y: makeVariance(originLight(contour[p11I].y), originHeavy(contour[p11I].y)),
+						// 	kind: contour[p11I].kind,
+						// };
+						break;
 					}
 				}
 			}

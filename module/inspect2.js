@@ -12,6 +12,7 @@ const htmlHeader = /*html*/`
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="icon" href="data:image/svg+xml,%3csvg version='1.1' viewBox='0 0 48 48' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='m17.89 0.8712c-1.672 0-3.042 1.371-3.042 3.044v2.9h-11.8c-1.672 0-3.044 1.371-3.044 3.044v0.464c0 1.672 1.371 3.044 3.044 3.044h20.09c-1.221 2.943-2.914 5.747-5.038 8.343-1.28-1.512-2.421-3.108-3.337-4.795l-0.0038-0.0076c-0.5397-0.9687-1.564-1.58-2.676-1.58-1.087 0-2.087 0.5783-2.636 1.511-0.5516 0.938-0.5528 2.095-0.01704 3.032 4.26e-4 7.53e-4 0.00146 0.0012 0.00189 0.0019 3.134e-4 5.48e-4 -3.138e-4 0.0014 0 0.0019 1.206 2.131 2.683 4.173 4.316 6.098l-8.68 8.513-0.00189 0.0038c-0.5696 0.5696-0.9079 1.34-0.9091 2.159-0.01164 0.8175 0.3135 1.596 0.8864 2.169l0.3068 0.3068c0.5673 0.5673 1.341 0.8883 2.153 0.8883 0.8056 0 1.57-0.3204 2.136-0.8731l0.00189-0.0019 8.437-8.352 3.822 3.807 0.0038 0.0038c1.29 1.246 3.369 1.209 4.616-0.08143 1.246-1.29 1.209-3.368-0.08143-4.614l-4.042-3.951c4.247-5.316 5.856-8.558 7.197-12.57h3.509c1.672 0 3.042-1.371 3.042-3.044v-0.4659c0-1.672-1.37-3.042-3.042-3.042h-11.8v-2.911c0-1.672-1.371-3.044-3.044-3.044zm18.02 18.62c-1.636 0-3.121 1.022-3.705 2.564l-7.879 20.96v0.0019c-0.3473 0.9308-0.2236 1.982 0.3485 2.805 0.5685 0.8181 1.503 1.307 2.5 1.307h0.2008c1.266 0 2.404-0.7916 2.848-1.973l1.64-4.362h8.377l1.638 4.362c0.4449 1.182 1.583 1.973 2.848 1.973h0.233c0.997 0 1.932-0.4887 2.5-1.307 0.5721-0.8232 0.6958-1.874 0.3485-2.805v-0.0019l-7.877-20.96v-0.0019c-0.573-1.535-2.059-2.564-3.706-2.564zm0.1174 10.05 1.786 4.78h-3.545zm0.2784-0.7538v0.0038c-2.09e-4 5.57e-4 -0.0016 0.0014-0.0019 0.0019z' fill='white'/%3e%3c/svg%3e" sizes="any" type="image/svg+xml">
 	<title>Font Inspector</title>
 	<style>
 		:root {
@@ -21,14 +22,14 @@ const htmlHeader = /*html*/`
 			--form-unit-bg-color: #333;
 			--glyph-size: 300px;
 			--dialog-scale: 1;
-			--dialog-toggle-stroke: revert;
+			--dialog-toggle-stroke: 1;
 			--dialog-toggle-horizontal: revert;
 			--dialog-toggle-vertical: revert;
 			--dialog-toggle-points: revert;
 			--dialog-toggle-handles: revert;
 			--dialog-cf: 0.1;
 			--cf: 0.1;
-			--toggle-stroke: revert;
+			--toggle-stroke: 1;
 			--toggle-horizontal: revert;
 			--toggle-vertical: revert;
 			--toggle-points: revert;
@@ -115,8 +116,12 @@ const htmlHeader = /*html*/`
 		.cf {
 			fill:   #FFFFFF;
 			fill-rule: nonzero;
-			stroke: none;
-			opacity: var(--cf);
+			stroke: #d4d4d4;
+			stroke-width: 3px;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+			fill-opacity: var(--cf);
+			stroke-opacity: var(--toggle-stroke);
 		}
 		.cs {
 			fill: none;
@@ -169,9 +174,8 @@ const htmlHeader = /*html*/`
 			paint-order: stroke;
 			display: var(--toggle-handles);
 		}
-		#dialogGlyphContainer .cs {
+		#dialogGlyphContainer .cf {
 			stroke-width: calc(3px / var(--dialog-scale));
-			display: var(--dialog-toggle-stroke);
 		}
 		#dialogGlyphContainer .dr {
 			stroke-dasharray: calc(10px / var(--dialog-scale)) calc(10px / var(--dialog-scale));
@@ -206,7 +210,8 @@ const htmlHeader = /*html*/`
 			paint-order: stroke;
 		}
 		#dialogGlyphContainer .cf {
-			opacity: var(--dialog-cf);
+			fill-opacity: var(--dialog-cf);
+			stroke-opacity: var(--dialog-toggle-stroke);
 		}
 		[type="checkbox"]:checked,
 		[type="checkbox"]:not(:checked),
@@ -674,9 +679,9 @@ const htmlHeader = /*html*/`
 			
 			let strokes = Bool(params.get('s'));
 			if (!strokes) {
-				cssVariableSet('--toggle-stroke', 'none');
+				cssVariableSet('--toggle-stroke', '0');
 			} else {
-				cssVariableSet('--toggle-stroke', 'revert');
+				cssVariableSet('--toggle-stroke', '1');
 			}
 			
 			let fills = params.get('f');
@@ -952,7 +957,6 @@ function inspect(font, references, subfamily) {
 					<line class="vr" stroke="#FFF6" stroke-width="1" x1="0" y1="${safeTop - safeBottom}" x2="0" y2="${safeTop - safeTop}" />
 					<line class="vr" stroke="#FFF6" stroke-width="1" x1="${horizontalEndLight}" y1="${safeTop - safeBottom}" x2="${horizontalEndLight}" y2="${safeTop - safeTop}" />
 					<g><path class="cf" d="${groupLightFill}" /></g>
-					<g><path class="cs" d="${groupLightStroke}" /></g>
 					<g>${groupLightHandles}</g>
 					<g>${groupLightPoints}${lightStart}</g>
 				</g>
@@ -960,12 +964,13 @@ function inspect(font, references, subfamily) {
 					<line class="vr" stroke="#FFF6" stroke-width="1" x1="0" y1="${safeTop - safeBottom}" x2="0" y2="${safeTop - safeTop}" />
 					<line class="vr" stroke="#FFF6" stroke-width="1" x1="${horizontalEndHeavy}" y1="${safeTop - safeBottom}" x2="${horizontalEndHeavy}" y2="${safeTop - safeTop}" />
 					<g><path class="cf" d="${groupHeavyFill}" /></g>
-					<g><path class="cs" d="${groupHeavyStroke}" /></g>
 					<g>${groupHeavyHandles}</g>
 					<g>${groupHeavyPoints}${heavyStart}</g>
 				</g>
 			</g>
 		</svg>`;
+		//<g><path class="cs" d="${groupHeavyStroke}" /></g>
+		//<g><path class="cs" d="${groupLightStroke}" /></g>
 		currentHtml += /*html*/ `<div class="glyph-wrap" id="${glyph.name}"><div class="glyph">${svgHeader}</div><span class="glyph-label">${glyph.name}</span></div>`;
 	}
 
@@ -1202,9 +1207,9 @@ function inspect(font, references, subfamily) {
 				checkboxStroke.addEventListener('change', function () {
 					let setting = this.checked;
 					if (!setting) {
-						cssVariableSet('--toggle-stroke', 'none');
+						cssVariableSet('--toggle-stroke', '0');
 					} else {
-						cssVariableSet('--toggle-stroke', 'revert');
+						cssVariableSet('--toggle-stroke', '1');
 					}
 				});
 
@@ -1249,9 +1254,9 @@ function inspect(font, references, subfamily) {
 				checkboxDialogStroke.addEventListener('change', function () {
 					let setting = this.checked;
 					if (!setting) {
-						cssVariableSet('--dialog-toggle-stroke', 'none');
+						cssVariableSet('--dialog-toggle-stroke', '0');
 					} else {
-						cssVariableSet('--dialog-toggle-stroke', 'revert');
+						cssVariableSet('--dialog-toggle-stroke', '1');
 					}
 				});
 				

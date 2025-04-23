@@ -1,68 +1,76 @@
 <svg width="500px" viewBox="0 4 170 130" xmlns="http://www.w3.org/2000/svg">
-<defs>
-	<style>
-		svg {
-			background-color:#0007;
-		}
-		line {
-			stroke:#fff;
-			stroke-dasharray:2px 3px;
-			stroke-width:1;
-			stroke-linecap:round;
-			stroke-dashoffset:1px;
-		}
-		text {
-			fill:#fff;
-			font-size:6px;
-			font-family:Nunito,sans-serif;
-		}
-		circle, .hc {
-			r:1.8;
-			stroke:currentColor;
-			fill:currentColor;
-			fill-opacity:0.7;
-			stroke-width:1;
-		}
-		.c {
-			color:#e06;
-		}
-		.h {
-			color:#9e0;
-		}
-		.gs {
-			fill: none;
-			stroke: #666;
-			stroke-dasharray: 1 1;
-			stroke-width:.5;
-			stroke-linecap:round;
-		}
-		.ga {
-			fill: none;
-			stroke: #666;
-			stroke-dasharray: none;
-			stroke-width:1;
-			stroke-linecap:round;
-			stroke-linejoin: round;
-		}
-		.gt {
-			fill:#666;
-			font-size:5px;
-			font-weight: 600;
-			font-family:Nunito,sans-serif;
-		}
-	</style>
-	<marker
-		id="arrow"
-		viewBox="0 0 10 12"
-		refX="4"
-		refY="5"
-		markerUnits="strokeWidth"
-		markerWidth="10"
-		markerHeight="12"
-		orient="auto" class="ga">
-		<path d="M 4,2 8,5 4,8 M 8, 5 L 1, 5" />
-	</marker>
-</defs>
+	<defs>
+		<style>
+			svg {
+				background-color:#0007;
+			}
+			line {
+				stroke:#fff;
+				stroke-dasharray:1px 2px;
+				stroke-width:1;
+				stroke-linecap:round;
+				stroke-dashoffset:1px;
+			}
+			text {
+				fill:#fff;
+				font-size:5px;
+				font-family:Nunito,sans-serif;
+			}
+			circle, .hc {
+				r:1.8;
+				stroke:currentColor;
+				fill:currentColor;
+				fill-opacity:0.7;
+				stroke-width:1;
+			}
+			.c {
+				color:#e06;
+			}
+			.h {
+				color:#9e0;
+			}
+			.g {
+				color:#888;
+			}
+			.f {
+				opacity: 100%
+			}
+			.gs {
+				fill: none;
+				stroke: #666;
+				stroke-dasharray: 1 1;
+				stroke-width:.5;
+				stroke-linecap:round;
+			}
+			.ga {
+				fill: none;
+				stroke: #666;
+				stroke-dasharray: none;
+				stroke-width:1;
+				stroke-linecap:round;
+				stroke-linejoin: round;
+			}
+			.gt {
+				fill:#666;
+				font-size:4px;
+				font-weight: 700;
+				font-family:Nunito,sans-serif;
+				transform-box: fill-box;
+				transform-origin: center;
+			}
+		</style>
+		<marker
+			id="arrow"
+			viewBox="0 0 10 12"
+			refX="4"
+			refY="5"
+			markerUnits="strokeWidth"
+			markerWidth="10"
+			markerHeight="12"
+			orient="auto" class="ga">
+			<path d="M 4,2 8,5 4,8 M 8, 5 L 1, 5" />
+		</marker>
+	</defs>
 <path d="M140,150L140,80L150,15L20,15L30,80L30,150" fill="#fff1" stroke="#fff6" stroke-width=".5"/>
 
 <!-- <line x1="140" y1="90" x2="140" y2="122"/>
@@ -85,27 +93,27 @@
 <circle cx="30" cy="121" class="c"/>
 
 
-<text x="144" y="123">p0</text>
-<text x="144" y="82">p1</text>
+<text x="143" y="122">p0</text>
+<text x="143" y="81">p1</text>
 <!-- <text x="144" y="67">p2</text>
 <text x="148" y="42">p3</text> -->
-<text x="154" y="14">p2</text>
-<text x="9" y="14">p3</text>
+<text x="153" y="14">p2</text>
+<text x="11" y="14">p3</text>
 <!-- <text x="14" y="42">p6</text>
 <text x="18" y="67">p7</text> -->
-<text x="18" y="82">p4</text>
-<text x="18" y="123">p5</text>
+<text x="21" y="81">p4</text>
+<text x="21" y="122">p5</text>
 
 <line class="gs" x1="145" y1="117" x2="145" y2="88" marker-end="url(#arrow)"/>
 <text x="146" y="105" class="gt">b0</text>
 <line class="gs" x1="146" y1="74" x2="154" y2="22" marker-end="url(#arrow)"/>
-<text x="157" y="26" class="gt" transform="rotate(9)">b1</text>
+<text x="151" y="50" class="gt" transform="rotate(9)">b1</text>
 <line class="gs" x1="144" y1="11" x2="26" y2="11" marker-end="url(#arrow)"/>
 <text x="82" y="10" class="gt">b2</text>
 <line class="gs" x1="15.5" y1="21" x2="23" y2="71" marker-end="url(#arrow)"/>
-<text x="5" y="52" class="gt" transform="rotate(-9)">b3</text>
+<text x="14" y="50" class="gt" transform="rotate(-9)">b3</text>
 <line class="gs" x1="25" y1="85" x2="25" y2="114" marker-end="url(#arrow)"/>
-<text x="18" y="104" class="gt">b4</text>
+<text x="19" y="104" class="gt">b4</text>
 <!-- <line class="gs" x1="24" y1="95" x2="24" y2="114" marker-end="url(#arrow)"/> -->
 <!-- <text x="17" y="106" class="gt">b5</text> -->
 </svg>

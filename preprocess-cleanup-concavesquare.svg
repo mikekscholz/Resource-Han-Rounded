@@ -1,68 +1,76 @@
 <svg width="500px" viewBox="0 4 170 130" xmlns="http://www.w3.org/2000/svg">
-<defs>
-	<style>
-		svg {
-			background-color:#0007;
-		}
-		line {
-			stroke:#fff;
-			stroke-dasharray:2px 3px;
-			stroke-width:1;
-			stroke-linecap:round;
-			stroke-dashoffset:1px;
-		}
-		text {
-			fill:#fff;
-			font-size:6px;
-			font-family:Nunito,sans-serif;
-		}
-		circle, .hc {
-			r:1.8;
-			stroke:currentColor;
-			fill:currentColor;
-			fill-opacity:0.7;
-			stroke-width:1;
-		}
-		.c {
-			color:#e06;
-		}
-		.h {
-			color:#9e0;
-		}
-		.gs {
-			fill: none;
-			stroke: #666;
-			stroke-dasharray: 1 1;
-			stroke-width:.5;
-			stroke-linecap:round;
-		}
-		.ga {
-			fill: none;
-			stroke: #666;
-			stroke-dasharray: none;
-			stroke-width:1;
-			stroke-linecap:round;
-			stroke-linejoin: round;
-		}
-		.gt {
-			fill:#666;
-			font-size:5px;
-			font-weight: 600;
-			font-family:Nunito,sans-serif;
-		}
-	</style>
-	<marker
-		id="arrow"
-		viewBox="0 0 10 12"
-		refX="4"
-		refY="5"
-		markerUnits="strokeWidth"
-		markerWidth="10"
-		markerHeight="12"
-		orient="auto" class="ga">
-		<path d="M 4,2 8,5 4,8 M 8, 5 L 1, 5" />
-	</marker>
-</defs>
+	<defs>
+		<style>
+			svg {
+				background-color:#0007;
+			}
+			line {
+				stroke:#fff;
+				stroke-dasharray:1px 2px;
+				stroke-width:1;
+				stroke-linecap:round;
+				stroke-dashoffset:1px;
+			}
+			text {
+				fill:#fff;
+				font-size:5px;
+				font-family:Nunito,sans-serif;
+			}
+			circle, .hc {
+				r:1.8;
+				stroke:currentColor;
+				fill:currentColor;
+				fill-opacity:0.7;
+				stroke-width:1;
+			}
+			.c {
+				color:#e06;
+			}
+			.h {
+				color:#9e0;
+			}
+			.g {
+				color:#888;
+			}
+			.f {
+				opacity: 100%
+			}
+			.gs {
+				fill: none;
+				stroke: #666;
+				stroke-dasharray: 1 1;
+				stroke-width:.5;
+				stroke-linecap:round;
+			}
+			.ga {
+				fill: none;
+				stroke: #666;
+				stroke-dasharray: none;
+				stroke-width:1;
+				stroke-linecap:round;
+				stroke-linejoin: round;
+			}
+			.gt {
+				fill:#666;
+				font-size:4px;
+				font-weight: 700;
+				font-family:Nunito,sans-serif;
+				transform-box: fill-box;
+				transform-origin: center;
+			}
+		</style>
+		<marker
+			id="arrow"
+			viewBox="0 0 10 12"
+			refX="4"
+			refY="5"
+			markerUnits="strokeWidth"
+			markerWidth="10"
+			markerHeight="12"
+			orient="auto" class="ga">
+			<path d="M 4,2 8,5 4,8 M 8, 5 L 1, 5" />
+		</marker>
+	</defs>
     <path d="M180,151L180,26L100,26C75,26,45,22,20,15L20,15C28,40,32,65,32,90L32,150" fill="#fff1" stroke="#fff6" stroke-width=".5" />
 
 
@@ -90,13 +98,13 @@
     class="hc h" d="M33.273,121.727A1.8,1.8 0 0,1 30.727,124.273"/>
 <path class="hc c" d="M33.273,121.727A1.8,1.8 0 0,0 30.727,124.273"/>-->
 
-    <text x="129" y="20">p0</text>
-    <text x="96" y="20">p1</text>
-    <text x="71" y="20">p2</text>
-    <text x="41" y="16">p3</text>
+    <text x="130" y="22">p0</text>
+    <text x="97" y="22">p1</text>
+    <text x="72" y="22">p2</text>
+    <text x="42" y="18">p3</text>
     <text x="9" y="14">p4</text>
-    <text x="15" y="42">p5</text>
-    <text x="19" y="67">p6</text>
-    <text x="19" y="92">p7</text>
-    <text x="19" y="125">p8</text>
+    <text x="18" y="42">p5</text>
+    <text x="22" y="67">p6</text>
+    <text x="22" y="92">p7</text>
+    <text x="22" y="125">p8</text>
 </svg>
