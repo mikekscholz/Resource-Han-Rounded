@@ -793,11 +793,11 @@ function inspect(font, references, subfamily) {
 	const dimWght = font.fvar.axes[0].dim;
 	const instanceShsWghtMax = new Map([[dimWght, 1]]);
 	const instanceShsWghtMed = new Map([[dimWght, 0.5]]);
-	const masterDimWghtMax = { dim: dimWght, min: 0, peak: 1, max: 1 };
-	const masterWghtMax = new Ot.Var.Master([masterDimWghtMax]);
-	const masterSet = new Ot.Var.MasterSet();
-	masterSet.getOrPush(masterWghtMax);
-	const valueFactory = new Ot.Var.ValueFactory(masterSet);
+	// const masterDimWghtMax = { dim: dimWght, min: 0, peak: 1, max: 1 };
+	// const masterWghtMax = new Ot.Var.Master([masterDimWghtMax]);
+	// const masterSet = new Ot.Var.MasterSet();
+	// masterSet.getOrPush(masterWghtMax);
+	// const valueFactory = new Ot.Var.ValueFactory(masterSet);
 	const safeBottom = -abs(font.os2.usWinDescent);
 	const descender = -abs(font.os2.sTypoDescender);
 	const xHeight = font.os2.sxHeight;
@@ -810,6 +810,10 @@ function inspect(font, references, subfamily) {
 		return Ot.Var.Ops.originOf(point);
 	}
 
+	function originMed(point) {
+		return Ot.Var.Ops.evaluate(point, instanceShsWghtMed);
+	}
+	
 	function originHeavy(point) {
 		return Ot.Var.Ops.evaluate(point, instanceShsWghtMax);
 	}
@@ -824,125 +828,121 @@ function inspect(font, references, subfamily) {
 		let groupLightHandles = "";
 		let groupLightPoints = "";
 		let lightStart = "";
+		let groupMedFill = "";
+		let groupMedStroke = "";
+		let groupMedHandles = "";
+		let groupMedPoints = "";
+		let medStart = "";
 		let groupHeavyFill = "";
 		let groupHeavyStroke = "";
 		let groupHeavyHandles = "";
 		let groupHeavyPoints = "";
 		let heavyStart = "";
-		// let glyphPointsLightX = [];
-		// let glyphPointsHeavyX = [];
 		let pointsLightX = [];
+		let pointsMedX = [];
 		let pointsHeavyX = [];
 		for (const [idxC, contour] of contours.entries()) {
 			let pointsLight = [];
+			let pointsMed = [];
 			let pointsHeavy = [];
-			// let pointsLightY = [];
-			// let pointsHeavyY = [];
 			let pathLight = "";
+			let pathMed = "";
 			let pathHeavy = "";
 			for (let idxP = 0; idxP < contour.length; idxP++) {
 				let lX = originLight(contour[idxP].x);
 				let lY = safeTop - originLight(contour[idxP].y);
+				let mX = originMed(contour[idxP].x);
+				let mY = safeTop - originMed(contour[idxP].y);
 				let hX = originHeavy(contour[idxP].x);
 				let hY = safeTop - originHeavy(contour[idxP].y);
 				pointsLight.push({ x: lX, y: lY, type: contour[idxP].kind });
+				pointsMed.push({ x: mX, y: mY, type: contour[idxP].kind });
 				pointsHeavy.push({ x: hX, y: hY, type: contour[idxP].kind });
 				pointsLightX.push(lX);
-				// pointsLightY.push(lY);
+				pointsMedX.push(mX);
 				pointsHeavyX.push(hX);
-				// pointsHeavyY.push(hY);
 			}
 
 			for (let idxP = 0; idxP < pointsLight.length; idxP++) {
 				let l1 = pointsLight[idxP];
+				let m1 = pointsMed[idxP];
 				let h1 = pointsHeavy[idxP];
 				if (idxP === 0) {
 					pathLight += `M ${l1.x}, ${l1.y}`;
+					pathMed += `M ${m1.x}, ${m1.y}`;
 					pathHeavy += `M ${h1.x}, ${h1.y}`;
-					lightStart += /*svg*/ `
-						<circle class="sp" cx="${l1.x}" cy="${l1.y}" r="5">
-							<title>contour${idxC} node${idxP}\n${l1.x}, ${safeTop - l1.y}</title>
-						</circle>`;
-					heavyStart += /*svg*/ `
-						<circle class="sp" cx="${h1.x}" cy="${h1.y}" r="5">
-							<title>contour${idxC} node${idxP}\n${h1.x}, ${safeTop - h1.y}</title>
-						</circle>`;
+					lightStart += /*svg*/ `<circle class="sp" cx="${l1.x}" cy="${l1.y}" r="5"><title>c${idxC} n${idxP}\n${l1.x}, ${safeTop - l1.y}</title></circle>`;
+					medStart += /*svg*/ `<circle class="sp" cx="${m1.x}" cy="${m1.y}" r="5"><title>c${idxC} n${idxP}\n${m1.x}, ${safeTop - m1.y}</title></circle>`;
+					heavyStart += /*svg*/ `<circle class="sp" cx="${h1.x}" cy="${h1.y}" r="5"><title>c${idxC} n${idxP}\n${h1.x}, ${safeTop - h1.y}</title></circle>`;
 				} else if (idxP > 0 && l1.type === 0) {
 					pathLight += `L ${l1.x}, ${l1.y}`;
+					pathMed += `L ${m1.x}, ${m1.y}`;
 					pathHeavy += `L ${h1.x}, ${h1.y}`;
 					if (pointsLight[0].x !== l1.x || pointsLight[0].y !== l1.y) {
-						groupLightPoints += /*svg*/ `
-							<circle class="cor" cx="${l1.x}" cy="${l1.y}" r="5">
-								<title>contour${idxC} node${idxP}\n${l1.x}, ${safeTop - l1.y}</title>
-							</circle>`;
-						groupHeavyPoints += /*svg*/ `
-							<circle class="cor" cx="${h1.x}" cy="${h1.y}" r="5">
-								<title>contour${idxC} node${idxP}\n${h1.x}, ${safeTop - h1.y}</title>
-							</circle>`;
+						groupLightPoints += /*svg*/ `<circle class="cor" cx="${l1.x}" cy="${l1.y}" r="5"><title>c${idxC} n${idxP}\n${l1.x}, ${safeTop - l1.y}</title></circle>`;
+						groupMedPoints += /*svg*/ `<circle class="cor" cx="${m1.x}" cy="${m1.y}" r="5"><title>c${idxC} n${idxP}\n${m1.x}, ${safeTop - m1.y}</title></circle>`;
+						groupHeavyPoints += /*svg*/ `<circle class="cor" cx="${h1.x}" cy="${h1.y}" r="5"><title>c${idxC} n${idxP}\n${h1.x}, ${safeTop - h1.y}</title></circle>`;
 					}
 				} else if (l1.type === 1) {
 					let l0 = pointsLight[idxP - 1];
+					let m0 = pointsMed[idxP - 1];
 					let h0 = pointsHeavy[idxP - 1];
 					let l2 = pointsLight[idxP + 1];
+					let m2 = pointsMed[idxP + 1];
 					let h2 = pointsHeavy[idxP + 1];
 					let l3 = circularArray(pointsLight, idxP + 2);
+					let m3 = circularArray(pointsMed, idxP + 2);
 					let h3 = circularArray(pointsHeavy, idxP + 2);
 					pathLight += `C ${l1.x}, ${l1.y} ${l2.x}, ${l2.y} ${l3.x}, ${l3.y}`;
+					pathMed += `C ${m1.x}, ${m1.y} ${m2.x}, ${m2.y} ${m3.x}, ${m3.y}`;
 					pathHeavy += `C ${h1.x}, ${h1.y} ${h2.x}, ${h2.y} ${h3.x}, ${h3.y}`;
-					groupLightPoints += /*svg*/ `
-						<circle class="ctrl" cx="${l1.x}" cy="${l1.y}" r="4">
-							<title>contour${idxC} node${idxP}\n${l1.x}, ${safeTop - l1.y}</title>
-						</circle>`;
-					groupHeavyPoints += /*svg*/ `
-						<circle class="ctrl" cx="${h1.x}" cy="${h1.y}" r="4">
-							<title>contour${idxC} node${idxP}\n${h1.x}, ${safeTop - h1.y}</title>
-						</circle>`;
-					groupLightPoints += /*svg*/ `
-						<circle class="ctrl" cx="${l2.x}" cy="${l2.y}" r="4">
-							<title>contour${idxC} node${idxP + 1}\n${l2.x}, ${safeTop - l2.y}</title>
-						</circle>`;
-					groupHeavyPoints += /*svg*/ `
-						<circle class="ctrl" cx="${h2.x}" cy="${h2.y}" r="4">
-							<title>contour${idxC} node${idxP + 1}\n${h2.x}, ${safeTop - h2.y}</title>
-						</circle>`;
+					groupLightPoints += /*svg*/ `<circle class="ctrl" cx="${l1.x}" cy="${l1.y}" r="4"><title>c${idxC} n${idxP}\n${l1.x}, ${safeTop - l1.y}</title></circle>`;
+					groupLightPoints += /*svg*/ `<circle class="ctrl" cx="${l2.x}" cy="${l2.y}" r="4"><title>c${idxC} n${idxP + 1}\n${l2.x}, ${safeTop - l2.y}</title></circle>`;
+					groupMedPoints += /*svg*/ `<circle class="ctrl" cx="${m1.x}" cy="${m1.y}" r="4"><title>c${idxC} n${idxP}\n${m1.x}, ${safeTop - m1.y}</title></circle>`;
+					groupMedPoints += /*svg*/ `<circle class="ctrl" cx="${m2.x}" cy="${m2.y}" r="4"><title>c${idxC} n${idxP + 1}\n${m2.x}, ${safeTop - m2.y}</title></circle>`;
+					groupHeavyPoints += /*svg*/ `<circle class="ctrl" cx="${h1.x}" cy="${h1.y}" r="4"><title>c${idxC} n${idxP}\n${h1.x}, ${safeTop - h1.y}</title></circle>`;
+					groupHeavyPoints += /*svg*/ `<circle class="ctrl" cx="${h2.x}" cy="${h2.y}" r="4"><title>c${idxC} n${idxP + 1}\n${h2.x}, ${safeTop - h2.y}</title></circle>`;
 					if (pointsLight[0].x !== l3.x || pointsLight[0].y !== l3.y) {
-						groupLightPoints += /*svg*/ `
-							<circle class="cor" cx="${l3.x}" cy="${l3.y}" r="5">
-								<title>contour${idxC} node${idxP + 2}\n${l3.x}, ${safeTop - l3.y}</title>
-							</circle>`;
-						groupHeavyPoints += /*svg*/ `
-							<circle class="cor" cx="${h3.x}" cy="${h3.y}" r="5">
-								<title>contour${idxC} node${idxP + 2}\n${h3.x}, ${safeTop - h3.y}</title>
-							</circle>`;
+						groupLightPoints += /*svg*/ `<circle class="cor" cx="${l3.x}" cy="${l3.y}" r="5"><title>c${idxC} n${idxP + 2}\n${l3.x}, ${safeTop - l3.y}</title></circle>`;
+						groupMedPoints += /*svg*/ `<circle class="cor" cx="${m3.x}" cy="${m3.y}" r="5"><title>c${idxC} n${idxP + 2}\n${m3.x}, ${safeTop - m3.y}</title></circle>`;
+						groupHeavyPoints += /*svg*/ `<circle class="cor" cx="${h3.x}" cy="${h3.y}" r="5"><title>c${idxC} n${idxP + 2}\n${h3.x}, ${safeTop - h3.y}</title></circle>`;
 					}
 					groupLightHandles += /*svg*/ `<line class="cv" x1="${l0.x}" y1="${l0.y}" x2="${l1.x}" y2="${l1.y}" />`;
-					groupHeavyHandles += /*svg*/ `<line class="cv" x1="${h0.x}" y1="${h0.y}" x2="${h1.x}" y2="${h1.y}" />`;
 					groupLightHandles += /*svg*/ `<line class="cv" x1="${l2.x}" y1="${l2.y}" x2="${l3.x}" y2="${l3.y}" />`;
+					groupMedHandles += /*svg*/ `<line class="cv" x1="${m0.x}" y1="${m0.y}" x2="${m1.x}" y2="${m1.y}" />`;
+					groupMedHandles += /*svg*/ `<line class="cv" x1="${m2.x}" y1="${m2.y}" x2="${m3.x}" y2="${m3.y}" />`;
+					groupHeavyHandles += /*svg*/ `<line class="cv" x1="${h0.x}" y1="${h0.y}" x2="${h1.x}" y2="${h1.y}" />`;
 					groupHeavyHandles += /*svg*/ `<line class="cv" x1="${h2.x}" y1="${h2.y}" x2="${h3.x}" y2="${h3.y}" />`;
 					idxP += 2;
 				}
 			}
 			groupLightFill += `${pathLight} z `;
-			groupLightStroke += `${pathLight} z `;
+			// groupLightStroke += `${pathLight} z `;
+			groupMedFill += `${pathMed} z `;
 			groupHeavyFill += `${pathHeavy} z `;
-			groupHeavyStroke += `${pathHeavy} z `;
+			// groupHeavyStroke += `${pathHeavy} z `;
 		}
 		let horizontalEndLight = originLight(glyph.horizontal.end);
+		let horizontalEndMed = originMed(glyph.horizontal.end) || horizontalEndLight;
 		let horizontalEndHeavy = originHeavy(glyph.horizontal.end) || horizontalEndLight;
 		pointsLightX.push(0, horizontalEndLight);
+		pointsMedX.push(0, horizontalEndMed);
 		pointsHeavyX.push(0, horizontalEndHeavy);
 
 		let minLightX = min(...pointsLightX) - 20;
 		let maxLightX = max(...pointsLightX) + 20;
 		// let minLightY = min(pointsLightY);
 		// let maxLightY = max(pointsLightY);
+		let minMedX = min(...pointsMedX) - 20;
+		let maxMedX = max(...pointsMedX) + 20;
 		let minHeavyX = min(...pointsHeavyX) - 20;
 		let maxHeavyX = max(...pointsHeavyX) + 20;
 		// let minHeavyY = min(pointsHeavyY);
 		// let maxHeavyY = max(pointsHeavyY);
 		let widthLight = abs(minLightX - maxLightX);
+		let widthMed = abs(minMedX - maxMedX);
 		let widthHeavy = abs(minHeavyX - maxHeavyX);
-		let viewportWidth = 10 + widthLight + 10 + widthHeavy + 10;
+		let viewportWidth = 10 + widthLight + 10 + widthMed + 10 + widthHeavy + 10;
 		let svgHeader = /*svg*/ `
 		<svg height="100%" viewBox="0 0 ${viewportWidth} ${viewportHeight}" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" data-glyph-idx="${idxG}" data-glyph-name="${glyph.name}">
 			<g>
@@ -960,7 +960,14 @@ function inspect(font, references, subfamily) {
 					<g>${groupLightHandles}</g>
 					<g>${groupLightPoints}${lightStart}</g>
 				</g>
-				<g transform="translate(${widthLight + abs(minHeavyX) + 20}, 0)">
+				<g transform="translate(${widthLight + abs(minMedX) + 20}, 0)">
+					<line class="vr" stroke="#FFF6" stroke-width="1" x1="0" y1="${safeTop - safeBottom}" x2="0" y2="${safeTop - safeTop}" />
+					<line class="vr" stroke="#FFF6" stroke-width="1" x1="${horizontalEndMed}" y1="${safeTop - safeBottom}" x2="${horizontalEndMed}" y2="${safeTop - safeTop}" />
+					<g><path class="cf" d="${groupMedFill}" /></g>
+					<g>${groupMedHandles}</g>
+					<g>${groupMedPoints}${medStart}</g>
+				</g>
+				<g transform="translate(${widthLight + widthMed + abs(minHeavyX) + 30}, 0)">
 					<line class="vr" stroke="#FFF6" stroke-width="1" x1="0" y1="${safeTop - safeBottom}" x2="0" y2="${safeTop - safeTop}" />
 					<line class="vr" stroke="#FFF6" stroke-width="1" x1="${horizontalEndHeavy}" y1="${safeTop - safeBottom}" x2="${horizontalEndHeavy}" y2="${safeTop - safeTop}" />
 					<g><path class="cf" d="${groupHeavyFill}" /></g>

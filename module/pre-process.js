@@ -197,6 +197,23 @@ function preProcess(font, references) {
 		let p2 = pointHeavy(end);
 		return (Math.atan2((p1.x - p2.x), (p1.y - p2.y)) + Math.PI) * 360 / (2 * Math.PI);
 	}
+		
+	function canBeStrokeEnd(p1, p2, p3, p4) {
+		let cornerPoints = p2.kind === 0 && p3.kind === 0;
+		let strokeWidthLight = approxEq(distanceLight(p2, p3), params.strokeWidth.light, 20);
+		let strokeWidthHeavy = distanceHeavy(p2, p3).isBetween(strokeWidthLight, params.strokeWidth.heavy + 46);
+		let bearingLight1 = bearing(lineLight(p1, p2));
+		let bearingLight2 = bearing(lineLight(p2, p3));
+		let bearingLight3 = bearing(lineLight(p3, p4));
+		let anglesLight = angle(bearingLight1, bearingLight2) + angle(bearingLight2, bearingLight3);
+		let trapezoidalLight = anglesLight > -200 && anglesLight < -160;
+		let bearingHeavy1 = bearing(lineHeavy(p1, p2));
+		let bearingHeavy2 = bearing(lineHeavy(p2, p3));
+		let bearingHeavy3 = bearing(lineHeavy(p3, p4));
+		let anglesHeavy = angle(bearingHeavy1, bearingHeavy2) + angle(bearingHeavy2, bearingHeavy3);
+		let trapezoidalHeavy = anglesHeavy > -200 && anglesHeavy < -160;
+		return (cornerPoints && strokeWidthLight && strokeWidthHeavy && trapezoidalLight && trapezoidalHeavy);
+	}
 	
 	function canBeRightEnd(bottomRight, topRight) {
 		return bottomRight.kind == 0 && topRight.kind == 0 &&
@@ -379,6 +396,7 @@ function preProcess(font, references) {
 		}
 		return  circularIndex(contour, idx - 1);
 	}
+	
 	function nextNode(contour, idx, corner = false) {
 		let current = circularArray(contour, idx);
 		let currentXL = originLight(current.x);

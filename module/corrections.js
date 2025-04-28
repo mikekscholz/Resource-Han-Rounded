@@ -61,7 +61,6 @@ function correctGlyphs(font, references) {
 	function originHeavy(point) {
 		return Ot.Var.Ops.evaluate(point, instanceShsWghtMax);
 	}
-	
 
 	function pointLight(p) {
 		return { x: originLight(p.x), y: originLight(p.y) };
@@ -72,11 +71,19 @@ function correctGlyphs(font, references) {
 	}
 	
 	function lineLight(p1, p2) {
-		return { p1: pointLight(p1) ,p2: pointLight(p2) };
+		return { p1: pointLight(p1), p2: pointLight(p2) };
 	}
 	
 	function lineHeavy(p1, p2) {
-		return { p1: pointHeavy(p1) ,p2: pointHeavy(p2) };
+		return { p1: pointHeavy(p1), p2: pointHeavy(p2) };
+	}
+	
+	function bezierLight(p1, c1, c2, p2) {
+		return new Bezier(pointLight(p1), pointLight(c1), pointLight(c2), pointLight(p2));
+	}
+	
+	function bezierHeavy(p1, c1, c2, p2) {
+		return new Bezier(pointHeavy(p1), pointHeavy(c1), pointHeavy(c2), pointHeavy(p2));
 	}
 	
 	function contour2GeoJsonLight(contour) {
@@ -310,13 +317,30 @@ function correctGlyphs(font, references) {
 		s8x >= 55 && s8x <= 78 && s8y >= -64 && s8y <= -46;
 	}
 	
-	function approxEq(a, b, threshold = 5) {
+	function approxEq(a, b, threshold = 5, thresholdHeavy = false) {
 		if (typeof a == 'number' && typeof b == 'number')
 			return abs(a - b) <= threshold;
 		return abs(originLight(a) - originLight(b)) <= threshold &&
-			abs(originHeavy(a) - originHeavy(b)) <= threshold;
+			abs(originHeavy(a) - originHeavy(b)) <= (thresholdHeavy || threshold);
 	}
-
+	
+	function canBeStrokeEnd(p1, p2, p3, p4) {
+		let cornerPoints = p2.kind === 0 && p3.kind === 0;
+		let strokeWidthLight = approxEq(distanceLight(p2, p3), params.strokeWidth.light, 20);
+		let strokeWidthHeavy = distanceHeavy(p2, p3).isBetween(strokeWidthLight, params.strokeWidth.heavy + 46);
+		let bearingLight1 = bearing(lineLight(p1, p2));
+		let bearingLight2 = bearing(lineLight(p2, p3));
+		let bearingLight3 = bearing(lineLight(p3, p4));
+		let anglesLight = angle(bearingLight1, bearingLight2) + angle(bearingLight2, bearingLight3);
+		let trapezoidalLight = anglesLight > -194 && anglesLight < -172;
+		let bearingHeavy1 = bearing(lineHeavy(p1, p2));
+		let bearingHeavy2 = bearing(lineHeavy(p2, p3));
+		let bearingHeavy3 = bearing(lineHeavy(p3, p4));
+		let anglesHeavy = angle(bearingHeavy1, bearingHeavy2) + angle(bearingHeavy2, bearingHeavy3);
+		let trapezoidalHeavy = anglesHeavy > -194 && anglesHeavy < -172;
+		return (cornerPoints && strokeWidthLight && strokeWidthHeavy && trapezoidalLight && trapezoidalHeavy);
+	}
+	
 	function canBeBottomEnd(bottomLeft, bottomRight) {
 		return bottomLeft.kind == 0 && bottomRight.kind == 0 &&
 			approxEq(bottomLeft.y, bottomRight.y, 20) &&
@@ -391,30 +415,6 @@ function correctGlyphs(font, references) {
 			}
 		}
 		return  circularIndex(contour, idx + 1);
-	}
-	
-	function canBeLeftFalling(topRight, topPeak, topLeft, flatLeft, downLeft) {
-		return topRight.kind == 0 && topPeak.kind == 0 && topLeft.kind == 0 && flatLeft.kind == 0 && downLeft.kind == 0 &&
-		originLight(topRight.x) - originLight(topPeak.x) > 0 &&
-		originLight(topPeak.x) - originLight(topLeft.x) > 0 &&
-		originLight(topLeft.x) - originLight(flatLeft.x) > 0 &&
-		originLight(flatLeft.x) - originLight(downLeft.x) == 0 &&
-		originLight(topRight.y) - originLight(topPeak.y) <= 0 &&
-		originLight(topPeak.y) - originLight(topLeft.y) > 0 &&
-		originLight(topLeft.y) - originLight(flatLeft.y) == 0 &&
-		originLight(flatLeft.y) - originLight(downLeft.y) > 0;
-	}
-
-	function canBeLeftFalling2(right, topRight, topPeak, farLeft, topLeft) {
-		return right.kind == 0 && topRight.kind == 0 && topPeak.kind == 0 && farLeft.kind == 0 && topLeft.kind == 0 &&
-		originLight(right.x) - originLight(topRight.x) < 0 &&
-		originLight(topRight.x) - originLight(topPeak.x) > 0 &&
-		originLight(topPeak.x) - originLight(farLeft.x) > 0 &&
-		originLight(farLeft.x) - originLight(topLeft.x) < 0 &&
-		originLight(right.y) - originLight(topRight.y) < 0 &&
-		originLight(topRight.y) - originLight(topPeak.y) < 0 &&
-		originLight(topPeak.y) - originLight(farLeft.y) > 0 &&
-		originLight(farLeft.y) - originLight(topLeft.y) == 0;
 	}
 
 	function isBetweenPoints(a, x, b) {
@@ -1304,19 +1304,19 @@ function correctGlyphs(font, references) {
 				};
 			}
 
-			// fix ι
-			if ((glyph.name === "iota" || glyph.name === "l") && idxC === 0) {
-				newContour[3] = {
-					x: makeVariance(originLight(contour[3].x), originHeavy(contour[3].x) + 19),
-					y: makeVariance(originLight(contour[3].y), originHeavy(contour[3].y)),
-					kind: contour[3].kind,
-				};
-				newContour[4] = {
-					x: makeVariance(originLight(contour[4].x), originHeavy(contour[4].x) + 40),
-					y: makeVariance(originLight(contour[4].y), originHeavy(contour[4].y)),
-					kind: contour[4].kind,
-				};
-			}
+			// // fix ι
+			// if ((glyph.name === "iota" || glyph.name === "l") && idxC === 0) {
+			// 	newContour[3] = {
+			// 		x: makeVariance(originLight(contour[3].x), originHeavy(contour[3].x) + 19),
+			// 		y: makeVariance(originLight(contour[3].y), originHeavy(contour[3].y)),
+			// 		kind: contour[3].kind,
+			// 	};
+			// 	newContour[4] = {
+			// 		x: makeVariance(originLight(contour[4].x), originHeavy(contour[4].x) + 40),
+			// 		y: makeVariance(originLight(contour[4].y), originHeavy(contour[4].y)),
+			// 		kind: contour[4].kind,
+			// 	};
+			// }
 
 			// fix µ
 			if (["mu","uni03BC"].includes(glyph.name)) {
@@ -2105,6 +2105,72 @@ function correctGlyphs(font, references) {
 				}
 			}
 
+			for (let idxP1 = 0; idxP1 < newContour.length; idxP1++) {
+				let l1I = idxP1;
+				let l2I = nextNode(newContour, l1I);
+				let l3I = nextNode(newContour, l2I);
+				let l4I = nextNode(newContour, l3I);
+				let r1I = nextNode(newContour, l4I);
+				let r2I = nextNode(newContour, r1I);
+				let r3I = nextNode(newContour, r2I);
+				let r4I = nextNode(newContour, r3I);
+
+				let l1 = newContour[l1I];
+				let l2 = newContour[l2I];
+				let l3 = newContour[l3I];
+				let l4 = newContour[l4I];
+				let r1 = newContour[r1I];
+				let r2 = newContour[r2I];
+				let r3 = newContour[r3I];
+				let r4 = newContour[r4I];
+				
+				if (canBeStrokeEnd(l3, l4, r1, r2)) {
+					let widthLight = distanceLight(l4, r1);
+					let widthHeavy = distanceHeavy(l4, r1);
+					let leftL, leftH, leftType, leftHLength, rightL, rightH, rightType, rightHLength;
+					if (l3.kind === 2) {
+						leftL = lineLight(l3, l4);
+						leftH = lineHeavy(l3, l4);
+						leftHLength = bezierHeavy(l1, l2, l3, l4).length();
+						leftType = "curve";
+					}
+					if (l3.kind === 0) {
+						leftL = lineLight(l3, l4);
+						leftH = lineHeavy(l3, l4);
+						leftHLength = distanceHeavy(l3, l4);
+						leftType = "line";
+					}
+					if (r2.kind === 1) {
+						rightL = lineLight(r2, r1);
+						rightH = lineHeavy(r2, r1);
+						rightHLength = bezierHeavy(r1, r2, r3, r4).length();
+						rightType = "curve";
+					}
+					if (r2.kind === 0) {
+						rightL = lineLight(r2, r1);
+						rightH = lineHeavy(r2, r1);
+						rightHLength = distanceHeavy(r2, r1);
+						leftType = "line";
+					}
+					if ((leftHLength < widthHeavy && leftType === "curve")||(rightHLength < widthHeavy && rightType === "curve")) {
+						let c1L = extendLineRight(leftL, widthLight * 0.6);
+						let c1H = extendLineRight(leftH, widthHeavy * 0.6);
+						let c1 = {
+							x: makeVariance(c1L.x, c1H.x),
+							y: makeVariance(c1L.y, c1H.y),
+							kind: 1,
+						};
+						let c2L = extendLineRight(rightL, widthLight * 0.6);
+						let c2H = extendLineRight(rightH, widthHeavy * 0.6);
+						let c2 = {
+							x: makeVariance(c2L.x, c2H.x),
+							y: makeVariance(c2L.y, c2H.y),
+							kind: 2,
+						};
+						newContour.splice(l4I + 1, 0, c1, c2);
+					}
+				}
+			}
 			
 			glyph.geometry.contours.push(newContour);
 		}
