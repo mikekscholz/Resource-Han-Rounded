@@ -7,7 +7,7 @@ const { hangulSios } = require("./correctionsUnicode");
 const ProgressBar = require('./node-progress');
 const fs = require("node:fs");
 const path = require("node:path");
-const { angle, approximateBezier, base60, bearing, closestPointOnLine, findIntersection, horizontalSlope, isBetween, midpoint, pointOnLine, roundTo, turn, verticalSlope } = require("./util");
+const { angle, approximateBezier, base60, closestPointOnLine, findIntersection, horizontalSlope, isBetween, midpoint, pointOnLine, roundTo, turn, verticalSlope } = require("./util");
 const { abs, ceil, floor, pow, round, sqrt, trunc, max } = Math;
 
 // based on measurement of SHS
@@ -62,12 +62,24 @@ function correctGlyphs(font, references) {
 		return Ot.Var.Ops.evaluate(point, instanceShsWghtMax);
 	}
 
-	function pointLight(p) {
-		return { x: originLight(p.x), y: originLight(p.y) };
+	function pointLight(p, type = "obj") {
+		let x = originLight(p.x)
+		let y = originLight(p.y)
+		if (type === "obj") {
+			return { x: x, y: y };
+		} else {
+			return [ x, y ];
+		}
 	}
 	
-	function pointHeavy(p) {
-		return { x: originHeavy(p.x), y: originHeavy(p.y) };
+	function pointHeavy(p, type = "obj") {
+		let x = originHeavy(p.x)
+		let y = originHeavy(p.y)
+		if (type === "obj") {
+			return { x: x, y: y };
+		} else {
+			return [ x, y ];
+		}
 	}
 	
 	function lineLight(p1, p2) {
@@ -189,6 +201,9 @@ function correctGlyphs(font, references) {
 		return (Math.atan2((p1.x - p2.x), (p1.y - p2.y)) + Math.PI) * 360 / (2 * Math.PI);
 	}
 	
+	function bearing(start, end) {
+		return { l: bearingLight(start, end), h: bearingHeavy(start, end) };
+	}
 	function isBreve(contour) {
 		if (contour.length < 15) return false;
 		const c = contour;
@@ -328,14 +343,14 @@ function correctGlyphs(font, references) {
 		let cornerPoints = p2.kind === 0 && p3.kind === 0;
 		let strokeWidthLight = approxEq(distanceLight(p2, p3), params.strokeWidth.light, 20);
 		let strokeWidthHeavy = distanceHeavy(p2, p3).isBetween(strokeWidthLight, params.strokeWidth.heavy + 46);
-		let bearingLight1 = bearing(lineLight(p1, p2));
-		let bearingLight2 = bearing(lineLight(p2, p3));
-		let bearingLight3 = bearing(lineLight(p3, p4));
+		let bearingLight1 = bearingLight(p1, p2);
+		let bearingLight2 = bearingLight(p2, p3);
+		let bearingLight3 = bearingLight(p3, p4);
 		let anglesLight = angle(bearingLight1, bearingLight2) + angle(bearingLight2, bearingLight3);
 		let trapezoidalLight = anglesLight > -194 && anglesLight < -172;
-		let bearingHeavy1 = bearing(lineHeavy(p1, p2));
-		let bearingHeavy2 = bearing(lineHeavy(p2, p3));
-		let bearingHeavy3 = bearing(lineHeavy(p3, p4));
+		let bearingHeavy1 = bearingHeavy(p1, p2);
+		let bearingHeavy2 = bearingHeavy(p2, p3);
+		let bearingHeavy3 = bearingHeavy(p3, p4);
 		let anglesHeavy = angle(bearingHeavy1, bearingHeavy2) + angle(bearingHeavy2, bearingHeavy3);
 		let trapezoidalHeavy = anglesHeavy > -194 && anglesHeavy < -172;
 		return (cornerPoints && strokeWidthLight && strokeWidthHeavy && trapezoidalLight && trapezoidalHeavy);
@@ -2106,53 +2121,106 @@ function correctGlyphs(font, references) {
 			}
 
 			for (let idxP1 = 0; idxP1 < newContour.length; idxP1++) {
-				let l1I = idxP1;
-				let l2I = nextNode(newContour, l1I);
-				let l3I = nextNode(newContour, l2I);
-				let l4I = nextNode(newContour, l3I);
-				let r1I = nextNode(newContour, l4I);
-				let r2I = nextNode(newContour, r1I);
-				let r3I = nextNode(newContour, r2I);
-				let r4I = nextNode(newContour, r3I);
+				let p1I = idxP1;
+				let p2I = nextNode(newContour, p1I);
+				let p3I = nextNode(newContour, p2I);
+				let p4I = nextNode(newContour, p3I);
+				let p5I = nextNode(newContour, p4I);
+				let p6I = nextNode(newContour, p5I);
+				let p7I = nextNode(newContour, p6I);
+				let p8I = nextNode(newContour, p7I);
 
-				let l1 = newContour[l1I];
-				let l2 = newContour[l2I];
-				let l3 = newContour[l3I];
-				let l4 = newContour[l4I];
-				let r1 = newContour[r1I];
-				let r2 = newContour[r2I];
-				let r3 = newContour[r3I];
-				let r4 = newContour[r4I];
+				let p1 = newContour[p1I];
+				let p2 = newContour[p2I];
+				let p3 = newContour[p3I];
+				let p4 = newContour[p4I];
+				let p5 = newContour[p5I];
+				let p6 = newContour[p6I];
+				let p7 = newContour[p7I];
+				let p8 = newContour[p8I];
 				
-				if (canBeStrokeEnd(l3, l4, r1, r2)) {
-					let widthLight = distanceLight(l4, r1);
-					let widthHeavy = distanceHeavy(l4, r1);
-					let leftL, leftH, leftType, leftHLength, rightL, rightH, rightType, rightHLength;
-					if (l3.kind === 2) {
-						leftL = lineLight(l3, l4);
-						leftH = lineHeavy(l3, l4);
-						leftHLength = bezierHeavy(l1, l2, l3, l4).length();
-						leftType = "curve";
+				if (canBeStrokeEnd(p3, p4, p5, p6)) {
+					if (p3.kind === 0 && p6.kind === 0) {
+						let b3 = bearing(p3, p4);
+						let b3r = bearing(p4, p3);
+						let b4 = bearing(p4, p5);
+						let b5 = bearing(p5, p6);
+						
+						let a4l = angle(b3.l, b4.l);
+						let a5l = angle(b4.l, b5.l);
+						let a4h = angle(b3.h, b4.h);
+						let a5h = angle(b4.h, b5.h);
+						if (abs(b3r.h - b5.h) < 10 && abs(a4h) !== 90 && abs(a5h) !== 90) {
+							
+							let h4l = geometric.pointRotate(pointLight(p5, "arr"), (a4l / -2), pointLight(p4, "arr"));
+							let h4h = geometric.pointRotate(pointHeavy(p5, "arr"), (a4h / -2), pointHeavy(p4, "arr"));
+							let h5l = geometric.pointRotate(pointLight(p4, "arr"), (a5l / 2), pointLight(p5, "arr"));
+							let h5h = geometric.pointRotate(pointHeavy(p4, "arr"), (a5h / 2), pointHeavy(p5, "arr"));
+							
+							let centerL = findIntersection([pointLight(p4), { x: h4l[0], y: h4l[1] }, pointLight(p5), { x: h5l[0], y: h5l[1] }]);
+							let centerH = findIntersection([pointHeavy(p4), { x: h4h[0], y: h4h[1] }, pointHeavy(p5), { x: h5h[0], y: h5h[1] }]);
+							
+							let t4l = closestPointOnLine(centerL, lineLight(p3, p4));
+							let t5l = closestPointOnLine(centerL, lineLight(p5, p6));
+							let t4h = closestPointOnLine(centerH, lineHeavy(p3, p4));
+							let t5h = closestPointOnLine(centerH, lineHeavy(p5, p6));
+							
+							let radiusL = distanceLight(centerL, t4l);
+							let radiusH = distanceHeavy(centerH, t4h);
+							
+							let n4l = extendLineRight(lineLight(p3, t4l), radiusL);
+							let n5l = extendLineRight(lineLight(p6, t5l), radiusL);
+							let n4h = extendLineRight(lineHeavy(p3, t4h), radiusH);
+							let n5h = extendLineRight(lineHeavy(p6, t5h), radiusH);
+							
+							p4 = {
+								x: makeVariance(n4l.x, n4h.x),
+								y: makeVariance(n4l.y, n4h.y),
+								kind: 0,
+							};
+							p5 = {
+								x: makeVariance(n5l.x, n5h.x),
+								y: makeVariance(n5l.y, n5h.y),
+								kind: 0,
+							};
+							newContour[p4I] = p4;
+							newContour[p5I] = p5;
+							continue;
+						}
 					}
-					if (l3.kind === 0) {
-						leftL = lineLight(l3, l4);
-						leftH = lineHeavy(l3, l4);
-						leftHLength = distanceHeavy(l3, l4);
-						leftType = "line";
+					let leftL, leftH, leftType, leftHLength, rightL, rightH, rightType, rightHLength, widthLight, widthHeavy;
+					
+					function updateMeasures() {
+						widthLight = distanceLight(p4, p5);
+						widthHeavy = distanceHeavy(p4, p5);
+						if (p3.kind === 2) {
+							leftL = lineLight(p3, p4);
+							leftH = lineHeavy(p3, p4);
+							leftHLength = bezierHeavy(p1, p2, p3, p4).length();
+							leftType = "curve";
+						}
+						if (p3.kind === 0) {
+							leftL = lineLight(p3, p4);
+							leftH = lineHeavy(p3, p4);
+							leftHLength = distanceHeavy(p3, p4);
+							leftType = "line";
+						}
+						if (p6.kind === 1) {
+							rightL = lineLight(p6, p5);
+							rightH = lineHeavy(p6, p5);
+							rightHLength = bezierHeavy(p5, p6, p7, p8).length();
+							rightType = "curve";
+						}
+						if (p6.kind === 0) {
+							rightL = lineLight(p6, p5);
+							rightH = lineHeavy(p6, p5);
+							rightHLength = distanceHeavy(p6, p5);
+							leftType = "line";
+						}
 					}
-					if (r2.kind === 1) {
-						rightL = lineLight(r2, r1);
-						rightH = lineHeavy(r2, r1);
-						rightHLength = bezierHeavy(r1, r2, r3, r4).length();
-						rightType = "curve";
-					}
-					if (r2.kind === 0) {
-						rightL = lineLight(r2, r1);
-						rightH = lineHeavy(r2, r1);
-						rightHLength = distanceHeavy(r2, r1);
-						leftType = "line";
-					}
-					if ((leftHLength < widthHeavy && leftType === "curve")||(rightHLength < widthHeavy && rightType === "curve")) {
+					updateMeasures();
+					
+					if ((leftHLength < widthHeavy && leftType === "curve") || (rightHLength < widthHeavy && rightType === "curve") || (leftHLength < widthHeavy * 0.5 && leftType === "line") || (rightHLength < widthHeavy * 0.5 && rightType === "line")) {
 						let c1L = extendLineRight(leftL, widthLight * 0.6);
 						let c1H = extendLineRight(leftH, widthHeavy * 0.6);
 						let c1 = {
@@ -2167,8 +2235,10 @@ function correctGlyphs(font, references) {
 							y: makeVariance(c2L.y, c2H.y),
 							kind: 2,
 						};
-						newContour.splice(l4I + 1, 0, c1, c2);
+						newContour.splice(p4I + 1, 0, c1, c2);
 					}
+					
+					// idxP1 = idxP1 + 4;
 				}
 			}
 			

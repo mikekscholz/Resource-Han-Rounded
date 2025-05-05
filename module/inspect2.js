@@ -6,6 +6,9 @@ const { base60, bearing, horizontalSlope, roundTo, turn, verticalSlope } = requi
 const { abs, ceil, floor, max, min, pow, round, sqrt, trunc } = Math;
 const { writeFileSync, mkdirSync } = require("node:fs");
 
+// NOTE - Interpolate and render a medium weight between masters.
+const med = false;
+
 const htmlHeader = /*html*/`
 <!DOCTYPE html>
 <html lang="en">
@@ -856,10 +859,10 @@ function inspect(font, references, subfamily) {
 				let hX = originHeavy(contour[idxP].x);
 				let hY = safeTop - originHeavy(contour[idxP].y);
 				pointsLight.push({ x: lX, y: lY, type: contour[idxP].kind });
-				pointsMed.push({ x: mX, y: mY, type: contour[idxP].kind });
+				med && pointsMed.push({ x: mX, y: mY, type: contour[idxP].kind });
 				pointsHeavy.push({ x: hX, y: hY, type: contour[idxP].kind });
 				pointsLightX.push(lX);
-				pointsMedX.push(mX);
+				med && pointsMedX.push(mX);
 				pointsHeavyX.push(hX);
 			}
 
@@ -869,18 +872,18 @@ function inspect(font, references, subfamily) {
 				let h1 = pointsHeavy[idxP];
 				if (idxP === 0) {
 					pathLight += `M ${l1.x}, ${l1.y}`;
-					pathMed += `M ${m1.x}, ${m1.y}`;
+					if (med) pathMed += `M ${m1.x}, ${m1.y}`;
 					pathHeavy += `M ${h1.x}, ${h1.y}`;
 					lightStart += /*svg*/ `<circle class="sp" cx="${l1.x}" cy="${l1.y}" r="5"><title>c${idxC} n${idxP}\n${l1.x}, ${safeTop - l1.y}</title></circle>`;
-					medStart += /*svg*/ `<circle class="sp" cx="${m1.x}" cy="${m1.y}" r="5"><title>c${idxC} n${idxP}\n${m1.x}, ${safeTop - m1.y}</title></circle>`;
+					if (med) medStart += /*svg*/ `<circle class="sp" cx="${m1.x}" cy="${m1.y}" r="5"><title>c${idxC} n${idxP}\n${m1.x}, ${safeTop - m1.y}</title></circle>`;
 					heavyStart += /*svg*/ `<circle class="sp" cx="${h1.x}" cy="${h1.y}" r="5"><title>c${idxC} n${idxP}\n${h1.x}, ${safeTop - h1.y}</title></circle>`;
 				} else if (idxP > 0 && l1.type === 0) {
 					pathLight += `L ${l1.x}, ${l1.y}`;
-					pathMed += `L ${m1.x}, ${m1.y}`;
+					if (med) pathMed += `L ${m1.x}, ${m1.y}`;
 					pathHeavy += `L ${h1.x}, ${h1.y}`;
 					if (pointsLight[0].x !== l1.x || pointsLight[0].y !== l1.y) {
 						groupLightPoints += /*svg*/ `<circle class="cor" cx="${l1.x}" cy="${l1.y}" r="5"><title>c${idxC} n${idxP}\n${l1.x}, ${safeTop - l1.y}</title></circle>`;
-						groupMedPoints += /*svg*/ `<circle class="cor" cx="${m1.x}" cy="${m1.y}" r="5"><title>c${idxC} n${idxP}\n${m1.x}, ${safeTop - m1.y}</title></circle>`;
+						if (med) groupMedPoints += /*svg*/ `<circle class="cor" cx="${m1.x}" cy="${m1.y}" r="5"><title>c${idxC} n${idxP}\n${m1.x}, ${safeTop - m1.y}</title></circle>`;
 						groupHeavyPoints += /*svg*/ `<circle class="cor" cx="${h1.x}" cy="${h1.y}" r="5"><title>c${idxC} n${idxP}\n${h1.x}, ${safeTop - h1.y}</title></circle>`;
 					}
 				} else if (l1.type === 1) {
@@ -894,23 +897,23 @@ function inspect(font, references, subfamily) {
 					let m3 = circularArray(pointsMed, idxP + 2);
 					let h3 = circularArray(pointsHeavy, idxP + 2);
 					pathLight += `C ${l1.x}, ${l1.y} ${l2.x}, ${l2.y} ${l3.x}, ${l3.y}`;
-					pathMed += `C ${m1.x}, ${m1.y} ${m2.x}, ${m2.y} ${m3.x}, ${m3.y}`;
+					if (med) pathMed += `C ${m1.x}, ${m1.y} ${m2.x}, ${m2.y} ${m3.x}, ${m3.y}`;
 					pathHeavy += `C ${h1.x}, ${h1.y} ${h2.x}, ${h2.y} ${h3.x}, ${h3.y}`;
 					groupLightPoints += /*svg*/ `<circle class="ctrl" cx="${l1.x}" cy="${l1.y}" r="4"><title>c${idxC} n${idxP}\n${l1.x}, ${safeTop - l1.y}</title></circle>`;
 					groupLightPoints += /*svg*/ `<circle class="ctrl" cx="${l2.x}" cy="${l2.y}" r="4"><title>c${idxC} n${idxP + 1}\n${l2.x}, ${safeTop - l2.y}</title></circle>`;
-					groupMedPoints += /*svg*/ `<circle class="ctrl" cx="${m1.x}" cy="${m1.y}" r="4"><title>c${idxC} n${idxP}\n${m1.x}, ${safeTop - m1.y}</title></circle>`;
-					groupMedPoints += /*svg*/ `<circle class="ctrl" cx="${m2.x}" cy="${m2.y}" r="4"><title>c${idxC} n${idxP + 1}\n${m2.x}, ${safeTop - m2.y}</title></circle>`;
+					if (med) groupMedPoints += /*svg*/ `<circle class="ctrl" cx="${m1.x}" cy="${m1.y}" r="4"><title>c${idxC} n${idxP}\n${m1.x}, ${safeTop - m1.y}</title></circle>`;
+					if (med) groupMedPoints += /*svg*/ `<circle class="ctrl" cx="${m2.x}" cy="${m2.y}" r="4"><title>c${idxC} n${idxP + 1}\n${m2.x}, ${safeTop - m2.y}</title></circle>`;
 					groupHeavyPoints += /*svg*/ `<circle class="ctrl" cx="${h1.x}" cy="${h1.y}" r="4"><title>c${idxC} n${idxP}\n${h1.x}, ${safeTop - h1.y}</title></circle>`;
 					groupHeavyPoints += /*svg*/ `<circle class="ctrl" cx="${h2.x}" cy="${h2.y}" r="4"><title>c${idxC} n${idxP + 1}\n${h2.x}, ${safeTop - h2.y}</title></circle>`;
 					if (pointsLight[0].x !== l3.x || pointsLight[0].y !== l3.y) {
 						groupLightPoints += /*svg*/ `<circle class="cor" cx="${l3.x}" cy="${l3.y}" r="5"><title>c${idxC} n${idxP + 2}\n${l3.x}, ${safeTop - l3.y}</title></circle>`;
-						groupMedPoints += /*svg*/ `<circle class="cor" cx="${m3.x}" cy="${m3.y}" r="5"><title>c${idxC} n${idxP + 2}\n${m3.x}, ${safeTop - m3.y}</title></circle>`;
+						if (med) groupMedPoints += /*svg*/ `<circle class="cor" cx="${m3.x}" cy="${m3.y}" r="5"><title>c${idxC} n${idxP + 2}\n${m3.x}, ${safeTop - m3.y}</title></circle>`;
 						groupHeavyPoints += /*svg*/ `<circle class="cor" cx="${h3.x}" cy="${h3.y}" r="5"><title>c${idxC} n${idxP + 2}\n${h3.x}, ${safeTop - h3.y}</title></circle>`;
 					}
 					groupLightHandles += /*svg*/ `<line class="cv" x1="${l0.x}" y1="${l0.y}" x2="${l1.x}" y2="${l1.y}" />`;
 					groupLightHandles += /*svg*/ `<line class="cv" x1="${l2.x}" y1="${l2.y}" x2="${l3.x}" y2="${l3.y}" />`;
-					groupMedHandles += /*svg*/ `<line class="cv" x1="${m0.x}" y1="${m0.y}" x2="${m1.x}" y2="${m1.y}" />`;
-					groupMedHandles += /*svg*/ `<line class="cv" x1="${m2.x}" y1="${m2.y}" x2="${m3.x}" y2="${m3.y}" />`;
+					if (med) groupMedHandles += /*svg*/ `<line class="cv" x1="${m0.x}" y1="${m0.y}" x2="${m1.x}" y2="${m1.y}" />`;
+					if (med) groupMedHandles += /*svg*/ `<line class="cv" x1="${m2.x}" y1="${m2.y}" x2="${m3.x}" y2="${m3.y}" />`;
 					groupHeavyHandles += /*svg*/ `<line class="cv" x1="${h0.x}" y1="${h0.y}" x2="${h1.x}" y2="${h1.y}" />`;
 					groupHeavyHandles += /*svg*/ `<line class="cv" x1="${h2.x}" y1="${h2.y}" x2="${h3.x}" y2="${h3.y}" />`;
 					idxP += 2;
@@ -918,7 +921,7 @@ function inspect(font, references, subfamily) {
 			}
 			groupLightFill += `${pathLight} z `;
 			// groupLightStroke += `${pathLight} z `;
-			groupMedFill += `${pathMed} z `;
+			if (med) groupMedFill += `${pathMed} z `;
 			groupHeavyFill += `${pathHeavy} z `;
 			// groupHeavyStroke += `${pathHeavy} z `;
 		}
@@ -926,7 +929,7 @@ function inspect(font, references, subfamily) {
 		let horizontalEndMed = originMed(glyph.horizontal.end) || horizontalEndLight;
 		let horizontalEndHeavy = originHeavy(glyph.horizontal.end) || horizontalEndLight;
 		pointsLightX.push(0, horizontalEndLight);
-		pointsMedX.push(0, horizontalEndMed);
+		if (med) pointsMedX.push(0, horizontalEndMed);
 		pointsHeavyX.push(0, horizontalEndHeavy);
 
 		let minLightX = min(...pointsLightX) - 20;

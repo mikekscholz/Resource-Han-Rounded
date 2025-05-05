@@ -424,7 +424,7 @@ function preProcess(font, references) {
 		if (glyph.name === "uni3041") {
 			oldContours[0].splice(0, 1);
 			oldContours[2].splice(0, 1);
-			console.log(oldContours);
+			// console.log(oldContours);
 		}
 		
 		if (glyph.name === ".gid1938") {
@@ -1272,19 +1272,19 @@ function preProcess(font, references) {
 				let b3H = bearingHeavy(p3, p4);
 				let b4H = bearingHeavy(p4, p5);
 				// HOVERIMAGE - [img "preprocess-cleanup-tapered-endcap.svg"]
-				if (name === "uni3041") {
-					console.log("-----------------------------------");
-					console.log("contour", idxC1);
-					console.log("point0", idxP1);
-					console.log("turn01L", turn(b0L, b1L));
-					console.log("turn01H", turn(b0H, b1H));
-					console.log("angle2L", angle(b1L, b2L));
-					console.log("angle2H", angle(b1H, b2H));
-					console.log("angle3L", angle(b2L, b3L));
-					console.log("angle3H", angle(b2H, b3H));
-					console.log("turn34L", turn(b3L, b4L));
-					console.log("turn34H", turn(b3H, b4H));
-				}
+				// if (name === "uni3041") {
+				// 	console.log("-----------------------------------");
+				// 	console.log("contour", idxC1);
+				// 	console.log("point0", idxP1);
+				// 	console.log("turn01L", turn(b0L, b1L));
+				// 	console.log("turn01H", turn(b0H, b1H));
+				// 	console.log("angle2L", angle(b1L, b2L));
+				// 	console.log("angle2H", angle(b1H, b2H));
+				// 	console.log("angle3L", angle(b2L, b3L));
+				// 	console.log("angle3H", angle(b2H, b3H));
+				// 	console.log("turn34L", turn(b3L, b4L));
+				// 	console.log("turn34H", turn(b3H, b4H));
+				// }
 				if (
 					// false &&
 					p1.kind === 0 && p2.kind === 0 && p3.kind === 0 && p4.kind === 0 &&

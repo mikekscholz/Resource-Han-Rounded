@@ -422,7 +422,7 @@ function extendShortStroke(font, references) {
 		}
 		
 		for (let [idxC1, contour] of oldContours.entries()) {
-			if (glyph.name === "Phi") console.log(contour);
+			// if (glyph.name === "Phi") console.log(contour);
 			// NOTE - Compute each contour's radius for improved rounding
 			let strokeEnds = [];
 			for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
