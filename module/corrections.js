@@ -2140,16 +2140,16 @@ function correctGlyphs(font, references) {
 				let p8 = newContour[p8I];
 				
 				if (canBeStrokeEnd(p3, p4, p5, p6)) {
+					let b3 = bearing(p3, p4);
+					let b3r = bearing(p4, p3);
+					let b4 = bearing(p4, p5);
+					let b5 = bearing(p5, p6);
+					
+					let a4l = angle(b3.l, b4.l);
+					let a5l = angle(b4.l, b5.l);
+					let a4h = angle(b3.h, b4.h);
+					let a5h = angle(b4.h, b5.h);
 					if (p3.kind === 0 && p6.kind === 0) {
-						let b3 = bearing(p3, p4);
-						let b3r = bearing(p4, p3);
-						let b4 = bearing(p4, p5);
-						let b5 = bearing(p5, p6);
-						
-						let a4l = angle(b3.l, b4.l);
-						let a5l = angle(b4.l, b5.l);
-						let a4h = angle(b3.h, b4.h);
-						let a5h = angle(b4.h, b5.h);
 						if (abs(b3r.h - b5.h) < 10 && abs(a4h) !== 90 && abs(a5h) !== 90) {
 							
 							let h4l = geometric.pointRotate(pointLight(p5, "arr"), (a4l / -2), pointLight(p4, "arr"));
@@ -2220,7 +2220,7 @@ function correctGlyphs(font, references) {
 					}
 					updateMeasures();
 					
-					if ((leftHLength < widthHeavy && leftType === "curve") || (rightHLength < widthHeavy && rightType === "curve") || (leftHLength < widthHeavy * 0.5 && leftType === "line") || (rightHLength < widthHeavy * 0.5 && rightType === "line")) {
+					if ((leftHLength < widthHeavy && leftType === "curve") || (rightHLength < widthHeavy && rightType === "curve") || (leftHLength < widthHeavy * 0.6 && leftType === "line" && abs(a4h) === 90 && abs(a5h) === 90) || (rightHLength < widthHeavy * 0.6 && rightType === "line" && abs(a5h) === 90 && abs(a4h) === 90)) {
 						let c1L = extendLineRight(leftL, widthLight * 0.6);
 						let c1H = extendLineRight(leftH, widthHeavy * 0.6);
 						let c1 = {

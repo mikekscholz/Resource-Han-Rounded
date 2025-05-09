@@ -945,7 +945,7 @@ function inspect(font, references, subfamily) {
 		let widthLight = abs(minLightX - maxLightX);
 		let widthMed = abs(minMedX - maxMedX);
 		let widthHeavy = abs(minHeavyX - maxHeavyX);
-		let viewportWidth = 10 + widthLight + 10 + widthMed + 10 + widthHeavy + 10;
+		let viewportWidth = 10 + widthLight + (med ? (10 + widthMed) : 0) + 10 + widthHeavy + 10;
 		let svgHeader = /*svg*/ `
 		<svg height="100%" viewBox="0 0 ${viewportWidth} ${viewportHeight}" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" data-glyph-idx="${idxG}" data-glyph-name="${glyph.name}">
 			<g>
@@ -962,15 +962,19 @@ function inspect(font, references, subfamily) {
 					<g><path class="cf" d="${groupLightFill}" /></g>
 					<g>${groupLightHandles}</g>
 					<g>${groupLightPoints}${lightStart}</g>
-				</g>
+				</g>`;
+		if (med) {
+			svgHeader += `
 				<g transform="translate(${widthLight + abs(minMedX) + 20}, 0)">
 					<line class="vr" stroke="#FFF6" stroke-width="1" x1="0" y1="${safeTop - safeBottom}" x2="0" y2="${safeTop - safeTop}" />
 					<line class="vr" stroke="#FFF6" stroke-width="1" x1="${horizontalEndMed}" y1="${safeTop - safeBottom}" x2="${horizontalEndMed}" y2="${safeTop - safeTop}" />
 					<g><path class="cf" d="${groupMedFill}" /></g>
 					<g>${groupMedHandles}</g>
 					<g>${groupMedPoints}${medStart}</g>
-				</g>
-				<g transform="translate(${widthLight + widthMed + abs(minHeavyX) + 30}, 0)">
+				</g>`;
+		}
+		svgHeader += `
+				<g transform="translate(${widthLight + (med ? (widthMed + 10) : 0) + abs(minHeavyX) + 20}, 0)">
 					<line class="vr" stroke="#FFF6" stroke-width="1" x1="0" y1="${safeTop - safeBottom}" x2="0" y2="${safeTop - safeTop}" />
 					<line class="vr" stroke="#FFF6" stroke-width="1" x1="${horizontalEndHeavy}" y1="${safeTop - safeBottom}" x2="${horizontalEndHeavy}" y2="${safeTop - safeTop}" />
 					<g><path class="cf" d="${groupHeavyFill}" /></g>
