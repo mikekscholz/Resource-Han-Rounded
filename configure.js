@@ -33,9 +33,10 @@ const config = {
 			// 'HC',
 			// 'JP',
 			// 'KR',
-			'CN',
+			// 'CN',
 			// 'TW',
 			// 'HK',
+			'NU'
 		],
 		shsMap: {
 			// 'J': 'SourceHanSans',
@@ -45,9 +46,10 @@ const config = {
 			// 'HC': 'SourceHanSansHC',
 			// 'JP': 'SourceHanSansJP',
 			// 'KR': 'SourceHanSansKR',
-			'CN': 'SourceHanSansCN',
+			// 'CN': 'SourceHanSansCN',
 			// 'TW': 'SourceHanSansTW',
 			// 'HK': 'SourceHanSansHK',
+			'NU': 'SourceHanSansNU'
 		},
 		ttc: ['J', 'K', 'SC', 'TC', 'HC'],
 	},
