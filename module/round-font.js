@@ -750,7 +750,7 @@ let curGlyph = "";
 		
 		// curGlyph = name;
 		// console.log(name);
-		if (!glyph.geometry || !glyph.geometry.contours || references.skipGlyphs.includes(name)) {
+		if (!glyph.geometry || !glyph.geometry.contours || references.skipGlyphs.includes(name) || references.nunitoGlyphs.includes(name)) {
 			// progressTick();
 			progressTick(name);
 			continue;

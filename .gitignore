@@ -3,8 +3,8 @@ src/*.otf
 build/
 dist/
 Makefile
-*.json
 glyphnames.txt
 bar.js
 inspector-*.html
 .vslinter.js
+Nunito/

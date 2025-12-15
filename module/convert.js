@@ -17,6 +17,9 @@ const writeFile = async(filename, data, increment = 0) => {
 	}) || name
 };
 
+let glyphsJson = {
+	
+};
 // based on measurement of SHS
 const params = {
 	strokeWidth: { light: 35, heavy: 175 },
@@ -335,17 +338,20 @@ function convert(font, references) {
 	});
 
 	function checkSingleGlyph(glyph) {
-		if (!glyph.geometry || !glyph.geometry.contours)
+		if (!glyph.geometry || !glyph.geometry.contours) {
+			// console.log(JSON.stringify(glyph.geometry.items, null, "  "));
 			return;
+			
+		}
 		
 		const name = glyph.name;
 		
 		let oldContours = glyph.geometry.contours;
 		
 		glyph.geometry.contours = [];
+		// if (["numbersign","registered"].includes(name)) oldContours.reverseContour();
 		
 		for (let [idxC1, contour] of oldContours.entries()) {
-			
 			for (let idxP1 = contour.length - 1; idxP1 >= 0; idxP1--) {
 				if (contour[idxP1].kind === 3) {
 					if (circularArray(contour, idxP1 - 1).kind === 3) {
@@ -393,9 +399,74 @@ function convert(font, references) {
 					newContour.splice(idxP1, 1, c1, c2);
 				}
 			}
-			// newContour.reverseContour();
+			for (let idxP1 = newContour.length - 1; idxP1 >= 0; idxP1--) {
+				if (newContour[idxP1].kind === 0) {
+					let pL = pointLight(newContour[idxP1]);
+					let pH = pointHeavy(newContour[idxP1]);
+					
+					newContour[idxP1] = {
+						x: makeVariance(pL.x, pH.x),
+						y: makeVariance(pL.y, pH.y),
+						kind: 0,
+					};
+				}
+			}
+			newContour.reverseContour();
+			// if (name === "D") console.log(JSON.stringify(newContour, null, "  "));
+			// if (["numbersign","registered"].includes(name)) {
+				
+			// }
+			if (name === "D") console.log(newContour);
 			glyph.geometry.contours.push(newContour);
 		}
+		
+		
+		let contoursArray = [];
+		for (let contour of glyph.geometry.contours) {
+			let pointsArray = [];
+			for (let point of contour) {
+				let light = pointLight(point);
+				let heavy = pointHeavy(point);
+				let lx = parseFloat(originLight(light.x).toFixed(2));
+				let hx = parseFloat(originLight(heavy.x).toFixed(2));
+				let ly = parseFloat(originLight(light.y).toFixed(2));
+				let hy = parseFloat(originLight(heavy.y).toFixed(2));
+				pointsArray.push({ x: [lx, hx], y: [ly, hy], kind: point.kind});
+			}
+			contoursArray.push(pointsArray);
+		}
+		
+		let hStartLight = originLight(glyph.horizontal.start);
+		let hStartHeavy = originHeavy(glyph.horizontal.start) || hStartLight;
+		let hEndLight = originLight(glyph.horizontal.end);
+		let hEndHeavy = originHeavy(glyph.horizontal.end) || hEndLight;
+		let glyphData = {
+			horizontal: { start: [hStartLight, hStartHeavy], end: [hEndLight, hEndHeavy]},
+			contours: contoursArray
+		}
+		
+		glyphsJson[name] = glyphData;
+		
+		
+		
+		
+		// let glyphCopy = JSON.parse(JSON.stringify(glyph));
+		// let mastersLength = glyphCopy.horizontal.end.masterSet.masterList.length;
+		// if (mastersLength > 1) {
+			// let deleteCount = mastersLength - 1;
+			// glyphCopy.horizontal.end.masterSet.masterList.splice(1, deleteCount);
+			// let deltaValues = Object.values(glyphCopy.horizontal.end.deltaValues);
+			// glyphCopy.horizontal.end.deltaValues = {"0": deltaValues[deleteCount]};
+		// }
+		// let glyphString = JSON.stringify(glyphCopy, null, "\t");
+		// glyphString = glyphString.replaceAll('"min": 200', '"min": 250');
+		// glyphString = glyphString.replaceAll('"default": 200', '"default": 250');
+		// glyphString = glyphString.replaceAll('"max": 1000', '"max": 900');
+		// glyphString = glyphString.replaceAll('"peak": 0.5', '"peak": 1');
+		// glyphsJson[name] = JSON.parse(glyphString);
+		// let jsonname = `/home/mike/Resource-Han-Rounded/Nunito/${name}.json`;
+		// let jsonData = JSON.stringify(glyph, null, "\t");
+		// writeFileSync(jsonname, glyphString, { flush: true });
 	}
 	
 	let len = font.glyphs.items.length;
@@ -429,15 +500,16 @@ function convert(font, references) {
 		}
 	}
 	let names = "";
+	let namesArray = [];
 	let count = 0;
 	for (const glyph of font.glyphs.items) {
 		const name = glyph.name;
-		if (name === "A") {
-			console.log(font);
+		// if (name === "A") {
+			// console.log(font);
 			// console.log(JSON.stringify(font));
-		}
-		names += `${name}
-`;
+		// }
+		names += `${name}`;
+		namesArray.push(name);
 		// if (glyph?.geometry?.contours) {
 		// 	let data = JSON.stringify(glyph.geometry.contours);
 		// 	let filename = `/home/mike/Resource-Han-Rounded/replacements/${name}.json`;
@@ -445,13 +517,22 @@ function convert(font, references) {
 		// }
 		// console.log(name);
 		progressTick(name);
-		if (!references.extendSkip.includes(name)) checkSingleGlyph(glyph);
+		// if (!references.extendSkip.includes(name)) 
+		checkSingleGlyph(glyph);
 		// count++;
 		// if (count % 1000 == 0) console.log("preExtension:", count, "glyphs processed.");
 	}
-	let filename = `/mnt/c/Users/Michael/ResourceHanRounded/Nunito_character_names.txt`;
+	// let filename = `/mnt/c/Users/Michael/ResourceHanRounded/Nunito_character_names.txt`;
 	// writeFile(filename, names);
-	writeFileSync(filename, names, { flush: true });
+	// writeFileSync(filename, names, { flush: true });
+
+	// let arrayname = `/mnt/c/Users/Michael/ResourceHanRounded/Nunito/nunitoGlyphNames.json`;
+	// let arrayData = JSON.stringify(namesArray);
+	// writeFileSync(arrayname, arrayData, { flush: true });
+	
+	let nunitoJson = `/home/mike/Resource-Han-Rounded/module/nunito.json`;
+	let nunitoData = JSON.stringify(glyphsJson, null, "\t");
+	writeFileSync(nunitoJson, nunitoData, { flush: true });
 	// delete references.skipRedundantPoints;
 }
 

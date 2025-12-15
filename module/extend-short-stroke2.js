@@ -1366,7 +1366,7 @@ function extendShortStroke(font, references) {
 		// 	debug = false;
 		// }
 		progressTick(name);
-		if (!references.extendSkip.includes(name)) checkSingleGlyph(glyph);
+		if (!references.extendSkip.includes(name) && !references.nunitoGlyphs.includes(name)) checkSingleGlyph(glyph);
 		// count++;
 		// if (count % 1000 == 0) console.log("extendShortStroke: ", count, " glyphs processed.");
 	}

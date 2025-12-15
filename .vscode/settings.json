@@ -1,0 +1,11 @@
+{
+  "[javascript]": {
+    "editor.maxTokenizationLineLength": 20000
+  },
+  "makefile.configureOnOpen": false,
+  "terminal.integrated.fontSize": 13,
+  "editor.unicodeHighlight.allowedCharacters": {
+    "\u001b": true
+  },
+  "editor.unicodeHighlight.nonBasicASCII": true
+}

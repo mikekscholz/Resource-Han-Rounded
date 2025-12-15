@@ -7,7 +7,7 @@ const { abs, ceil, floor, max, min, pow, round, sqrt, trunc } = Math;
 const { writeFileSync, mkdirSync } = require("node:fs");
 
 // NOTE - Interpolate and render a medium weight between masters.
-const med = false;
+const med = true;
 
 const htmlHeader = /*html*/`
 <!DOCTYPE html>

@@ -1,0 +1,1403 @@
+{
+  "horizontal": {
+    "start": 0,
+    "end": {
+      "masterSet": {
+        "nAxes": 1,
+        "axisMap": {},
+        "masterList": [
+          {
+            "master": {
+              "regions": [
+                {
+                  "dim": {
+                    "__dimensionType": 1,
+                    "tag": "wght",
+                    "min": 250,
+                    "default": 250,
+                    "max": 900
+                  },
+                  "min": 0,
+                  "peak": 1,
+                  "max": 1
+                }
+              ]
+            },
+            "index": 0
+          }
+        ],
+        "masterMap": {
+          "root": {
+            "further": {}
+          }
+        },
+        "masterMapCache": {}
+      },
+      "origin": 574,
+      "deltaValues": {
+        "0": 86
+      }
+    }
+  },
+  "vertical": {
+    "start": {
+      "masterSet": {
+        "nAxes": 0,
+        "axisMap": {},
+        "masterList": [],
+        "masterMap": {
+          "root": {
+            "further": {}
+          }
+        },
+        "masterMapCache": {}
+      },
+      "origin": 880,
+      "deltaValues": null
+    },
+    "end": {
+      "masterSet": {
+        "nAxes": 0,
+        "axisMap": {},
+        "masterList": [],
+        "masterMap": {
+          "root": {
+            "further": {}
+          }
+        },
+        "masterMapCache": {}
+      },
+      "origin": -120,
+      "deltaValues": null
+    }
+  },
+  "geometry": {
+    "contours": [
+      [
+        {
+          "x": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 11,
+            "deltaValues": {
+              "0": -19
+            }
+          },
+          "y": 0,
+          "kind": 0
+        },
+        {
+          "x": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 48,
+            "deltaValues": {
+              "0": 126
+            }
+          },
+          "y": 0,
+          "kind": 0
+        },
+        {
+          "x": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 201,
+            "deltaValues": {
+              "0": 66
+            }
+          },
+          "y": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 435,
+            "deltaValues": {
+              "0": -63
+            }
+          },
+          "kind": 0
+        },
+        {
+          "x": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 232,
+            "deltaValues": {
+              "0": 54
+            }
+          },
+          "y": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 523,
+            "deltaValues": {
+              "0": -77
+            }
+          },
+          "kind": 1
+        },
+        {
+          "x": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 258,
+            "deltaValues": {
+              "0": 48
+            }
+          },
+          "y": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 597,
+            "deltaValues": {
+              "0": -64
+            }
+          },
+          "kind": 2
+        },
+        {
+          "x": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 285,
+            "deltaValues": {
+              "0": 39
+            }
+          },
+          "y": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 688,
+            "deltaValues": {
+              "0": -77
+            }
+          },
+          "kind": 0
+        },
+        {
+          "x": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 289,
+            "deltaValues": {
+              "0": 39
+            }
+          },
+          "y": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 688,
+            "deltaValues": {
+              "0": -77
+            }
+          },
+          "kind": 0
+        },
+        {
+          "x": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 316,
+            "deltaValues": {
+              "0": 32
+            }
+          },
+          "y": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 597,
+            "deltaValues": {
+              "0": -62
+            }
+          },
+          "kind": 1
+        },
+        {
+          "x": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 341,
+            "deltaValues": {
+              "0": 26
+            }
+          },
+          "y": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 523,
+            "deltaValues": {
+              "0": -77
+            }
+          },
+          "kind": 2
+        },
+        {
+          "x": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 372,
+            "deltaValues": {
+              "0": 15
+            }
+          },
+          "y": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 435,
+            "deltaValues": {
+              "0": -63
+            }
+          },
+          "kind": 0
+        },
+        {
+          "x": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 523,
+            "deltaValues": {
+              "0": -43
+            }
+          },
+          "y": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 0,
+            "deltaValues": {
+              "0": 0
+            }
+          },
+          "kind": 0
+        },
+        {
+          "x": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 563,
+            "deltaValues": {
+              "0": 105
+            }
+          },
+          "y": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 0,
+            "deltaValues": {
+              "0": 0
+            }
+          },
+          "kind": 0
+        },
+        {
+          "x": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 303,
+            "deltaValues": {
+              "0": 134
+            }
+          },
+          "y": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 726,
+            "deltaValues": {
+              "0": 19
+            }
+          },
+          "kind": 0
+        },
+        {
+          "x": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 270,
+            "deltaValues": {
+              "0": -47
+            }
+          },
+          "y": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 726,
+            "deltaValues": {
+              "0": 19
+            }
+          },
+          "kind": 0
+        }
+      ],
+      [
+        {
+          "x": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 123,
+            "deltaValues": {
+              "0": 26
+            }
+          },
+          "y": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 258,
+            "deltaValues": {
+              "0": -87
+            }
+          },
+          "kind": 0
+        },
+        {
+          "x": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 447,
+            "deltaValues": {
+              "0": 62
+            }
+          },
+          "y": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 258,
+            "deltaValues": {
+              "0": -87
+            }
+          },
+          "kind": 0
+        },
+        {
+          "x": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 447,
+            "deltaValues": {
+              "0": 62
+            }
+          },
+          "y": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 290,
+            "deltaValues": {
+              "0": 19
+            }
+          },
+          "kind": 0
+        },
+        {
+          "x": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 123,
+            "deltaValues": {
+              "0": 26
+            }
+          },
+          "y": {
+            "masterSet": {
+              "nAxes": 1,
+              "axisMap": {},
+              "masterList": [
+                {
+                  "master": {
+                    "regions": [
+                      {
+                        "dim": {
+                          "__dimensionType": 1,
+                          "tag": "wght",
+                          "min": 250,
+                          "default": 250,
+                          "max": 900
+                        },
+                        "min": 0,
+                        "peak": 1,
+                        "max": 1
+                      }
+                    ]
+                  },
+                  "index": 0
+                }
+              ],
+              "masterMap": {
+                "root": {
+                  "further": {}
+                }
+              },
+              "masterMapCache": {}
+            },
+            "origin": 290,
+            "deltaValues": {
+              "0": 19
+            }
+          },
+          "kind": 0
+        }
+      ]
+    ]
+  },
+  "hints": {
+    "hStems": [],
+    "vStems": [],
+    "hintMasks": [],
+    "counterMasks": []
+  },
+  "name": "A"
+}

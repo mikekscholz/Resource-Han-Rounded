@@ -1,12 +1,14 @@
 "use strict";
 
+const fs = require("node:fs");
+const path = require("node:path");
 const { Ot } = require("ot-builder");
 const geometric = require("geometric");
 const Bezier = require("./bezier.js");
 const ProgressBar = require('./node-progress');
 const { angle, approximateBezier, base60, bearing, closestPointOnLine, findIntersection, horizontalSlope, isBetween, midpoint, pointOnLine, roundTo, turn, verticalSlope } = require("./util");
 const { abs, ceil, floor, pow, round, sqrt, trunc } = Math;
-
+let nunito = JSON.parse(fs.readFileSync(`${__dirname}/nunito.json`, 'utf-8'));
 // based on measurement of SHS
 const params = {
 	strokeWidth: { light: 35, heavy: 175 },
@@ -1700,6 +1702,27 @@ function preProcess(font, references) {
 		// 	writeFile(filename, data);
 		// }
 		// console.log(name);
+		
+		if (references.nunitoGlyphs.includes(name) && glyph?.geometry?.contours) {
+			glyph.geometry.contours = [];
+			let newContours = nunito[name].contours;
+			for (let contour of newContours) {
+				let pointsArray = [];
+				for (let point of contour) {
+					pointsArray.push(Ot.Glyph.Point.create(
+						makeVariance(point.x[0], point.x[1]),
+						makeVariance(point.y[0], point.y[1]),
+						point.kind
+					));
+				}
+				glyph.geometry.contours.push(pointsArray);
+			}
+			// glyph.horizontal = nunito[name].horizontal;
+			// glyph.vertical = nunito[name].vertical;
+			// glyph.geometry = nunito[name].geometry;
+			progressTick(name);
+			continue;
+		}
 		progressTick(name);
 		// checkSingleGlyph(glyph);
 		if (!references.preProcessSkip.includes(name)) checkSingleGlyph(glyph);

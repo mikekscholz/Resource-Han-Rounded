@@ -2120,208 +2120,208 @@ function correctGlyphs(font, references) {
 				}
 			}
 
-			for (let idxP1 = 0; idxP1 < newContour.length; idxP1++) {
-				let p1I = idxP1;
-				let p2I = nextNode(newContour, p1I);
-				let p3I = nextNode(newContour, p2I);
-				let p4I = nextNode(newContour, p3I);
-				let p5I = nextNode(newContour, p4I);
-				let p6I = nextNode(newContour, p5I);
-				let p7I = nextNode(newContour, p6I);
-				let p8I = nextNode(newContour, p7I);
+			// for (let idxP1 = 0; idxP1 < newContour.length; idxP1++) {
+			// 	let p1I = idxP1;
+			// 	let p2I = nextNode(newContour, p1I);
+			// 	let p3I = nextNode(newContour, p2I);
+			// 	let p4I = nextNode(newContour, p3I);
+			// 	let p5I = nextNode(newContour, p4I);
+			// 	let p6I = nextNode(newContour, p5I);
+			// 	let p7I = nextNode(newContour, p6I);
+			// 	let p8I = nextNode(newContour, p7I);
 
-				let p1 = newContour[p1I];
-				let p2 = newContour[p2I];
-				let p3 = newContour[p3I];
-				let p4 = newContour[p4I];
-				let p5 = newContour[p5I];
-				let p6 = newContour[p6I];
-				let p7 = newContour[p7I];
-				let p8 = newContour[p8I];
+			// 	let p1 = newContour[p1I];
+			// 	let p2 = newContour[p2I];
+			// 	let p3 = newContour[p3I];
+			// 	let p4 = newContour[p4I];
+			// 	let p5 = newContour[p5I];
+			// 	let p6 = newContour[p6I];
+			// 	let p7 = newContour[p7I];
+			// 	let p8 = newContour[p8I];
 				
-				if (canBeStrokeEnd(p3, p4, p5, p6)) {
-					let b3 = bearing(p3, p4);
-					let b3r = bearing(p4, p3);
-					let b4 = bearing(p4, p5);
-					let b5 = bearing(p5, p6);
+			// 	if (canBeStrokeEnd(p3, p4, p5, p6)) {
+			// 		let b3 = bearing(p3, p4);
+			// 		let b3r = bearing(p4, p3);
+			// 		let b4 = bearing(p4, p5);
+			// 		let b5 = bearing(p5, p6);
 					
-					let a4l = angle(b3.l, b4.l);
-					let a5l = angle(b4.l, b5.l);
-					let a4h = angle(b3.h, b4.h);
-					let a5h = angle(b4.h, b5.h);
-					if (p3.kind === 0 && p6.kind === 0) {
-						if (abs(b3r.h - b5.h) < 10 && abs(a4h) !== 90 && abs(a5h) !== 90) {
+			// 		let a4l = angle(b3.l, b4.l);
+			// 		let a5l = angle(b4.l, b5.l);
+			// 		let a4h = angle(b3.h, b4.h);
+			// 		let a5h = angle(b4.h, b5.h);
+			// 		if (p3.kind === 0 && p6.kind === 0) {
+			// 			if (abs(b3r.h - b5.h) < 10 && abs(a4h) !== 90 && abs(a5h) !== 90) {
 							
-							let h4l = geometric.pointRotate(pointLight(p5, "arr"), (a4l / -2), pointLight(p4, "arr"));
-							let h4h = geometric.pointRotate(pointHeavy(p5, "arr"), (a4h / -2), pointHeavy(p4, "arr"));
-							let h5l = geometric.pointRotate(pointLight(p4, "arr"), (a5l / 2), pointLight(p5, "arr"));
-							let h5h = geometric.pointRotate(pointHeavy(p4, "arr"), (a5h / 2), pointHeavy(p5, "arr"));
+			// 				let h4l = geometric.pointRotate(pointLight(p5, "arr"), (a4l / -2), pointLight(p4, "arr"));
+			// 				let h4h = geometric.pointRotate(pointHeavy(p5, "arr"), (a4h / -2), pointHeavy(p4, "arr"));
+			// 				let h5l = geometric.pointRotate(pointLight(p4, "arr"), (a5l / 2), pointLight(p5, "arr"));
+			// 				let h5h = geometric.pointRotate(pointHeavy(p4, "arr"), (a5h / 2), pointHeavy(p5, "arr"));
 							
-							let centerL = findIntersection([pointLight(p4), { x: h4l[0], y: h4l[1] }, pointLight(p5), { x: h5l[0], y: h5l[1] }]);
-							let centerH = findIntersection([pointHeavy(p4), { x: h4h[0], y: h4h[1] }, pointHeavy(p5), { x: h5h[0], y: h5h[1] }]);
+			// 				let centerL = findIntersection([pointLight(p4), { x: h4l[0], y: h4l[1] }, pointLight(p5), { x: h5l[0], y: h5l[1] }]);
+			// 				let centerH = findIntersection([pointHeavy(p4), { x: h4h[0], y: h4h[1] }, pointHeavy(p5), { x: h5h[0], y: h5h[1] }]);
 							
-							let t4l = closestPointOnLine(centerL, lineLight(p3, p4));
-							let t5l = closestPointOnLine(centerL, lineLight(p5, p6));
-							let t4h = closestPointOnLine(centerH, lineHeavy(p3, p4));
-							let t5h = closestPointOnLine(centerH, lineHeavy(p5, p6));
+			// 				let t4l = closestPointOnLine(centerL, lineLight(p3, p4));
+			// 				let t5l = closestPointOnLine(centerL, lineLight(p5, p6));
+			// 				let t4h = closestPointOnLine(centerH, lineHeavy(p3, p4));
+			// 				let t5h = closestPointOnLine(centerH, lineHeavy(p5, p6));
 							
-							let radiusL = distanceLight(centerL, t4l);
-							let radiusH = distanceHeavy(centerH, t4h);
+			// 				let radiusL = distanceLight(centerL, t4l);
+			// 				let radiusH = distanceHeavy(centerH, t4h);
 							
-							let n4l = extendLineRight(lineLight(p3, t4l), radiusL);
-							let n5l = extendLineRight(lineLight(p6, t5l), radiusL);
-							let n4h = extendLineRight(lineHeavy(p3, t4h), radiusH);
-							let n5h = extendLineRight(lineHeavy(p6, t5h), radiusH);
+			// 				let n4l = extendLineRight(lineLight(p3, t4l), radiusL);
+			// 				let n5l = extendLineRight(lineLight(p6, t5l), radiusL);
+			// 				let n4h = extendLineRight(lineHeavy(p3, t4h), radiusH);
+			// 				let n5h = extendLineRight(lineHeavy(p6, t5h), radiusH);
 							
-							p4 = {
-								x: makeVariance(n4l.x, n4h.x),
-								y: makeVariance(n4l.y, n4h.y),
-								kind: 0,
-							};
-							p5 = {
-								x: makeVariance(n5l.x, n5h.x),
-								y: makeVariance(n5l.y, n5h.y),
-								kind: 0,
-							};
-							newContour[p4I] = p4;
-							newContour[p5I] = p5;
-							continue;
-						}
-					}
-					let leftL, leftH, leftType, leftHLength, rightL, rightH, rightType, rightHLength, widthLight, widthHeavy;
+			// 				p4 = {
+			// 					x: makeVariance(n4l.x, n4h.x),
+			// 					y: makeVariance(n4l.y, n4h.y),
+			// 					kind: 0,
+			// 				};
+			// 				p5 = {
+			// 					x: makeVariance(n5l.x, n5h.x),
+			// 					y: makeVariance(n5l.y, n5h.y),
+			// 					kind: 0,
+			// 				};
+			// 				newContour[p4I] = p4;
+			// 				newContour[p5I] = p5;
+			// 				continue;
+			// 			}
+			// 		}
+			// 		let leftL, leftH, leftType, leftHLength, rightL, rightH, rightType, rightHLength, widthLight, widthHeavy;
 					
-					function updateMeasures() {
-						b3 = bearing(p3, p4);
-						b3r = bearing(p4, p3);
-						b4 = bearing(p4, p5);
-						b5 = bearing(p5, p6);
+			// 		function updateMeasures() {
+			// 			b3 = bearing(p3, p4);
+			// 			b3r = bearing(p4, p3);
+			// 			b4 = bearing(p4, p5);
+			// 			b5 = bearing(p5, p6);
 						
-						a4l = angle(b3.l, b4.l);
-						a5l = angle(b4.l, b5.l);
-						a4h = angle(b3.h, b4.h);
-						a5h = angle(b4.h, b5.h);
-						widthLight = distanceLight(p4, p5);
-						widthHeavy = distanceHeavy(p4, p5);
-						if (p3.kind === 2) {
-							leftL = lineLight(p3, p4);
-							leftH = lineHeavy(p3, p4);
-							leftHLength = bezierHeavy(p1, p2, p3, p4).length();
-							leftType = "curve";
-						}
-						if (p3.kind === 0) {
-							leftL = lineLight(p3, p4);
-							leftH = lineHeavy(p3, p4);
-							leftHLength = distanceHeavy(p3, p4);
-							leftType = "line";
-						}
-						if (p6.kind === 1) {
-							rightL = lineLight(p6, p5);
-							rightH = lineHeavy(p6, p5);
-							rightHLength = bezierHeavy(p5, p6, p7, p8).length();
-							rightType = "curve";
-						}
-						if (p6.kind === 0) {
-							rightL = lineLight(p6, p5);
-							rightH = lineHeavy(p6, p5);
-							rightHLength = distanceHeavy(p6, p5);
-							leftType = "line";
-						}
-					}
-					updateMeasures();
+			// 			a4l = angle(b3.l, b4.l);
+			// 			a5l = angle(b4.l, b5.l);
+			// 			a4h = angle(b3.h, b4.h);
+			// 			a5h = angle(b4.h, b5.h);
+			// 			widthLight = distanceLight(p4, p5);
+			// 			widthHeavy = distanceHeavy(p4, p5);
+			// 			if (p3.kind === 2) {
+			// 				leftL = lineLight(p3, p4);
+			// 				leftH = lineHeavy(p3, p4);
+			// 				leftHLength = bezierHeavy(p1, p2, p3, p4).length();
+			// 				leftType = "curve";
+			// 			}
+			// 			if (p3.kind === 0) {
+			// 				leftL = lineLight(p3, p4);
+			// 				leftH = lineHeavy(p3, p4);
+			// 				leftHLength = distanceHeavy(p3, p4);
+			// 				leftType = "line";
+			// 			}
+			// 			if (p6.kind === 1) {
+			// 				rightL = lineLight(p6, p5);
+			// 				rightH = lineHeavy(p6, p5);
+			// 				rightHLength = bezierHeavy(p5, p6, p7, p8).length();
+			// 				rightType = "curve";
+			// 			}
+			// 			if (p6.kind === 0) {
+			// 				rightL = lineLight(p6, p5);
+			// 				rightH = lineHeavy(p6, p5);
+			// 				rightHLength = distanceHeavy(p6, p5);
+			// 				leftType = "line";
+			// 			}
+			// 		}
+			// 		updateMeasures();
 					
-					// if (p3.kind === 2 && p6.kind === 1) {
-					// 	if (abs(a4h) < abs(a5h)) {
-					// 		let curveL = bezierLight(p1, p2, p3, p4);
-					// 		let curveH = bezierHeavy(p1, p2, p3, p4);
-					// 		let c5l = curveL.project(pointLight(p5));
-					// 		let c5h = curveH.project(pointHeavy(p5));
-					// 		let splitL = curveL.split(c5l.t);
-					// 		let splitH = curveH.split(c5h.t);
-					// 		let nL = splitL.left.points;
-					// 		let nH = splitH.left.points;
-					// 		p1 = {
-					// 			x: makeVariance(nL[0].x, nH[0].x),
-					// 			y: makeVariance(nL[0].y, nH[0].y),
-					// 			kind: 0,
-					// 		};
-					// 		p2 = {
-					// 			x: makeVariance(nL[1].x, nH[1].x),
-					// 			y: makeVariance(nL[1].y, nH[1].y),
-					// 			kind: 1,
-					// 		};
-					// 		p3 = {
-					// 			x: makeVariance(nL[2].x, nH[2].x),
-					// 			y: makeVariance(nL[2].y, nH[2].y),
-					// 			kind: 2,
-					// 		};
-					// 		p4 = {
-					// 			x: makeVariance(nL[3].x, nH[3].x),
-					// 			y: makeVariance(nL[3].y, nH[3].y),
-					// 			kind: 0,
-					// 		};
-					// 		newContour[p1I] = p1;
-					// 		newContour[p2I] = p2;
-					// 		newContour[p3I] = p3;
-					// 		newContour[p4I] = p4;
-					// 		updateMeasures();
-					// 	}
-					// 	else if (abs(a4h) > abs(a5h)) {
-					// 		let curveL = bezierLight(p5, p6, p7, p8);
-					// 		let curveH = bezierHeavy(p5, p6, p7, p8);
-					// 		let c4l = curveL.project(pointLight(p4));
-					// 		let c4h = curveH.project(pointHeavy(p4));
-					// 		let splitL = curveL.split(c4l.t);
-					// 		let splitH = curveH.split(c4h.t);
-					// 		let nL = splitL.right.points;
-					// 		let nH = splitH.right.points;
-					// 		p5 = {
-					// 			x: makeVariance(nL[0].x, nH[0].x),
-					// 			y: makeVariance(nL[0].y, nH[0].y),
-					// 			kind: 0,
-					// 		};
-					// 		p6 = {
-					// 			x: makeVariance(nL[1].x, nH[1].x),
-					// 			y: makeVariance(nL[1].y, nH[1].y),
-					// 			kind: 1,
-					// 		};
-					// 		p7 = {
-					// 			x: makeVariance(nL[2].x, nH[2].x),
-					// 			y: makeVariance(nL[2].y, nH[2].y),
-					// 			kind: 2,
-					// 		};
-					// 		p8 = {
-					// 			x: makeVariance(nL[3].x, nH[3].x),
-					// 			y: makeVariance(nL[3].y, nH[3].y),
-					// 			kind: 0,
-					// 		};
-					// 		newContour[p5I] = p5;
-					// 		newContour[p6I] = p6;
-					// 		newContour[p7I] = p7;
-					// 		newContour[p8I] = p8;
-					// 		updateMeasures();
-					// 	}
-					// }
-					if ((leftHLength < widthHeavy && leftType === "curve") || (rightHLength < widthHeavy && rightType === "curve") || (leftHLength < widthHeavy * 0.6 && leftType === "line" && abs(a4h) === 90 && abs(a5h) === 90) || (rightHLength < widthHeavy * 0.6 && rightType === "line" && abs(a5h) === 90 && abs(a4h) === 90)) {
-						let c1L = extendLineRight(leftL, widthLight * 0.6);
-						let c1H = extendLineRight(leftH, widthHeavy * 0.6);
-						let c1 = {
-							x: makeVariance(c1L.x, c1H.x),
-							y: makeVariance(c1L.y, c1H.y),
-							kind: 1,
-						};
-						let c2L = extendLineRight(rightL, widthLight * 0.6);
-						let c2H = extendLineRight(rightH, widthHeavy * 0.6);
-						let c2 = {
-							x: makeVariance(c2L.x, c2H.x),
-							y: makeVariance(c2L.y, c2H.y),
-							kind: 2,
-						};
-						newContour.splice(p4I + 1, 0, c1, c2);
-					}
+			// 		// if (p3.kind === 2 && p6.kind === 1) {
+			// 		// 	if (abs(a4h) < abs(a5h)) {
+			// 		// 		let curveL = bezierLight(p1, p2, p3, p4);
+			// 		// 		let curveH = bezierHeavy(p1, p2, p3, p4);
+			// 		// 		let c5l = curveL.project(pointLight(p5));
+			// 		// 		let c5h = curveH.project(pointHeavy(p5));
+			// 		// 		let splitL = curveL.split(c5l.t);
+			// 		// 		let splitH = curveH.split(c5h.t);
+			// 		// 		let nL = splitL.left.points;
+			// 		// 		let nH = splitH.left.points;
+			// 		// 		p1 = {
+			// 		// 			x: makeVariance(nL[0].x, nH[0].x),
+			// 		// 			y: makeVariance(nL[0].y, nH[0].y),
+			// 		// 			kind: 0,
+			// 		// 		};
+			// 		// 		p2 = {
+			// 		// 			x: makeVariance(nL[1].x, nH[1].x),
+			// 		// 			y: makeVariance(nL[1].y, nH[1].y),
+			// 		// 			kind: 1,
+			// 		// 		};
+			// 		// 		p3 = {
+			// 		// 			x: makeVariance(nL[2].x, nH[2].x),
+			// 		// 			y: makeVariance(nL[2].y, nH[2].y),
+			// 		// 			kind: 2,
+			// 		// 		};
+			// 		// 		p4 = {
+			// 		// 			x: makeVariance(nL[3].x, nH[3].x),
+			// 		// 			y: makeVariance(nL[3].y, nH[3].y),
+			// 		// 			kind: 0,
+			// 		// 		};
+			// 		// 		newContour[p1I] = p1;
+			// 		// 		newContour[p2I] = p2;
+			// 		// 		newContour[p3I] = p3;
+			// 		// 		newContour[p4I] = p4;
+			// 		// 		updateMeasures();
+			// 		// 	}
+			// 		// 	else if (abs(a4h) > abs(a5h)) {
+			// 		// 		let curveL = bezierLight(p5, p6, p7, p8);
+			// 		// 		let curveH = bezierHeavy(p5, p6, p7, p8);
+			// 		// 		let c4l = curveL.project(pointLight(p4));
+			// 		// 		let c4h = curveH.project(pointHeavy(p4));
+			// 		// 		let splitL = curveL.split(c4l.t);
+			// 		// 		let splitH = curveH.split(c4h.t);
+			// 		// 		let nL = splitL.right.points;
+			// 		// 		let nH = splitH.right.points;
+			// 		// 		p5 = {
+			// 		// 			x: makeVariance(nL[0].x, nH[0].x),
+			// 		// 			y: makeVariance(nL[0].y, nH[0].y),
+			// 		// 			kind: 0,
+			// 		// 		};
+			// 		// 		p6 = {
+			// 		// 			x: makeVariance(nL[1].x, nH[1].x),
+			// 		// 			y: makeVariance(nL[1].y, nH[1].y),
+			// 		// 			kind: 1,
+			// 		// 		};
+			// 		// 		p7 = {
+			// 		// 			x: makeVariance(nL[2].x, nH[2].x),
+			// 		// 			y: makeVariance(nL[2].y, nH[2].y),
+			// 		// 			kind: 2,
+			// 		// 		};
+			// 		// 		p8 = {
+			// 		// 			x: makeVariance(nL[3].x, nH[3].x),
+			// 		// 			y: makeVariance(nL[3].y, nH[3].y),
+			// 		// 			kind: 0,
+			// 		// 		};
+			// 		// 		newContour[p5I] = p5;
+			// 		// 		newContour[p6I] = p6;
+			// 		// 		newContour[p7I] = p7;
+			// 		// 		newContour[p8I] = p8;
+			// 		// 		updateMeasures();
+			// 		// 	}
+			// 		// }
+			// 		if ((leftHLength < widthHeavy && leftType === "curve") || (rightHLength < widthHeavy && rightType === "curve") || (leftHLength < widthHeavy * 0.6 && leftType === "line" && abs(a4h) === 90 && abs(a5h) === 90) || (rightHLength < widthHeavy * 0.6 && rightType === "line" && abs(a5h) === 90 && abs(a4h) === 90)) {
+			// 			let c1L = extendLineRight(leftL, widthLight * 0.6);
+			// 			let c1H = extendLineRight(leftH, widthHeavy * 0.6);
+			// 			let c1 = {
+			// 				x: makeVariance(c1L.x, c1H.x),
+			// 				y: makeVariance(c1L.y, c1H.y),
+			// 				kind: 1,
+			// 			};
+			// 			let c2L = extendLineRight(rightL, widthLight * 0.6);
+			// 			let c2H = extendLineRight(rightH, widthHeavy * 0.6);
+			// 			let c2 = {
+			// 				x: makeVariance(c2L.x, c2H.x),
+			// 				y: makeVariance(c2L.y, c2H.y),
+			// 				kind: 2,
+			// 			};
+			// 			newContour.splice(p4I + 1, 0, c1, c2);
+			// 		}
 					
-					// idxP1 = idxP1 + 4;
-				}
-			}
+			// 		// idxP1 = idxP1 + 4;
+			// 	}
+			// }
 			
 			glyph.geometry.contours.push(newContour);
 		}
@@ -2362,7 +2362,7 @@ function correctGlyphs(font, references) {
 	for (const [idxG, glyph] of font.glyphs.items.entries()) {
 		const name = glyph.name;
 		progressTick();
-		if (!references.extendSkip.includes(name) || references.leftFallingCorrections.includes(name)) checkSingleGlyph(glyph, idxG);
+		if ((!references.extendSkip.includes(name) || references.leftFallingCorrections.includes(name)) && !references.nunitoGlyphs.includes(name)) checkSingleGlyph(glyph, idxG);
 		// count++;
 		// if (count % 1000 == 0) console.log("correctGlyphs:", count, "glyphs processed.");
 	}

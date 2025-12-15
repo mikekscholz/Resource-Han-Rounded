@@ -784,7 +784,7 @@ function postProcess(font, references) {
 	for (const glyph of font.glyphs.items) {
 		const name = glyph.name;
 		// if (!references.extendSkip.includes(name)) checkSingleGlyph(glyph);
-		if (!references.extendSkip.includes(name)) checkSingleGlyph(glyph);
+		if (!references.extendSkip.includes(name) && !references.nunitoGlyphs.includes(name)) checkSingleGlyph(glyph);
 		// if (name === "uni30EDE") checkSingleGlyph(glyph);
 		// count++;
 		// if (count % 200 == 0) console.log("postProcessing: ", count, " glyphs processed.");
