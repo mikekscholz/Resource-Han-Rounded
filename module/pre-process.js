@@ -1615,12 +1615,24 @@ function preProcess(font, references) {
 					let b3H = bearingHeavy(p3, p4);
 					let b5H = bearingHeavy(p5, p6);
 					let b6H = bearingHeavy(p6, p7);
+					let p0H = pointHeavy(p0);
+					let p6L = pointLight(p6);
+					let p6H = pointHeavy(p6);
+					let p0p6HDelta = p0H.x - p6H.x;
 					if (
 						p0.kind === 0 && p1.kind === 1 && p2.kind === 2 && p3.kind === 0 &&
 						p4.kind === 1 && p5.kind === 2 && p6.kind === 0 && p7.kind === 1 &&
 						b2L.isBetween(265,280) === true && b2H.isBetween(265,280) === true &&
 						b3H.isBetween(140,165) === true && b5H.isBetween(165, 185) === true
 					) {
+						if (p0H.x <= p6H.x && p0p6HDelta.isBetween(-10,0)) {
+							newContour[p6I] = {
+								x: makeVariance(p6L.x, p0H.x - 1),
+								y: makeVariance(p6L.y, p6H.y),
+								kind: p6.kind,
+							};
+							p6 = newContour[p6I];
+						}
 						let c0Lo = bezierLight(p0,p1,p2,p3);
 						let c0Ho = bezierHeavy(p0,p1,p2,p3);
 						let c0Lp = c0Lo.project(pointLight(p6));
@@ -1717,7 +1729,8 @@ function preProcess(font, references) {
 				}
 				glyph.geometry.contours.push(pointsArray);
 			}
-			// glyph.horizontal = nunito[name].horizontal;
+			glyph.horizontal.start = makeVariance(nunito[name].horizontal.start[0], nunito[name].horizontal.start[1]);
+			glyph.horizontal.end = makeVariance(nunito[name].horizontal.end[0], nunito[name].horizontal.end[1]);
 			// glyph.vertical = nunito[name].vertical;
 			// glyph.geometry = nunito[name].geometry;
 			progressTick(name);
