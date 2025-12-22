@@ -415,6 +415,7 @@ function extendShortStroke(font, references) {
 				polyGlyphHeavy[idxN2] = idxN1;
 				rawPolyLightCW[idxN2] = undefined;
 				rawPolyHeavyCW[idxN2] = undefined;
+				if (!skipContours.includes(idxN1)) skipContours.push(idxN1);
 				if (!readOnlyContours.includes(idxN1)) readOnlyContours.push(idxN1);
 			}
 			polyGlyphLight[idxN1] = polyLight;
@@ -422,7 +423,6 @@ function extendShortStroke(font, references) {
 		}
 		
 		for (let [idxC1, contour] of oldContours.entries()) {
-			// if (glyph.name === "Phi") console.log(contour);
 			// NOTE - Compute each contour's radius for improved rounding
 			let strokeEnds = [];
 			for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
@@ -475,7 +475,7 @@ function extendShortStroke(font, references) {
 				glyph.geometry.contours.push(contour);
 				continue;
 			}
-
+			
 			const newContour = [...contour];
 			// ANCHOR - Extend right stroke end east.
 			for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
@@ -1357,18 +1357,8 @@ function extendShortStroke(font, references) {
 	let count = 0;
 	for (const glyph of font.glyphs.items) {
 		const name = glyph.name;
-		// console.log(name);
-		// if (["uni758E"].includes(name)) {
-		// 	debug = true;
-		// 	console.log(" ");
-		// 	console.log(name);
-		// } else {
-		// 	debug = false;
-		// }
 		progressTick(name);
 		if (!references.extendSkip.includes(name) && !references.nunitoGlyphs.includes(name)) checkSingleGlyph(glyph);
-		// count++;
-		// if (count % 1000 == 0) console.log("extendShortStroke: ", count, " glyphs processed.");
 	}
 	delete references.extendIgnoreContourIdx;
 }

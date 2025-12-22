@@ -530,7 +530,7 @@ function convert(font, references) {
 	// let arrayData = JSON.stringify(namesArray);
 	// writeFileSync(arrayname, arrayData, { flush: true });
 	
-	let nunitoJson = `/home/mike/Resource-Han-Rounded/module/nunito.json`;
+	let nunitoJson = `/mnt/c/Users/Michael/Git/Resource-Han-Rounded/module/nunito.json`;
 	let nunitoData = JSON.stringify(glyphsJson, null, "\t");
 	writeFileSync(nunitoJson, nunitoData, { flush: true });
 	// delete references.skipRedundantPoints;

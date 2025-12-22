@@ -34,14 +34,14 @@ for (const [key, value] of Object.entries(specialInstructions)) {
 const font = readOtf(filename.shs(param.subfamily));
 // convert(font, references);
 preProcess(font, references);
-// extendShortStroke(font, references);
-// correctGlyphs(font, references);
-// roundFont(font, references);
-// postProcess(font, references);
+extendShortStroke(font, references);
+correctGlyphs(font, references);
+roundFont(font, references);
+postProcess(font, references);
 inspect(font, references, param.subfamily);
-// console.log('\u001b[38;5;82mCompiling OpenType font file.\u001b[0m This may take several minutes.');
-// buildVFMetaData(font, param);
-// writeOtf(font, filename.cff2Vf(param.subfamily), false);
+console.log('\u001b[38;5;82mCompiling OpenType font file.\u001b[0m This may take several minutes.');
+buildVFMetaData(font, param);
+writeOtf(font, filename.cff2Vf(param.subfamily), false);
 
 // const string = JSON.stringify(references, null, "\t");
 // const filename2 = `/mnt/c/Users/Michael/${param.subfamily}-references.json`;

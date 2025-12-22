@@ -1873,6 +1873,104 @@ function correctGlyphs(font, references) {
 				}
 			}
 
+			// fix 厘
+			if (glyph.name == "uni5398") {
+				if (idxC === 7) {
+					newContour[1] = {
+						x: contour[1].x,
+						y: makeVariance(
+							297,
+							originHeavy(contour[1].y)
+						),
+						kind: contour[1].kind,
+					};
+					newContour[2] = {
+						x: contour[2].x,
+						y: makeVariance(
+							297,
+							originHeavy(contour[2].y)
+						),
+						kind: contour[2].kind,
+					};
+					newContour[5] = {
+						x: contour[5].x,
+						y: makeVariance(
+							297,
+							originHeavy(contour[5].y)
+						),
+						kind: contour[5].kind,
+					};
+					newContour[6] = {
+						x: contour[6].x,
+						y: makeVariance(
+							297,
+							originHeavy(contour[6].y)
+						),
+						kind: contour[6].kind,
+					};
+				}
+			}
+
+			// fix 哩
+			if (glyph.name == "uni54E9") {
+				if (idxC === 7) {
+					newContour[1] = {
+						x: contour[1].x,
+						y: makeVariance(
+							353,
+							originHeavy(contour[1].y)
+						),
+						kind: contour[1].kind,
+					};
+					newContour[2] = {
+						x: contour[2].x,
+						y: makeVariance(
+							353,
+							originHeavy(contour[2].y)
+						),
+						kind: contour[2].kind,
+					};
+					newContour[5] = {
+						x: contour[5].x,
+						y: makeVariance(
+							353,
+							originHeavy(contour[5].y)
+						),
+						kind: contour[5].kind,
+					};
+					newContour[6] = {
+						x: contour[6].x,
+						y: makeVariance(
+							353,
+							originHeavy(contour[6].y)
+						),
+						kind: contour[6].kind,
+					};
+				}
+			}
+
+			// fix 囂
+			if (glyph.name == "uni56C2") {
+				if (idxC === 5) {
+					newContour[1] = {
+						x: contour[1].x,
+						y: makeVariance(
+							originLight(contour[1].y),
+							475
+						),
+						kind: contour[1].kind,
+					};
+					newContour[2] = {
+						x: contour[2].x,
+						y: makeVariance(
+							originLight(contour[2].y),
+							475
+						),
+						kind: contour[2].kind,
+					};
+				}
+			}
+
 			// if ((glyph.name == "uni4925" && idxC === 4) || (glyph.name == "uni49CB" && idxC === 4)) {
 			// 	newContour[10] = {
 			// 		x: makeVariance(originLight(contour[10].x), originHeavy(contour[10].x) + 20),

@@ -1110,6 +1110,7 @@ function preProcess(font, references) {
 			
 			// ANCHOR - cleanup degenerate curve control points.
 			for (let idxP1 = 0; idxP1 < newContour.length; idxP1++) {
+				let p0I = circularIndex(newContour, idxP1 - 1);
 				let p1I = circularIndex(newContour, idxP1);
 				let p2I = circularIndex(newContour, idxP1 + 1);
 				let p3I = circularIndex(newContour, idxP1 + 2);
@@ -1117,6 +1118,11 @@ function preProcess(font, references) {
 				let p5I = circularIndex(newContour, idxP1 + 4);
 				let p6I = circularIndex(newContour, idxP1 + 5);
 				let p7I = circularIndex(newContour, idxP1 + 6);
+				let p8I = circularIndex(newContour, idxP1 + 7);
+				let p9I = circularIndex(newContour, idxP1 + 8);
+				let p10I = circularIndex(newContour, idxP1 + 9);
+				let p11I = circularIndex(newContour, idxP1 + 10);
+				let p0 = newContour[p0I];
 				let p1 = newContour[p1I];
 				let p2 = newContour[p2I];
 				let p3 = newContour[p3I];
@@ -1124,14 +1130,40 @@ function preProcess(font, references) {
 				let p5 = newContour[p5I];
 				let p6 = newContour[p6I];
 				let p7 = newContour[p7I];
+				let p8 = newContour[p8I];
+				let p9 = newContour[p9I];
+				let p10 = newContour[p10I];
+				let p11 = newContour[p11I];
 				let b1L = bearingLight(p1, p2);
 				let b3L = bearingLight(p3, p4);
+				let b0H = bearingHeavy(p0, p1);
 				let b1H = bearingHeavy(p1, p2);
 				let b3H = bearingHeavy(p3, p4);
 				let b4H = bearingHeavy(p4, p5);
 				let b6H = bearingHeavy(p6, p7);
+				let b7H = bearingHeavy(p7, p8);
+				let b10rH = bearingHeavy(p10, p9);
+				let b11rH = bearingHeavy(p11, p10);
+				let corner1Angle = angle(b3H, b4H);
+				let corner2Angle = angle(b6H, b7H);
+				let combinedAngle = corner1Angle + corner2Angle;
+				let p1p2Distance = distanceHeavy(p1, p2);
+				let p1p4Distance = distanceHeavy(p1, p4);
+				let p4p7DistanceH = distanceHeavy(p4, p7);
+				let hookHeight = originHeavy(p7.y) - originHeavy(p10.y);
 				let jHook = (b1H.isBetween(140, 165) && b3H.isBetween(165, 185));
 				let jHookAfter = (b4H.isBetween(140, 165) && b6H.isBetween(165, 185));
+				let upRightHook = (
+					hookHeight > 10 && 
+					(b0H.isBetween(85, 132) || b0H.isBetween(8, 14)) && 
+					(b1H.isBetween(85, 132) || b1H.isBetween(8, 14)) && 
+					(b10rH.isBetween(85, 125) || b10rH.isBetween(0, 6)) && 
+					(b11rH.isBetween(62, 125) || b11rH.isBetween(0, 6)) && 
+					p1p2Distance.isBetween(25, 200) && (b3H.isBetween(0, 15) || b3H.isBetween(358, 360)) && corner1Angle.isBetween(-145, -85) && corner2Angle.isBetween(-75, -23) && combinedAngle.isBetween(-170, -142) && p4p7DistanceH.isBetween(60, 160) && p1p4Distance.isBetween(80, 330));
+				if (upRightHook) {
+					idxP1 = idxP1 + 11;
+					continue;
+				}
 				if (jHookAfter) {
 					idxP1 = idxP1 + 8;
 					continue;
@@ -1151,10 +1183,10 @@ function preProcess(font, references) {
 							pointOnLine([pointLight(p2), pointLight(p3)], lineLight(p1, p4), 2) && 
 							pointOnLine([pointHeavy(p2), pointHeavy(p3)], lineHeavy(p1, p4), 3)
 						)
-						 || (
-							(pointOnLine(pointLight(p2), lineLight(p1, p4), 1) || pointOnLine(pointHeavy(p2), lineHeavy(p1, p4), 1)) &&
-							(pointOnLine(pointLight(p3), lineLight(p1, p4), 1) || pointOnLine(pointHeavy(p3), lineHeavy(p1, p4), 1))
-						)
+						//  || (
+						// 	(pointOnLine(pointLight(p2), lineLight(p1, p4), 1) || pointOnLine(pointHeavy(p2), lineHeavy(p1, p4), 1)) &&
+						// 	(pointOnLine(pointLight(p3), lineLight(p1, p4), 1) || pointOnLine(pointHeavy(p3), lineHeavy(p1, p4), 1))
+						// )
 					)
 				) {
 					let indices = [p2I, p3I];
@@ -1207,6 +1239,7 @@ function preProcess(font, references) {
 
 			// ANCHOR - cleanup degenerate curve control points again resulting from corner cleanup.
 			for (let idxP1 = 0; idxP1 < newContour.length; idxP1++) {
+				let p0I = circularIndex(newContour, idxP1 - 1);
 				let p1I = circularIndex(newContour, idxP1);
 				let p2I = circularIndex(newContour, idxP1 + 1);
 				let p3I = circularIndex(newContour, idxP1 + 2);
@@ -1214,6 +1247,11 @@ function preProcess(font, references) {
 				let p5I = circularIndex(newContour, idxP1 + 4);
 				let p6I = circularIndex(newContour, idxP1 + 5);
 				let p7I = circularIndex(newContour, idxP1 + 6);
+				let p8I = circularIndex(newContour, idxP1 + 7);
+				let p9I = circularIndex(newContour, idxP1 + 8);
+				let p10I = circularIndex(newContour, idxP1 + 9);
+				let p11I = circularIndex(newContour, idxP1 + 10);
+				let p0 = newContour[p0I];
 				let p1 = newContour[p1I];
 				let p2 = newContour[p2I];
 				let p3 = newContour[p3I];
@@ -1221,11 +1259,39 @@ function preProcess(font, references) {
 				let p5 = newContour[p5I];
 				let p6 = newContour[p6I];
 				let p7 = newContour[p7I];
+				let p8 = newContour[p8I];
+				let p9 = newContour[p9I];
+				let p10 = newContour[p10I];
+				let p11 = newContour[p11I];
+				let b0H = bearingHeavy(p0, p1);
+				let b1H = bearingHeavy(p1, p2);
+				let b3H = bearingHeavy(p3, p4);
 				let b4H = bearingHeavy(p4, p5);
 				let b6H = bearingHeavy(p6, p7);
+				let b7H = bearingHeavy(p7, p8);
+				let b10rH = bearingHeavy(p10, p9);
+				let b11rH = bearingHeavy(p11, p10);
+				let corner1Angle = angle(b3H, b4H);
+				let corner2Angle = angle(b6H, b7H);
+				let combinedAngle = corner1Angle + corner2Angle;
+				let p1p2Distance = distanceHeavy(p1, p2);
+				let p1p4Distance = distanceHeavy(p1, p4);
+				let p4p7DistanceH = distanceHeavy(p4, p7);
+				let hookHeight = originHeavy(p7.y) - originHeavy(p10.y);
 				let jHookAfter = (b4H.isBetween(140, 165) && b6H.isBetween(165, 185));
+				let upRightHook = (
+					hookHeight > 10 && 
+					(b0H.isBetween(85, 132) || b0H.isBetween(8, 14)) && 
+					(b1H.isBetween(85, 132) || b1H.isBetween(8, 14)) && 
+					(b10rH.isBetween(85, 125) || b10rH.isBetween(0, 6)) && 
+					(b11rH.isBetween(62, 125) || b11rH.isBetween(0, 6)) && 
+					p1p2Distance.isBetween(25, 200) && (b3H.isBetween(0, 15) || b3H.isBetween(358, 360)) && corner1Angle.isBetween(-145, -85) && corner2Angle.isBetween(-75, -23) && combinedAngle.isBetween(-170, -142) && p4p7DistanceH.isBetween(60, 160) && p1p4Distance.isBetween(80, 330));
 				if (jHookAfter) {
 					idxP1 = idxP1 + 8;
+					continue;
+				}
+				if (upRightHook) {
+					idxP1 = idxP1 + 11;
 					continue;
 				}
 				let kinds = p1.kind === 0 && p2.kind === 1 && p3.kind === 2 && p4.kind === 0;
@@ -1464,10 +1530,14 @@ function preProcess(font, references) {
 						let p9AngleCorrectionH = turn(bearing(lineHeavy(p11, p10)), bearing(lineHeavy(p10, p9)));
 						if (
 							hookHeight > 10 &&
-							p0p1Bearing.isBetween(85, 132) &&
-							p1p2Bearing.isBetween(85, 132) &&
-							p10p9Bearing.isBetween(85, 125) &&
-							p11p10Bearing.isBetween(62, 125) &&
+							// p0p1Bearing.isBetween(85, 132) &&
+							// p1p2Bearing.isBetween(85, 132) &&
+							(p0p1Bearing.isBetween(85, 132) || p0p1Bearing.isBetween(8, 14)) && 
+							(p1p2Bearing.isBetween(85, 132) || p1p2Bearing.isBetween(8, 14)) && 
+							(p10p9Bearing.isBetween(85, 125) || p10p9Bearing.isBetween(0, 6)) && 
+							(p11p10Bearing.isBetween(62, 125) || p11p10Bearing.isBetween(0, 6)) && 
+							// p10p9Bearing.isBetween(85, 125) &&
+							// p11p10Bearing.isBetween(62, 125) &&
 							p1p2Distance.isBetween(25, 200) &&
 							(p3p4Bearing.isBetween(0, 15) || p3p4Bearing.isBetween(358, 360)) &&
 							corner1Angle.isBetween(-145, -85) &&

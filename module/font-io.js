@@ -26,9 +26,9 @@ function readOtf(filename) {
 async function writeOtf(font, filename, optimise = true) {
 	const sfnt = FontIo.writeFont(font);
 	const otfBuf = FontIo.writeSfntOtf(sfnt, { cff: { doLocalOptimization: optimise, doGlobalOptimization: optimise } });
-	const file = await writeFile(filename, otfBuf);
-	console.log(file);
-	// fs.writeFileSync(filename, otfBuf);
+	// const file = await writeFile(filename, otfBuf);
+	// console.log(file);
+	fs.writeFileSync(filename, otfBuf);
 }
 
 module.exports = {
