@@ -45,7 +45,7 @@ function extendLineRight(line, distance) {
 	};
 }
 
-function correctGlyphs(font, references) {
+function correctGlyphs(font, references, limit) {
 	const dimWght = font.fvar.axes[0].dim;
 	const instanceShsWghtMax = new Map([[dimWght, 1]]);
 	const masterDimWghtMax = { dim: dimWght, min: 0, peak: 1, max: 1 };
@@ -668,10 +668,24 @@ function correctGlyphs(font, references) {
 				if (circularIndex(contour2, -3) !== idxP2) {
 					// console.log(name, idxP2, circularIndex(contour2, idxP2 + 3));
 					let offset = circularIndex(contour2, idxP2 + 3);
+					let offsetSegs = 0;
 					for (let i = 0; i < offset; i++) {
+						if (oldContours[idxC2][0].kind === 0) {
+							offsetSegs++;
+						}
 						oldContours[idxC2].push(oldContours[idxC2].shift());
 					}
-					// console.log(oldContours[idxC2]);
+					if (name in references.skipRoundingContourSeg) {
+						let refArray = references.skipRoundingContourSeg[name];
+						let objIndex = refArray.findIndex((obj) => obj["contourIdx"] === idxC2);
+						if (objIndex >= 0) {
+							let ref = refArray[objIndex];
+							let segs = ref.segments;
+							segs.forEach((seg) => {
+								seg += offsetSegs;
+							});
+						}
+					}
 				}
 				if ("vertical" in ref) {
 					let idxC3 = ref.vertical;
@@ -797,10 +811,24 @@ function correctGlyphs(font, references) {
 				if (circularIndex(contour2, -3) !== idxP2) {
 					// console.log(name, idxP2, circularIndex(contour2, idxP2 + 3));
 					let offset = circularIndex(contour2, idxP2 + 3);
+					let offsetSegs = 0;
 					for (let i = 0; i < offset; i++) {
+						if (oldContours[idxC2][0].kind === 0) {
+							offsetSegs++;
+						}
 						oldContours[idxC2].push(oldContours[idxC2].shift());
 					}
-					// console.log(oldContours[idxC2]);
+					if (name in references.skipRoundingContourSeg) {
+						let refArray = references.skipRoundingContourSeg[name];
+						let objIndex = refArray.findIndex((obj) => obj["contourIdx"] === idxC2);
+						if (objIndex >= 0) {
+							let ref = refArray[objIndex];
+							let segs = ref.segments;
+							segs.forEach((seg) => {
+								seg += offsetSegs;
+							});
+						}
+					}
 				}
 			}
 		}
@@ -814,10 +842,25 @@ function correctGlyphs(font, references) {
 				if (circularIndex(contour2, -3) !== idxP2) {
 					// console.log(name, idxP2, circularIndex(contour2, idxP2 + 3));
 					let offset = circularIndex(contour2, idxP2 + 3);
+					let offsetSegs = 3;
 					for (let i = 0; i < offset; i++) {
 						oldContours[idxC2].push(oldContours[idxC2].shift());
+						if (oldContours[idxC2][0].kind === 0) {
+							offsetSegs++;
+						}
 					}
-					// console.log(oldContours[idxC2]);
+					if (name in references.skipRoundingContourSeg) {
+						let refArray = references.skipRoundingContourSeg[name];
+						let objIndex = refArray.findIndex((obj) => obj["contourIdx"] === idxC2);
+						if (objIndex >= 0) {
+							let ref = refArray[objIndex];
+							let segs = ref.segments;
+							for (let i = 0; i < segs.length; i++) {
+								let val = segs[i];
+								segs[i] = val + offsetSegs;
+							}
+						}
+					}
 				}
 			}
 		}
@@ -883,8 +926,23 @@ function correctGlyphs(font, references) {
 				};
 				if (circularIndex(contour2, -4) !== idxP2) {
 					let offset = circularIndex(contour2, idxP2 + 4);
+					let offsetSegs = 0;
 					for (let i = 0; i < offset; i++) {
+						if (oldContours[idxC2][0].kind === 0) {
+							offsetSegs++;
+						}
 						oldContours[idxC2].push(oldContours[idxC2].shift());
+					}
+					if (name in references.skipRoundingContourSeg) {
+						let refArray = references.skipRoundingContourSeg[name];
+						let objIndex = refArray.findIndex((obj) => obj["contourIdx"] === idxC2);
+						if (objIndex >= 0) {
+							let ref = refArray[objIndex];
+							let segs = ref.segments;
+							segs.forEach((seg) => {
+								seg += offsetSegs;
+							});
+						}
 					}
 				}
 				oldContours[idxC2].splice(-2, 1);
@@ -1588,6 +1646,14 @@ function correctGlyphs(font, references) {
 				newContour.reverseContour();
 			}
 
+			// fix ☀
+			if (glyph.name === "uni2600") {
+				const duplicates = [15,13,11,9,8,7,5,3,1];
+				for (const idx of duplicates) {
+					newContour.splice(idx, 1);
+				}
+			}
+
 			// fix ➡ ⬅ ⬆ ⬇
 			if (["uni27A1","uni2B05","uni2B06","uni2B07"].includes(glyph.name)) {
 				newContour.splice(7, 1);
@@ -2062,7 +2128,7 @@ function correctGlyphs(font, references) {
 					}
 				}
 			}
-			
+			/*
 			for (let idxP = 0; idxP < contour.length; idxP++) {
 				let matched = false;
 				let topRightIdx = idxP;
@@ -2217,7 +2283,7 @@ function correctGlyphs(font, references) {
 					}
 				}
 			}
-
+			*/
 			// for (let idxP1 = 0; idxP1 < newContour.length; idxP1++) {
 			// 	let p1I = idxP1;
 			// 	let p2I = nextNode(newContour, p1I);
@@ -2460,8 +2526,8 @@ function correctGlyphs(font, references) {
 	for (const [idxG, glyph] of font.glyphs.items.entries()) {
 		const name = glyph.name;
 		progressTick();
-		if ((!references.extendSkip.includes(name) || references.leftFallingCorrections.includes(name)) && !references.nunitoGlyphs.includes(name)) checkSingleGlyph(glyph, idxG);
-		// count++;
+		if ((!references.extendSkip.includes(name) || references.leftFallingCorrections.includes(name)) && !references.nunitoGlyphs.includes(name) && (limit === false || count < limit)) checkSingleGlyph(glyph, idxG);
+		count++;
 		// if (count % 1000 == 0) console.log("correctGlyphs:", count, "glyphs processed.");
 	}
 	delete references.leftFallingCorrections;

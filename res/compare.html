@@ -1,0 +1,449 @@
+<html lang="lzh-Hans-CN">
+
+<head>
+	<title>Resource Han Rounded</title>
+	<meta charset="UTF-8">
+	<style>
+		@font-face {
+			font-family: "RHR SC VF";
+			src: url('../build/cff2-2.0/ResourceHanRoundedCN-VF.otf');
+		}
+		@font-face {
+			font-family: "RHR TC VF";
+			src: url('../build/cff2-2.0/ResourceHanRoundedTC-VF.otf');
+		}
+		@font-face {
+			font-family: "RHR HC VF";
+			src: url('../build/cff2-2.0/ResourceHanRoundedHC-VF.otf');
+		}
+		@font-face {
+			font-family: "RHR J VF";
+			src: url('../build/cff2-2.0/ResourceHanRoundedJ-VF.otf');
+		}
+		@font-face {
+			font-family: "RHR K VF";
+			src: url('../build/cff2-2.0/ResourceHanRoundedK-VF.otf');
+		}
+		@font-face {
+			font-family: "OLD SC VF";
+			src: url('../build/cff2-1.910/ResourceHanRoundedCN-VF.otf') format("opentype");
+		}
+		@font-face {
+			font-family: "OLD TC VF";
+			src: url('../build/cff2-1.910/ResourceHanRoundedTW-VF.otf') format("opentype");
+		}
+		@font-face {
+			font-family: "OLD HC VF";
+			src: url('../build/cff2-1.910/ResourceHanRoundedHK-VF.otf') format("opentype");
+		}
+		@font-face {
+			font-family: "OLD J VF";
+			src: url('../build/cff2-1.910/ResourceHanRoundedJP-VF.otf') format("opentype");
+		}
+		@font-face {
+			font-family: "OLD K VF";
+			src: url('../build/cff2-1.910/ResourceHanRoundedKR-VF.otf') format("opentype");
+		}
+		@font-face {
+			font-family: "SHS SC VF";
+			src: url('../src/SourceHanSansSC-VF.otf');
+		}
+		@font-face {
+			font-family: "SHS TC VF";
+			src: url('../src/SourceHanSansTC-VF.otf');
+		}
+		@font-face {
+			font-family: "SHS HC VF";
+			src: url('../src/SourceHanSansHC-VF.otf');
+		}
+		@font-face {
+			font-family: "SHS J VF";
+			src: url('../src/SourceHanSans-VF.otf');
+		}
+		@font-face {
+			font-family: "SHS K VF";
+			src: url('../src/SourceHanSansK-VF.otf');
+		}
+
+		:lang(en)[data-version="2.0"] { font-family: "Nunito", "RHR SC VF" }
+		:lang(lzh-Hans-CN)[data-version="2.0"] { font-family: "Nunito", "RHR SC VF" }
+		:lang(lzh-Hant-TW)[data-version="2.0"] { font-family: "Nunito", "RHR TC VF" }
+		:lang(lzh-Hant-HK)[data-version="2.0"] { font-family: "Nunito", "RHR HC VF" }
+		:lang(ja-JP)[data-version="2.0"] { font-family: "Nunito", "RHR J VF" }
+		:lang(ko-KR)[data-version="2.0"] { font-family: "Nunito", "RHR K VF" }
+
+		:lang(en)[data-version="1.910"] { font-family: "OLD SC VF"; font-variation-settings: 'ROND' 100; }
+		:lang(lzh-Hans-CN)[data-version="1.910"] { font-family: "OLD SC VF"; font-variation-settings: 'ROND' 100; }
+		:lang(lzh-Hant-TW)[data-version="1.910"] { font-family: "OLD TC VF"; font-variation-settings: 'ROND' 100; }
+		:lang(lzh-Hant-HK)[data-version="1.910"] { font-family: "OLD HC VF"; font-variation-settings: 'ROND' 100; }
+		:lang(ja-JP)[data-version="1.910"] { font-family: "OLD J VF"; font-variation-settings: 'ROND' 100; }
+		:lang(ko-KR)[data-version="1.910"] { font-family: "OLD K VF"; font-variation-settings: 'ROND' 100; }
+
+		:lang(en)[data-version="SHS"] { font-family: "SHS SC VF" }
+		:lang(lzh-Hans-CN)[data-version="SHS"] { font-family: "SHS SC VF" }
+		:lang(lzh-Hant-TW)[data-version="SHS"] { font-family: "SHS TC VF" }
+		:lang(lzh-Hant-HK)[data-version="SHS"] { font-family: "SHS HC VF" }
+		:lang(ja-JP)[data-version="SHS"] { font-family: "SHS J VF" }
+		:lang(ko-KR)[data-version="SHS"] { font-family: "SHS K VF" }
+
+		.preview-extralight,
+		.w-200 { font-weight: 200 }
+		.preview-wght250,
+		.w-250 { font-weight: 250 }
+		.preview-light,
+		.w-300 { font-weight: 300 }
+		.preview-semilight,
+		.w-350 { font-weight: 350 }
+		.preview-normal,
+		.w-370 { font-weight: 370 }
+		.preview-regular,
+		.w-400 { font-weight: 400 }
+		.preview-book,
+		.w-450 { font-weight: 450 }
+		.preview-medium,
+		.w-500 { font-weight: 500 }
+		.preview-semibold,
+		.w-600 { font-weight: 600 }
+		.preview-bold,
+		.w-700 { font-weight: 700}
+		.preview-extrabold,
+		.w-800 { font-weight: 800}
+		.preview-heavy,
+		.w-900 { font-weight: 900 }
+
+		.preview-rond0 { font-variation-settings: 'ROND' 0; }
+		.preview-rond20 { font-variation-settings: 'ROND' 20; }
+		.preview-rond40 { font-variation-settings: 'ROND' 40; }
+		.preview-rond60 { font-variation-settings: 'ROND' 60; }
+		.preview-rond80 { font-variation-settings: 'ROND' 80; }
+		.preview-rond100 { font-variation-settings: 'ROND' 100; }
+
+		.capture-block {
+			width: fit-content;
+			margin: 0 auto;
+		}
+		
+		.comp-item {
+			display: flex;
+			font-size: 140px;
+			width: 160px;
+			/* height: 90px; */
+			align-items: end;
+			justify-content: center;
+		}
+		.comp-row {
+			display: flex;
+		}
+		.comp-col {
+			display: flex;
+			flex-direction: row;
+			flex-wrap: wrap;
+			/* gap: 15px; */
+		}
+		[data-version="2.0"] {
+			background-color: #ebebeb;
+			color: #000;
+			line-height: 174px;
+		}
+		.item-header {
+			font-size: 20px;
+			height: 30px;
+			line-height: revert;
+			background-color: #333 !important;
+			color: #fff;
+		}
+		h1, h2 {
+			color: #666;
+			padding-left: .5em;
+		}
+
+		th {
+			color: white;
+			font-weight: 500;
+		}
+
+		td {
+			padding: 0 .5em;
+			font-size: 2em;
+			text-align: center;
+		}
+
+		table {
+			background-color: #6df;
+		}
+	</style>
+	<script>
+		const DOMParser_support = (function () {
+			if (!window.DOMParser) return false;
+			const parser = new DOMParser();
+			try {
+				parser.parseFromString('x', 'text/html');
+			} catch (err) {
+				return false;
+			}
+			return true;
+		})();
+
+		/**
+		 * Convert a template string into HTML DOM nodes
+		 * @param  {string} str The template string
+		 * @return {Node}       The template HTML
+		 */
+		const stringToHTML = function (str) {
+			// If DOMParser is supported, use it
+			if (DOMParser_support) {
+				const parser = new DOMParser();
+				const doc = parser.parseFromString(str, 'text/html');
+				return doc.body.firstChild;
+			}
+			// Otherwise, fallback to old-school method
+			const dom = document.createElement('div');
+			dom.innerHTML = str;
+			return dom.firstChild;
+		};
+
+		/**
+		 * Append HTML jQuery style with vanilla javascript.
+		 * ```
+		 * document.querySelector('.el').appendHTML(`<img src="${k.icon}" alt="" draggable="false">`);
+		 * ```觞
+		 */
+
+		const appendHTML = (function() {
+			Element.prototype.appendHTML = function (str) {
+				this.append(stringToHTML(str));
+			};
+		})();
+	</script>
+</head>
+
+<body>
+	<div class="comp-col" id="comp"></div>
+	<script>
+		let compStringCN = "钅讠饣喇叭口场旸杨殇汤炀烫玚畅疡砀肠荡觞钖铴飏饧仍乃及ㄋ该改";
+		let compStringKR = "국가는건전한소비행위를계도하고생산품의품질향상을촉구하기위한";
+		let weights = ["w-200","w-300","w-400","w-500","w-600","w-700","w-800","w-900"];
+		let langs = {
+			"lzh-Hans-CN": compStringCN,
+			"ko-KR": compStringKR
+		}
+		let comp = document.getElementById("comp");
+		for (let lang of Object.keys(langs)) {
+			for (let char of langs[lang]) {
+				let row = "";
+				for (let weight of weights) {
+					row += `<div class="${weight}">${char}</div>`;
+				}
+				let template = `
+				<div class="char-row">
+					<div class="comp-row">
+						<div class="comp-item w-500 item-header" data-version="2.0">RHR 2.0</div>
+						<div class="comp-item w-500 item-header" data-version="1.910" style="background-color: #ddd;">RHR 1.910</div>
+						<div class="comp-item w-500 item-header" data-version="SHS" style="background-color: #ccc;">SHS</div>
+					</div>
+					<div class="comp-row">
+						<div class="comp-item w-700" lang="${lang}" data-version="2.0">${char}</div>
+						<div class="comp-item w-700" lang="${lang}" data-version="1.910" style="background-color: #ddd;">${char}</div>
+						<div class="comp-item w-700" lang="${lang}" data-version="SHS" style="background-color: #ccc;">${char}</div>
+					</div>
+				</div>`;
+				// let template = `
+				// <div class="char-row">
+				// 	<div class="comp-row">
+				// 		<div class="comp-item" data-version="2.0">${row}</div>
+				// 		<div class="comp-item" data-version="1.910" style="background-color: #ccc;">${row}</div>
+				// 		<div class="comp-item" data-version="SHS">${row}</div>
+				// 	</div>
+				// </div>`;
+				comp.appendHTML(template);
+			}
+			
+		}
+	</script>
+				<!-- <div class="char-row">
+					<div class="comp-row">
+						<div class="comp-item w-700" data-version="2.0">钅讠饣喇叭口场旸杨殇汤炀烫玚畅疡砀肠荡觞钖铴飏饧仍乃及ㄋ该改</div>
+						<div class="comp-item w-700" data-version="1.910" style="background-color: #eee;">钅讠饣喇叭口场旸杨殇汤炀烫玚畅疡砀肠荡觞钖铴飏饧仍乃及ㄋ该改</div>
+						<div class="comp-item w-700" data-version="SHS" style="background-color: #ddd;">钅讠饣喇叭口场旸杨殇汤炀烫玚畅疡砀肠荡觞钖铴飏饧仍乃及ㄋ该改</div>
+					</div>
+				</div> -->
+	<div class="capture-block">
+		<h1>Resource Han Rounded</h1>
+		<table>
+			<tr>
+				<th>wght</th>
+				<th>Weight</th>
+				<th>SC / CN</th>
+				<th>TC / TW</th>
+				<th>HC / HK</th>
+				<th>J / JP</th>
+				<th>K / KR</th>
+			</tr>
+			<tr>
+				<th>200</th>
+				<th>ExtraLight</td>
+				<td class="preview-extralight" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+				<td class="preview-extralight" lang="lzh-Hant-TW">呦呦鹿鳴</td>
+				<td class="preview-extralight" lang="lzh-Hant-HK">呦呦鹿鳴</td>
+				<td class="preview-extralight" lang="ja-JP">呦呦と鹿鳴き</td>
+				<td class="preview-extralight" lang="ko-KR">유유록명</td>
+			</tr>
+			<tr>
+				<th>250</th>
+				<th>(unnamed)</td>
+				<td class="preview-wght250" lang="lzh-Hans-CN">食野之苹</td>
+				<td class="preview-wght250" lang="lzh-Hant-TW">食野之苹</td>
+				<td class="preview-wght250" lang="lzh-Hant-HK">食野之苹</td>
+				<td class="preview-wght250" lang="ja-JP">野の苹を食む</td>
+				<td class="preview-wght250" lang="ko-KR">식야지평</td>
+			</tr>
+			<tr>
+				<th>300</th>
+				<th>Light</td>
+				<td class="preview-light" lang="lzh-Hans-CN">我有嘉宾</td>
+				<td class="preview-light" lang="lzh-Hant-TW">我有嘉賓</td>
+				<td class="preview-light" lang="lzh-Hant-HK">我有嘉賓</td>
+				<td class="preview-light" lang="ja-JP">我に嘉賓有り</td>
+				<td class="preview-light" lang="ko-KR">아유가빈</td>
+			</tr>
+			<tr>
+				<th>350</th>
+				<th>SemiLight</td>
+				<td class="preview-semilight" lang="lzh-Hans-CN">鼓瑟吹笙</td>
+				<td class="preview-semilight" lang="lzh-Hant-TW">鼓瑟吹笙</td>
+				<td class="preview-semilight" lang="lzh-Hant-HK">鼓瑟吹笙</td>
+				<td class="preview-semilight" lang="ja-JP">瑟を鼓き笙を吹かん</td>
+				<td class="preview-semilight" lang="ko-KR">고슬취생</td>
+			</tr>
+			<tr>
+				<th>370</th>
+				<th>Normal</td>
+				<td class="preview-normal" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+				<td class="preview-normal" lang="lzh-Hant-TW">呦呦鹿鳴</td>
+				<td class="preview-normal" lang="lzh-Hant-HK">呦呦鹿鳴</td>
+				<td class="preview-normal" lang="ja-JP">呦呦と鹿鳴き</td>
+				<td class="preview-normal" lang="ko-KR">유유록명</td>
+			</tr>
+			<tr>
+				<th>400</th>
+				<th>Regular</td>
+				<td class="preview-regular" lang="lzh-Hans-CN">食野之蒿</td>
+				<td class="preview-regular" lang="lzh-Hant-TW">食野之蒿</td>
+				<td class="preview-regular" lang="lzh-Hant-HK">食野之蒿</td>
+				<td class="preview-regular" lang="ja-JP">野の蒿を食む</td>
+				<td class="preview-regular" lang="ko-KR">식야지호</td>
+			</tr>
+			<tr>
+				<th>450</th>
+				<th>Book</td>
+				<td class="preview-book" lang="lzh-Hans-CN">我有嘉宾</td>
+				<td class="preview-book" lang="lzh-Hant-TW">我有嘉賓</td>
+				<td class="preview-book" lang="lzh-Hant-HK">我有嘉賓</td>
+				<td class="preview-book" lang="ja-JP">我に嘉賓有り</td>
+				<td class="preview-book" lang="ko-KR">아유가빈</td>
+			</tr>
+			<tr>
+				<th>500</th>
+				<th>Medium</td>
+				<td class="preview-medium" lang="lzh-Hans-CN">德音孔昭</td>
+				<td class="preview-medium" lang="lzh-Hant-TW">德音孔昭</td>
+				<td class="preview-medium" lang="lzh-Hant-HK">德音孔昭</td>
+				<td class="preview-medium" lang="ja-JP">徳音孔だ昭らかなり</td>
+				<td class="preview-medium" lang="ko-KR">덕음공소</td>
+			</tr>
+			<tr>
+				<th>600</th>
+				<th>SemiBold</td>
+				<td class="preview-semibold" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+				<td class="preview-semibold" lang="lzh-Hant-TW">呦呦鹿鳴</td>
+				<td class="preview-semibold" lang="lzh-Hant-HK">呦呦鹿鳴 </td>
+				<td class="preview-semibold" lang="ja-JP">呦呦と鹿鳴き</td>
+				<td class="preview-semibold" lang="ko-KR">유유록명</td>
+			</tr>
+			<tr>
+				<th>700</th>
+				<th>Bold</td>
+				<td class="preview-bold" lang="lzh-Hans-CN">食野之芩</td>
+				<td class="preview-bold" lang="lzh-Hant-TW">食野之芩</td>
+				<td class="preview-bold" lang="lzh-Hant-HK">食野之芩 </td>
+				<td class="preview-bold" lang="ja-JP">野の芩を食む</td>
+				<td class="preview-bold" lang="ko-KR">식야지금</td>
+			</tr>
+			<tr>
+				<th>800</th>
+				<th>ExtraBold</td>
+				<td class="preview-extrabold" lang="lzh-Hans-CN">我有嘉宾</td>
+				<td class="preview-extrabold" lang="lzh-Hant-TW">我有嘉賓</td>
+				<td class="preview-extrabold" lang="lzh-Hant-HK">我有嘉賓 </td>
+				<td class="preview-extrabold" lang="ja-JP">我に嘉賓有り</td>
+				<td class="preview-extrabold" lang="ko-KR">아유가빈</td>
+			</tr>
+			<tr>
+				<th>900</th>
+				<th>Heavy</td>
+				<td class="preview-heavy" lang="lzh-Hans-CN">鼓瑟鼓琴</td>
+				<td class="preview-heavy" lang="lzh-Hant-TW">鼓瑟鼓琴</td>
+				<td class="preview-heavy" lang="lzh-Hant-HK">鼓瑟鼓琴</td>
+				<td class="preview-heavy" lang="ja-JP">瑟を鼓き琴を鼓かん</td>
+				<td class="preview-heavy" lang="ko-KR">고슬고금</td>
+			</tr>
+		</table>
+	</div>
+
+	<div class="capture-block">
+		<h2>Roundness</h2>
+		<table>
+			<tr>
+				<th>Roundness</th>
+				<th>Heavy</th>
+				<th>Bold</th>
+				<th>Book</th>
+				<th>Light</th>
+			</tr>
+			<tr>
+				<th>100 (RHR)</th>
+				<td class="preview-heavy preview-rond100" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+				<td class="preview-bold preview-rond100" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+				<td class="preview-book preview-rond100" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+				<td class="preview-light preview-rond100" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+			</tr>
+			<tr>
+				<th>80</th>
+				<td class="preview-heavy preview-rond80" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+				<td class="preview-bold preview-rond80" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+				<td class="preview-book preview-rond80" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+				<td class="preview-light preview-rond80" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+			</tr>
+			<tr>
+				<th>60</th>
+				<td class="preview-heavy preview-rond60" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+				<td class="preview-bold preview-rond60" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+				<td class="preview-book preview-rond60" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+				<td class="preview-light preview-rond60" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+			</tr>
+			<tr>
+				<th>40</th>
+				<td class="preview-heavy preview-rond40" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+				<td class="preview-bold preview-rond40" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+				<td class="preview-book preview-rond40" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+				<td class="preview-light preview-rond40" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+			</tr>
+			<tr>
+				<th>20</th>
+				<td class="preview-heavy preview-rond20" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+				<td class="preview-bold preview-rond20" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+				<td class="preview-book preview-rond20" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+				<td class="preview-light preview-rond20" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+			</tr>
+			<tr>
+				<th>0 (SHS)</th>
+				<td class="preview-heavy preview-rond0" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+				<td class="preview-bold preview-rond0" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+				<td class="preview-book preview-rond0" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+				<td class="preview-light preview-rond0" lang="lzh-Hans-CN">呦呦鹿鸣</td>
+			</tr>
+		</table>
+	</div>
+</body>
+
+</html>

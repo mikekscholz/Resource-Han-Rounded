@@ -1,6 +1,8 @@
 // round to 1/precision, where precision should be power of 2 to get smaller size
 function roundTo(x, precision) {
-	return Math.round(x * precision) / precision;
+// function roundTo(x) {
+	return Math.round(x * 32) / 32;
+	// return parseFloat(x.toFixed(4));
 }
 
 function bearing(line) {
@@ -56,17 +58,33 @@ function findIntersection(array) {
 	return { x: x, y: y };
 }
 
-function closestPointOnLine(p, line) {
-	const { p1, p2 } = line;
+function closestPointOnLine(point, line) {
+	let p, p1, p2, geoJson = false;
+	if (Array.isArray(point)) {
+		p = { x: point[0], y: point[1] };
+		p1 = { x: line[0][0], y: line[0][1] };
+		p2 = { x: line[1][0], y: line[1][1] };
+		geoJson = true;
+	} else {
+		p = point;
+		({ p1, p2 } = line);
+	}
 	const v = { x: p2.x - p1.x, y: p2.y - p1.y };
 	const proj = {
 		x: (p.x - p1.x) * v.x + (p.y - p1.y) * v.y,
 		y: (p.x - p1.x) * v.y - (p.y - p1.y) * v.x
 	};
-	return {
-		x: p1.x + proj.x / (v.x * v.x + v.y * v.y) * v.x,
-		y: p1.y + proj.x / (v.x * v.x + v.y * v.y) * v.y
-	};
+	if (geoJson) {
+		return [
+			p1.x + proj.x / (v.x * v.x + v.y * v.y) * v.x,
+			p1.y + proj.x / (v.x * v.x + v.y * v.y) * v.y
+		];
+	} else {
+		return {
+			x: p1.x + proj.x / (v.x * v.x + v.y * v.y) * v.x,
+			y: p1.y + proj.x / (v.x * v.x + v.y * v.y) * v.y
+		};
+	}
 }
 
 function pointOnLine(points, line, tolerance = 0, clamp = false) {
@@ -179,5 +197,5 @@ const isBetween = (function () {
 })();
 
 module.exports = {
-	angle, approximateBezier, base60, bearing, closestPointOnLine, findIntersection, horizontalSlope, isBetween, midpoint, pointOnLine, roundTo, turn, verticalSlope
+	angle, approximateBezier, base60, bearing, closestPointOnLine, findIntersection, horizontalSlope, isBetween, midpoint, pointOnLine, pointToLineDistance, roundTo, turn, verticalSlope
 };

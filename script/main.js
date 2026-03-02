@@ -1,12 +1,16 @@
 "use strict";
+let limit = 200;
+// let limit = false;
 const path = require("node:path");
 const fsp = require("node:fs/promises");
+const { readFileSync, writeFileSync, mkdirSync } = require("node:fs");
 const { readOtf, writeOtf } = require("../module/font-io");
 const { correctGlyphs } = require("../module/corrections");
 const { roundFont } = require("../module/round-font");
 const { extendShortStroke } = require("../module/extend-short-stroke2");
 const { buildVFMetaData } = require("../module/build-meta-data");
 const { filename } = require("../configure");
+const { substitute } = require("../module/substitute");
 const { convert } = require("../module/convert");
 const { preProcess } = require("../module/pre-process");
 const { postProcess } = require("../module/post-process");
@@ -21,27 +25,28 @@ const writeFile = async(filename, data, increment = 0) => {
 	}) || name
 };
 const param = JSON.parse(process.argv[2]);
-const references = {
+let references = {
 	horizontalLeftFalling: {},
 	horizontalLeftFalling2: {},
 	horizontalLeftFalling2b: {},
 	horizontalLeftFalling3: {},
 	horizontalLeftFalling4: {},
 }
-for (const [key, value] of Object.entries(specialInstructions)) {
+for (let [key, value] of Object.entries(specialInstructions)) {
 	references[key] = value;
-  }
+}
 const font = readOtf(filename.shs(param.subfamily));
 // convert(font, references);
-preProcess(font, references);
-extendShortStroke(font, references);
-correctGlyphs(font, references);
-roundFont(font, references);
-postProcess(font, references);
-inspect(font, references, param.subfamily);
-console.log('\u001b[38;5;82mCompiling OpenType font file.\u001b[0m This may take several minutes.');
-buildVFMetaData(font, param);
-writeOtf(font, filename.cff2Vf(param.subfamily), false);
+substitute(font, references);
+preProcess(font, references, limit);
+extendShortStroke(font, references, limit);
+correctGlyphs(font, references, limit);
+// roundFont(font, references, limit);
+// postProcess(font, references, limit);
+inspect(font, references, param.subfamily, limit);
+// console.log('\u001b[38;5;82mCompiling OpenType font file.\u001b[0m This may take several minutes.');
+// buildVFMetaData(font, param);
+// writeOtf(font, filename.cff2Vf(param.subfamily), true);
 
 // const string = JSON.stringify(references, null, "\t");
 // const filename2 = `/mnt/c/Users/Michael/${param.subfamily}-references.json`;

@@ -1,5 +1,6 @@
 node_modules/
 src/*.otf
+src/*.ttf
 build/
 dist/
 Makefile
@@ -8,3 +9,5 @@ bar.js
 inspector-*.html
 .vslinter.js
 Nunito/
+src/rhr
+res/images/comp*

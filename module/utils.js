@@ -154,6 +154,7 @@ const utils = {
     }
 
     // higher order curves: use de Casteljau's computation
+    console.log(JSON.stringify(points));
     const dCpts = JSON.parse(JSON.stringify(points));
     while (dCpts.length > 1) {
       for (let i = 0; i < dCpts.length - 1; i++) {

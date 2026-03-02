@@ -231,7 +231,7 @@ function postProcess(font, references) {
 			originHeavy(topRight.x) - originHeavy(topLeft.x) <= params.strokeWidth.heavy;
 	}
 
-	function isBetween(a, x, b) {
+	function isBetweenPoints(a, x, b) {
 		return originLight(a) <= originLight(x) &&
 			originLight(x) <= originLight(b) + 2 &&
 			originHeavy(a) <= originHeavy(x) &&

@@ -1,0 +1,105 @@
+<svg width="500px" viewBox="0 -3 170 130" xmlns="http://www.w3.org/2000/svg">
+	<defs>
+		<style>
+			svg {
+				background-color:#0007;
+			}
+			
+			.handle-line, line {
+				stroke:#fff;
+				stroke-dasharray:0.8px 1px;
+				stroke-width:0.4;
+				stroke-linecap:round;
+				stroke-dashoffset:0;
+			}
+			text {
+				fill:#fff;
+				font-size:5px;
+				font-family:Nunito,sans-serif;
+				text-anchor: middle;
+			}
+			circle, .hc {
+				r:1.8;
+				stroke:currentColor;
+				fill:currentColor;
+				fill-opacity:0.7;
+				stroke-width:1;
+			}
+			.c {
+				color:#e06;
+			}
+			.h {
+				color:#9e0;
+			}
+			.s {
+				color:#0cf;
+			}
+			.g {
+				color:#888;
+			}
+			.f {
+				opacity: 50%
+			}
+			.gs {
+				fill: none;
+				stroke: #666;
+				stroke-dasharray: 1 1;
+				stroke-width:.5;
+				stroke-linecap:round;
+			}
+			.ga {
+				fill: none;
+				stroke: #666;
+				stroke-dasharray: none;
+				stroke-width:1;
+				stroke-linecap:round;
+				stroke-linejoin: round;
+			}
+			.gt {
+				fill:#666;
+				font-size:4px;
+				font-weight: 700;
+				font-family:Nunito,sans-serif;
+				transform-box: fill-box;
+				transform-origin: center;
+			}
+			
+			.contour {
+				fill: #fff1;
+				stroke: #fff6;
+				stroke-width: 0.5;
+			}
+			
+			.contour.f {
+				stroke: #fff2;
+			}
+		</style>
+		<marker
+			id="arrow"
+			viewBox="0 0 10 12"
+			refX="4"
+			refY="5"
+			markerUnits="strokeWidth"
+			markerWidth="10"
+			markerHeight="12"
+			orient="auto" class="ga">
+			<path d="M 4,2 8,5 4,8 M 8, 5 L 1, 5" />
+		</marker>
+	</defs>
+- 	<path class="contour" d="m-87.6 277.2c0-14.43 51.12-39.09 51.12-39.09l12.03-1.804c60.14-43.3 121.5-110.7 182.2-183.4l-57.74-43.91-35.49 13.23v4.812c-41.5 63.75-108.3 123.9-128.1 140.1-19.85 16.84-40.9 31.27-58.34 35.49 11.43 19.25 28.87 57.74 34.28 74.58z"/>
+- 	<path class="contour f" d="m-170 16.83v83h268.2v-83z"/>
+	<line x1="102.04" x2="157.8" y1="119.7" y2="52.91"/>
+	<line x1="64.56" x2="23.06" y1="27.05" y2="90.8"/>
+	<circle class="g f" cx="98.24" cy="99.82"/>
+	<circle class="g f" cx="98.24" cy="16.83"/>
+	<circle class="h" cx="102.04" cy="119.7"/>
+	<circle class="c" cx="157.8" cy="52.91"/>
+	<circle class="c" cx="100" cy="9.007"/>
+	<circle class="c" cx="64.56" cy="22.24"/>
+	<circle class="c" cx="64.56" cy="27.05"/>
+	<circle class="h" cx="23.06" cy="90.8"/>
+	<text x="163.5" y="54.4">0</text>
+	<text x="99.7" y="4">1</text>
+	<text x="64" y="17.5">2</text>
+	<text x="58.77" y="29">3</text>
+</svg>

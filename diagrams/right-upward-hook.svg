@@ -1,0 +1,115 @@
+<svg width="500px" version="1.1" viewBox="0 4 170 130" xmlns="http://www.w3.org/2000/svg">
+	<defs>
+		<style>
+			svg {
+				background-color:#0007;
+			}
+			line {
+				stroke:#fff;
+				stroke-dasharray:1px 2px;
+				stroke-width:1;
+				stroke-linecap:round;
+				stroke-dashoffset:1px;
+			}
+			text {
+				fill:#fff;
+				font-size:5px;
+				font-family:Nunito,sans-serif;
+			}
+			circle, .hc {
+				r:1.8;
+				stroke:currentColor;
+				fill:currentColor;
+				fill-opacity:0.7;
+				stroke-width:1;
+			}
+			.c {
+				color:#e06;
+			}
+			.h {
+				color:#9e0;
+			}
+			.g {
+				color:#888;
+			}
+			.f {
+				opacity: 100%
+			}
+			.gs {
+				fill: none;
+				stroke: #666;
+				stroke-dasharray: 1 1;
+				stroke-width:.5;
+				stroke-linecap:round;
+			}
+			.ga {
+				fill: none;
+				stroke: #666;
+				stroke-dasharray: none;
+				stroke-width:1;
+				stroke-linecap:round;
+				stroke-linejoin: round;
+			}
+			.gt {
+				fill:#666;
+				font-size:4px;
+				font-weight: 700;
+				font-family:Nunito,sans-serif;
+				transform-box: fill-box;
+				transform-origin: center;
+			}
+		</style>
+		<marker
+			id="arrow"
+			viewBox="0 0 10 12"
+			refX="4"
+			refY="5"
+			markerUnits="strokeWidth"
+			markerWidth="10"
+			markerHeight="12"
+			orient="auto" class="ga">
+			<path d="M 4,2 8,5 4,8 M 8, 5 L 1, 5" />
+		</marker>
+	</defs>
+	<!-- <path class="contour-stroke" d="m35.71-229.7c0 171.3-5.37 353.5 61.76 353.5 26.08 0 36.83-23.1 41.81-68.15-9.59-10.4-21.1-28.88-30.3-45.05-0.3836 30.03-3.069 51.21-5.754 51.21-15.34 0-15.73-145.9-12.28-291.5z" stroke="#fff"/> -->
+    <path fill="#fff1" stroke="#fff4" stroke-width=".5" d="M 28, -229C 28, -20 28, 123 95, 123C 123, 123 138, 100 143, 65C 133, 50 118, 26 109, 10C 108, 40 105, 70 95, 70C 80, 70 80, -84 80, -229 z"></path>
+	<line class="control-vector" x1="35" y1="-229" x2="35" y2="-58"/>
+	<line class="control-vector" x1="30" y1="123" x2="95" y2="123"/>
+	<line class="control-vector" x1="95" y1="123" x2="123" y2="123"/>
+	<line class="control-vector" x1="143" y1="65" x2="138" y2="100"/>
+	<line class="control-vector" x1="143" y1="65" x2="133" y2="50"/>
+	<line class="control-vector" x1="118" y1="26" x2="109" y2="10"/>
+	<line class="control-vector" x1="109" y1="10" x2="108" y2="40"/>
+	<line class="control-vector" x1="95" y1="70" x2="105" y2="70"/>
+	<line class="control-vector" x1="95" y1="70" x2="80" y2="70"/>
+	<line class="control-vector" x1="87" y1="-84" x2="90" y2="-229"/>
+	<circle class="start-point" cx="35" cy="-229"/>
+	<circle class="h" cx="35" cy="-58"/>
+	<circle class="h" cx="30" cy="123"/>
+	<circle class="c" cx="95" cy="123"/>
+	<circle class="h" cx="123" cy="123"/>
+	<circle class="h" cx="138" cy="100"/>
+	<circle class="c" cx="143" cy="65"/>
+	<circle class="h" cx="133" cy="50"/>
+	<circle class="h" cx="118" cy="26"/>
+	<circle class="c" cx="109" cy="10"/>
+	<circle class="h" cx="108" cy="40"/>
+	<circle class="h" cx="105" cy="70"/>
+	<circle class="c" cx="95" cy="70" />
+	<circle class="h" cx="80" cy="70"/>
+	<circle class="h" cx="87" cy="-84"/>
+	<circle class="c" cx="90" cy="-229"/>
+    
+    <text x="19" y="125">p0</text>
+<text x="92" y="118">p1</text>
+<text x="127" y="125">p2</text>
+<text x="142" y="101">p3</text>
+<text x="147" y="66">p4</text>
+<text x="137" y="51">p5</text>
+<text x="122" y="27">p6</text>
+<text x="113" y="11">p7</text>
+<text x="97" y="42">p8</text>
+<text x="109" y="72">p9</text>
+<text x="89" y="79">p10</text>
+<text x="65" y="72">p11</text>
+</svg>

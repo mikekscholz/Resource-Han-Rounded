@@ -1,0 +1,130 @@
+<svg viewBox="0 0 170 130" version="1.1" width="500px" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+<defs>
+	<style>
+		svg {
+			background-color:#0007;
+		}
+		line {
+			stroke:#fff;
+			stroke-dasharray:1px 2px;
+			stroke-width:1;
+			stroke-linecap:round;
+			stroke-dashoffset:1px;
+		}
+		text {
+			fill:#fff;
+			font-size:5px;
+			font-family:Nunito,sans-serif;
+		}
+		circle, .hc {
+			r:1.8;
+			stroke:currentColor;
+			fill:currentColor;
+			fill-opacity:0.7;
+			stroke-width:1;
+		}
+		.c {
+			color:#e06;
+		}
+		.h {
+			color:#9e0;
+		}
+		.g {
+			color:#888;
+		}
+		.f {
+			opacity: 100%
+		}
+		.gs {
+			fill: none;
+			stroke: #666;
+			stroke-dasharray: 1 1;
+			stroke-width:.5;
+			stroke-linecap:round;
+		}
+		.ga {
+			fill: none;
+			stroke: #666;
+			stroke-dasharray: none;
+			stroke-width:1;
+			stroke-linecap:round;
+			stroke-linejoin: round;
+		}
+		.gt {
+			fill:#666;
+			font-size:4px;
+			font-weight: 700;
+			font-family:Nunito,sans-serif;
+			transform-box: fill-box;
+			transform-origin: center;
+		}
+	</style>
+	<marker
+		id="arrow"
+		viewBox="0 0 10 12"
+		refX="4"
+		refY="5"
+		markerUnits="strokeWidth"
+		markerWidth="10"
+		markerHeight="12"
+		orient="auto" class="ga">
+		<path d="M 4,2 8,5 4,8 M 8, 5 L 1, 5" />
+	</marker>
+</defs>
+<path d="M 87,-255 L 87,16 C 87,46 84,56 76,56 C 68,56 40,56 18,55 C 28,70 38,98 41,115 C 78,115 105,114 125,104 C 144,94 151,78 151,47 L 151, -255" fill="#fff1" stroke="#fff6" stroke-width=".5"/>
+<line class="control-vector" x1="87" y1="16" x2="87" y2="46"/>
+<line class="control-vector" x1="84" y1="56" x2="76" y2="56"/>
+<line class="control-vector f" x1="76" y1="56" x2="68" y2="56"/>
+<line class="control-vector f" x1="40" y1="56" x2="18" y2="55"/>
+<line class="control-vector" x1="18" y1="55" x2="28" y2="70"/>
+<line class="control-vector" x1="38" y1="98" x2="41" y2="115"/>
+<line class="control-vector" x1="41" y1="115" x2="78" y2="115"/>
+<line class="control-vector" x1="105" y1="114" x2="125" y2="104"/>
+<line class="control-vector" x1="125" y1="104" x2="144" y2="94"/>
+<line class="control-vector" x1="151" y1="78" x2="151" y2="47"/>
+<circle class="c" cx="87" cy="16"/>
+<circle class="h" cx="87" cy="46"/>
+<circle class="h" cx="84" cy="56"/>
+<circle class="c" cx="76" cy="56"/>
+<circle class="h" cx="68" cy="56"/>
+<circle class="h" cx="40" cy="56"/>
+<circle class="c" cx="18" cy="55"/>
+<circle class="h" cx="28" cy="70"/>
+<circle class="h" cx="38" cy="98"/>
+<circle class="c" cx="41" cy="115"/>
+<circle class="h" cx="78" cy="115"/>
+<circle class="h" cx="105" cy="114"/>
+<circle class="c" cx="125" cy="104"/>
+<circle class="h" cx="144" cy="94"/>
+<circle class="h" cx="151" cy="78"/>
+<circle class="c" cx="151" cy="47"/>
+<circle class="c" cx="151" cy="-255"/>
+<circle class="start-point" cx="87" cy="-255"/>
+<!-- <path class="hc h f" d="M 68,56 m 1.273,-1.273 a 1.8,1.8 0 0,1 -2.546,2.546"/>
+<path class="hc g" d="M 68,56 m 1.273,-1.273 a 1.8,1.8 0 0,0 -2.546,2.546"/>
+<path class="hc h f" d="M 40,56 m 1.273,-1.273 a 1.8,1.8 0 0,1 -2.546,2.546"/>
+<path class="hc g" d="M 40,56 m 1.273,-1.273 a 1.8,1.8 0 0,0 -2.546,2.546"/> -->
+
+<text x="73" y="51">p0</text>
+<text x="65" y="51">p1</text>
+<text x="37" y="51">p2</text>
+<text x="10" y="51">p3</text>
+<text x="18" y="72">p4</text>
+<text x="28" y="100">p5</text>
+<text x="33" y="122">p6</text>
+<text x="75" y="122">p7</text>
+<text x="102" y="122">p8</text>
+<text x="122" y="112">p9</text>
+
+<line class="gs" x1="36" y1="50" x2="20" y2="49" marker-end="url(#arrow)"/>
+<text x="26" y="48" class="gt" transform="rotate(3)">b2</text>
+<line class="gs" x1="12" y1="55" x2="18" y2="64" marker-end="url(#arrow)"/>
+<text x="10" y="63" class="gt" transform="rotate(-34)">b3</text>
+<line class="gs" x1="32" y1="102" x2="34" y2="112" marker-end="url(#arrow)"/>
+<text x="27" y="110" class="gt" transform="rotate(-11)">b5</text>
+
+
+<line class="gs" x1="41" y1="120" x2="70" y2="120" marker-end="url(#arrow)"/>
+<text x="54" y="124" class="gt">b6</text>
+
+</svg>

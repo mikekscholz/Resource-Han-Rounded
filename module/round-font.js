@@ -16,7 +16,7 @@ function circularIndex(array, index) {
 	return isNaN(idx) ? index : idx;
 }
 
-function roundFont(font, references) {
+function roundFont(font, references, limit) {
 	let debug = false;
 let curGlyph = "";
 	//
@@ -436,6 +436,15 @@ let curGlyph = "";
 
 	function transformContour(contour, name, idxC) {
 		const segments = splitContour(contour);
+		let skipSegments = [];
+		if (name in references.skipRoundingContourSeg) {
+			let refArray = references.skipRoundingContourSeg[name];
+			let objIndex = refArray.findIndex((obj) => obj["contourIdx"] === idxC);
+			if (objIndex >= 0) {
+				let ref = refArray[objIndex];
+				skipSegments = [...ref.segments];
+			}
+		}
 		debug && console.log(JSON.stringify(segments));
 		let spec = false;
 		// if (name in invertRadius) {
@@ -501,6 +510,36 @@ let curGlyph = "";
 			// const shsM1Seg = [];
 			const kind = [];
 
+			if (skipSegments.includes(i)) {
+				m0Seg.push(cur.m0.p1);
+				m1Seg.push(cur.m1.p1);
+				// shsM0Seg.push(cur.m0.p1);
+				// shsM1Seg.push(cur.m1.p1);
+				kind.push(Ot.Glyph.PointType.Corner);
+				if (cur.type == "curve") {
+					m0Seg.push(cur.m0.c1);
+					m1Seg.push(cur.m1.c1);
+					// shsM0Seg.push(cur.m0.c1);
+					// shsM1Seg.push(cur.m1.c1);
+					kind.push(Ot.Glyph.PointType.Lead);
+				}
+				if (cur.type == "curve") {
+					m0Seg.push(cur.m0.c2);
+					m1Seg.push(cur.m1.c2);
+					// shsM0Seg.push(cur.m0.c2);
+					// shsM1Seg.push(cur.m1.c2);
+					kind.push(Ot.Glyph.PointType.Follow);
+				}
+				for (let j = 0; j < m0Seg.length; j++) {
+					result.push(Ot.Glyph.Point.create(
+						makeVariance(m0Seg[j].x, m1Seg[j].x),
+						makeVariance(m0Seg[j].y, m1Seg[j].y),
+						kind[j]
+					));
+				}
+				prev = cur;
+				continue;
+			}
 			if (spec === "leftFalling" && i > length - 4) {
 				m0Seg.push(cur.m0.p1);
 				m1Seg.push(cur.m1.p1);
@@ -591,6 +630,24 @@ let curGlyph = "";
 					kind.push(Ot.Glyph.PointType.Lead);
 				}
 			// }
+			if (skipSegments[0] - 1 === i) {
+				if (cur.type == "curve") {
+					m0Seg.push(cur.m0.c2);
+					m1Seg.push(cur.m1.c2);
+					// shsM0Seg.push(cur.m0.c2);
+					// shsM1Seg.push(cur.m1.c2);
+					kind.push(Ot.Glyph.PointType.Follow);
+				}
+				for (let j = 0; j < m0Seg.length; j++) {
+					result.push(Ot.Glyph.Point.create(
+						makeVariance(m0Seg[j].x, m1Seg[j].x),
+						makeVariance(m0Seg[j].y, m1Seg[j].y),
+						kind[j]
+					));
+				}
+				prev = cur;
+				continue;
+			}
 			if (spec === "leftFalling" && i === length - 4) {
 				if (cur.type == "curve") {
 					m0Seg.push(cur.m0.c2);
@@ -730,45 +787,39 @@ let curGlyph = "";
 		}
 	}
 	// function progressTick(info = "") {
-	// 	if (len) {
-	// 		var chunk = 1;
-	// 		bar.tick(chunk);
-	// 		if (bar.curr > 0 && bar.curr < len - 2) { 
-	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
-	// 		}
-	// 		if (bar.curr === len - 1) { 
-	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
-	// 		}
-	// 	}
+		// if (len) {
+			// var chunk = 1;
+			// bar.tick(chunk);
+			// if (bar.curr > 0 && bar.curr < len - 2) { 
+				// bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+			// }
+			// if (bar.curr === len - 1) { 
+				// bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+			// }
+		// }
 	// }
 	
 	let count = 0;
 	for (const glyph of font.glyphs.items) {
 		const name = glyph.name;
-		
-		// curGlyph = name;
-		// console.log(name);
+
 		if (!glyph.geometry || !glyph.geometry.contours || references.skipGlyphs.includes(name) || references.nunitoGlyphs.includes(name)) {
 			// progressTick();
 			progressTick(name);
 			continue;
 		}
-		// if (["Obreve"].includes(name)) {
-		// 	debug = true;
-		// 	console.log(" ");
-		// 	console.log(name);
-		// } else {
-		// 	debug = false;
-		// }
-		// progressTick();
+		if (limit !== false && count >= limit) {
+			progressTick(name);
+			continue;
+		}
 		progressTick(name);
 		const oldContours = glyph.geometry.contours;
 		glyph.geometry.contours = [];
 		for (const [idxC, contour] of oldContours.entries()) {
 			glyph.geometry.contours.push(transformContour(contour, name, idxC));
 		}
-		// if (name === "uni3240") console.log(glyph.geometry.contours);
-		// count++;
+
+		count++;
 		// if (count % 1000 == 0) console.log("roundingGlyphs: ", count, " glyphs processed.");
 	}
 	delete references.customRadiusList;

@@ -1,0 +1,126 @@
+<svg width="500" viewBox="14 29 130 100" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+		<style>
+			svg {
+				background-color:#0007;
+			}
+			line {
+				stroke:#fff8;
+				stroke-dasharray:0.8px 1px;
+				stroke-width:0.4;
+				stroke-linecap:round;
+				stroke-dashoffset:0;
+			}
+			text {
+				fill:#fff;
+				font-size:3.5px;
+				font-family:Nunito,sans-serif;
+			}
+			circle, .hc {
+				r:1.26;
+				stroke:currentColor;
+				fill:currentColor;
+				fill-opacity:0.7;
+				stroke-width:0.7;
+			}
+			.c {
+				color:#e06;
+			}
+			.h {
+				color:#9e0;
+			}
+			.s {
+				color:#0cf;
+			}
+			.g {
+				color:#888;
+			}
+			.f {
+				opacity: 50%
+			}
+			.gs {
+				fill: none;
+				stroke: #666;
+				stroke-dasharray: 1 1;
+				stroke-width:.5;
+				stroke-linecap:round;
+			}
+			.ga {
+				fill: none;
+				stroke: #666;
+				stroke-dasharray: none;
+				stroke-width:1;
+				stroke-linecap:round;
+				stroke-linejoin: round;
+			}
+			.gt {
+				fill:#666;
+				font-size:4px;
+				font-weight: 700;
+				font-family:Nunito,sans-serif;
+				transform-box: fill-box;
+				transform-origin: center;
+			}
+		</style>
+		<marker
+			id="arrow"
+			viewBox="0 0 10 12"
+			refX="4"
+			refY="5"
+			markerUnits="strokeWidth"
+			markerWidth="10"
+			markerHeight="12"
+			orient="auto" class="ga">
+			<path d="M 4,2 8,5 4,8 M 8, 5 L 1, 5" />
+		</marker>
+	</defs>
+	<path d="m73.73 124.7c0-9.016 4.508-20.29 11.27-27.05 29.3-91.51 31.56-208.7 31.56-280.9v-61.76h-49.14v60.86c0 74.83-0.9016 193.8-34.26 269.6 10.37 7.664 33.36 28.85 40.57 39.22z" fill="#fff1" stroke="#fff3" stroke-width=".35"/>
+	<path d="m73.73 124.7c6.762-5.41 18.48-10.82 63.11-23.89-3.156-10.37-6.762-28.4-8.565-41.02l-42.83 9.467-16.23 14.43z" fill="#fff1" stroke="#fff3" stroke-width=".35"/>
+	<line class="cv" x1="73.73" x2="80.49" y1="124.7" y2="119.3"/>
+	<line class="cv" x1="92.21" x2="136.8" y1="113.9" y2="100.9"/>
+	<line class="cv" x1="136.8" x2="133.7" y1="100.9" y2="90.48"/>
+	<line class="cv" x1="130.1" x2="128.3" y1="72.45" y2="59.83"/>
+	<line class="cv" x1="73.73" x2="73.73" y1="124.7" y2="115.7"/>
+	<line class="cv" x1="78.24" x2="85" y1="104.5" y2="97.7"/>
+    
+	<line class="cv" x1="85" x2="105.3" y1="97.7" y2="35.183"/>
+    
+	<line class="cv" x1="56.52" x2="33.16" y1="32.789" y2="85.53"/>
+    
+	<line class="cv" x1="33.16" x2="43.53" y1="85.53" y2="93.19"/>
+	<line class="cv" x1="66.52" x2="73.73" y1="114.4" y2="124.7"/>
+	<circle class="h" cx="80.49" cy="119.3"/>
+	<circle class="h" cx="92.21" cy="113.9"/>
+	<circle class="c" cx="136.8" cy="100.9"/>
+	<circle class="h" cx="133.7" cy="90.48"/>
+	<circle class="h" cx="130.1" cy="72.45"/>
+	<circle class="c" cx="128.3" cy="59.83"/>
+	<circle class="c" cx="85.45" cy="69.3"/>
+	<circle class="c" cx="69.22" cy="83.72"/>
+	<circle class="h" cx="73.73" cy="115.7"/>
+	<circle class="h" cx="78.24" cy="104.5"/>
+	<circle class="c" cx="85" cy="97.7"/>
+    
+	<circle class="h" cx="105.3" cy="35.183"/>
+    
+	<circle class="h" cx="56.52" cy="32.789"/>
+    
+	<circle class="c" cx="33.16" cy="85.53"/>
+	<circle class="h" cx="43.53" cy="93.19"/>
+	<circle class="h" cx="66.52" cy="114.4"/>
+	<circle class="s" cx="73.73" cy="124.7"/>
+	<circle class="s" cx="73.73" cy="124.7"/>
+    <text x="100" y="92">C1</text>
+    <text x="67" y="58">C2</text>
+    <text x="59" y="34">p0</text>
+    <text x="26" y="87">p1</text>
+    <text x="36" y="95">p2</text>
+    <text x="59" y="116">p3</text>
+    <text x="59" y="126">p4 / q2</text>
+    <text x="76" y="114">p5</text>
+    <text x="81" y="105">p6</text>
+    <text x="83" y="66">q0</text>
+    <text x="62" y="83">q1</text>
+    <text x="83" y="121">q3</text>
+    <text x="90" y="110">q4</text>
+</svg>

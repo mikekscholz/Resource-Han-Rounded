@@ -45,7 +45,7 @@ function extendLineRight(line, distance) {
 	return { p1: { x: x1, y: y1 }, p2: { x: x2, y: y2 }};
 }
 
-function postProcess(font, references) {
+function postProcess(font, references, limit) {
 	const dimWght = font.fvar.axes[0].dim;
 	const instanceShsWghtMax = new Map([[dimWght, 1]]);
 	const masterDimWghtMax = { dim: dimWght, min: 0, peak: 1, max: 1 };
@@ -231,7 +231,7 @@ function postProcess(font, references) {
 			originHeavy(topRight.x) - originHeavy(topLeft.x) <= params.strokeWidth.heavy;
 	}
 
-	function isBetween(a, x, b) {
+	function isBetweenPoints(a, x, b) {
 		return originLight(a) <= originLight(x) &&
 			originLight(x) <= originLight(b) + 2 &&
 			originHeavy(a) <= originHeavy(x) &&
@@ -784,8 +784,8 @@ function postProcess(font, references) {
 	for (const glyph of font.glyphs.items) {
 		const name = glyph.name;
 		// if (!references.extendSkip.includes(name)) checkSingleGlyph(glyph);
-		if (!references.extendSkip.includes(name) && !references.nunitoGlyphs.includes(name)) checkSingleGlyph(glyph);
-		// if (name === "uni30EDE") checkSingleGlyph(glyph);
+		if (!references.extendSkip.includes(name) && !references.nunitoGlyphs.includes(name) && (limit === false || count < limit)) checkSingleGlyph(glyph);
+
 		// count++;
 		// if (count % 200 == 0) console.log("postProcessing: ", count, " glyphs processed.");
 	}

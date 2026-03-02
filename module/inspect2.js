@@ -9,7 +9,7 @@ const { writeFileSync, mkdirSync } = require("node:fs");
 // NOTE - Interpolate and render a medium weight between masters.
 const med = true;
 
-const htmlHeader = /*html*/`
+const htmlHeader = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -792,7 +792,7 @@ function circularIndex(array, index) {
 	return isNaN(idx) ? index : idx;
 }
 
-function inspect(font, references, subfamily) {
+function inspect(font, references, subfamily, limit) {
 	const dimWght = font.fvar.axes[0].dim;
 	const instanceShsWghtMax = new Map([[dimWght, 1]]);
 	const instanceShsWghtMed = new Map([[dimWght, 0.5]]);
@@ -808,6 +808,12 @@ function inspect(font, references, subfamily) {
 	const ascender = font.os2.sTypoAscender;
 	const safeTop = font.os2.usWinAscent;
 	const viewportHeight = abs(safeBottom - safeTop);
+	// console.log("safeBottom" + font.os2.usWinDescent);
+	// console.log("descender" + font.os2.sTypoDescender);
+	// console.log("xHeight" + font.os2.sxHeight);
+	// console.log("capsHeight" + font.os2.sCapHeight);
+	// console.log("ascender" + font.os2.sTypoAscender);
+	// console.log("safeTop" + font.os2.usWinAscent);
 
 	function originLight(point) {
 		return Ot.Var.Ops.originOf(point);
@@ -890,9 +896,9 @@ function inspect(font, references, subfamily) {
 					let l0 = pointsLight[idxP - 1];
 					let m0 = pointsMed[idxP - 1];
 					let h0 = pointsHeavy[idxP - 1];
-					let l2 = pointsLight[idxP + 1];
-					let m2 = pointsMed[idxP + 1];
-					let h2 = pointsHeavy[idxP + 1];
+					let l2 = circularArray(pointsLight, idxP + 1);
+					let m2 = circularArray(pointsMed, idxP + 1);
+					let h2 = circularArray(pointsHeavy, idxP + 1);
 					let l3 = circularArray(pointsLight, idxP + 2);
 					let m3 = circularArray(pointsMed, idxP + 2);
 					let h3 = circularArray(pointsHeavy, idxP + 2);
@@ -991,19 +997,19 @@ function inspect(font, references, subfamily) {
 	let len = font.glyphs.items.length;
 	let consoleWidth = process.stdout.columns - 10 || 150
 	let bar = new ProgressBar('\u001b[38;5;82mmakingPreview\u001b[0m [6/6]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete: '\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
-	// let bar = new ProgressBar('\u001b[38;5;82mmakingPreview\u001b[0m [6/6]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete: '\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+	// // // let bar = new ProgressBar('\u001b[38;5;82mmakingPreview\u001b[0m [6/6]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete: '\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
 
 	// function progressTick(info = "") {
-	// 	if (len) {
-	// 		var chunk = 1;
-	// 		bar.tick(chunk);
-	// 		if (bar.curr > 0 && bar.curr < len - 2) {
-	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
-	// 		}
-	// 		if (bar.curr === len - 1) {
-	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
-	// 		}
-	// 	}
+		// if (len) {
+			// var chunk = 1;
+			// bar.tick(chunk);
+			// if (bar.curr > 0 && bar.curr < len - 2) {
+				// bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+			// }
+			// if (bar.curr === len - 1) {
+				// bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+			// }
+		// }
 	// }
 	function progressTick() {
 		if (len) {
@@ -1018,7 +1024,7 @@ function inspect(font, references, subfamily) {
 		}
 	}
 
-	let pages = Math.ceil(len / 500);
+	let pages = Math.ceil(len / 200);
 	let currentHtml;
 	let count = 0;
 	let page = 1;
@@ -1052,7 +1058,7 @@ function inspect(font, references, subfamily) {
 				0, range(totalPages - sideWidth + 1, totalPages));
 	}
 	function newHtml() {
-		let pagination = getPageList(pages, page, 12);
+		let pagination = getPageList(pages, page, 16);
 		let navbar = `
 		<div class="nav-bar">
 			<div class="nav-bar-pages">
@@ -1137,15 +1143,165 @@ function inspect(font, references, subfamily) {
 		// } else {
 		// 	progressTick();
 		// }
-		if (glyph?.geometry?.contours) checkSingleGlyph(glyph, idxG);
+		if (glyph?.geometry?.contours  && (limit === false || count < limit)) checkSingleGlyph(glyph, idxG);
 		count++;
-		if (idxG > 0 && (idxG % 500 === 0 || count === len - 1)) {
+		if (idxG > 0 && (idxG % 200 === 0 || count === len - 1)) {
 			currentHtml += /*html*/`
 			</div>
-			${'<script>var svgPanZoomContainer=function(e){"use strict";const t=(e,t)=>{const n=new DOMMatrix(t.style.transform);return[n.a,e.scrollLeft-n.e,e.scrollTop-n.f]},n=(e,t,n,o,i)=>{const l=Math.round(Math.max(o,0)),r=Math.round(Math.max(i,0));t.setAttribute("transform",t.style.transform=`matrix(${n},0,0,${n},${l-o},${r-i})`),t.style.margin=0,e.scrollLeft=l,e.scrollTop=r,e.scrollLeft!==l&&(t.style.marginRight=`${l}px`,e.scrollLeft=l),e.scrollTop!==r&&(t.style.marginBottom=`${r}px`,e.scrollTop=r)},o=e=>{const t={};if(e)for(const n of e.split(";")){const e=n.indexOf(":");t[n.slice(0,e).trim().replace(/[a-zA-Z0-9_]-[a-z]/g,(e=>e[0]+e[2].toUpperCase()))]=n.slice(e+1).trim()}return t},i=(e,t)=>{const n=e?.closest(`[${t}]`);return n instanceof HTMLElement?[n,o(n.getAttribute(t))]:[]},l=(e,o,i)=>{const l=e.firstElementChild,[r,a,s]=t(e,l);n(e,l,r,a+o,s+i)},r=e=>t(e,e.firstElementChild)[0],a=(e,o,i={})=>{const l=((e,t,n)=>e<t?t:e>n?n:e)(o,i.minScale||1,i.maxScale||10),r=i.origin,a=e.firstElementChild,[s,c,m]=t(e,a);if(l===s)return;const d=l/s-1,u=a.getBoundingClientRect(),f=(r&&r.clientX||0)-u.left,v=(r&&r.clientY||0)-u.top;n(e,a,l,c+d*f,m+d*v)},s=(e,t,n)=>a(e,r(e)*t,n);var c;return c={button:"left"},addEventListener("mousedown",(e=>{if(0!==e.button&&2!==e.button)return;const[t,n]=i(e.target,"data-pan-on-drag");if(!t||!n||!((e,t,n)=>(!t.modifier||e.getModifierState(t.modifier))&&e.button===("right"===(t.button||n.button)?2:0))(e,n,c))return;e.preventDefault();let o=e.clientX*window.devicePixelRatio,r=e.clientY*window.devicePixelRatio;const a=e=>{l(t,o-e.clientX*window.devicePixelRatio,r-e.clientY*window.devicePixelRatio),o=e.clientX*window.devicePixelRatio,r=e.clientY*window.devicePixelRatio,e.preventDefault()},s=e=>e.preventDefault(),m=()=>{removeEventListener("mouseup",m),removeEventListener("mousemove",a),setTimeout((()=>removeEventListener("contextmenu",s)))};addEventListener("mouseup",m),addEventListener("mousemove",a),addEventListener("contextmenu",s)})),((e,t,n={})=>{n.noEmitStyle||((document.head||document.body||document.documentElement).appendChild(document.createElement("style")).textContent=`[${e}]{overflow:scroll}[${e}]>:first-child{width:100%;height:100%;vertical-align:middle;transform-origin:0 0}`),addEventListener("wheel",(n=>{const[o,l]=i(n.target,e);if(o instanceof HTMLElement){const e=+l.zoomAmount||t.zoomAmount;s(o,(1+e)**-n.deltaY,{origin:n,minScale:+l.minScale||t.minScale,maxScale:+l.maxScale||t.maxScale}),n.preventDefault()}}),{passive:!1}),addEventListener("resize",(()=>{const t=document.querySelectorAll(`[${e}]`);for(let n=0;n<t.length;n++){const i=t[n];if(i instanceof HTMLElement){const t=o(i.getAttribute(e));s(i,1,t)}}}))})("data-zoom-on-wheel",{minScale:1,maxScale:10,zoomAmount:.002}),e.getScale=r,e.pan=l,e.resetScale=e=>{const t=e.firstElementChild;t.style.margin=e.scrollLeft=e.scrollTop=0,t.removeAttribute("transform"),t.style.transform=""},e.setScale=a,e.zoom=s,Object.defineProperty(e,"__esModule",{value:!0}),e}({});</script>'}
-			<script>
-				const { pan, zoom, getScale, setScale, resetScale } = svgPanZoomContainer;
-			</script>
+			${`<script>var svgPanZoomContainer = (function (exports) {
+				'use strict';
+			
+				const clamp = (value, min, max) => value < min ? min : value > max ? max : value;
+				const getScaleAndOffset = (container, content) => {
+					const matrix = new DOMMatrix(content.style.transform);
+					return [matrix.a, container.scrollLeft - matrix.e, container.scrollTop - matrix.f];
+				};
+				const setScaleAndOffset = (container, content, scale, offsetX, offsetY) => {
+					const scrollX = Math.round(Math.max(offsetX, 0));
+					const scrollY = Math.round(Math.max(offsetY, 0));
+					content.setAttribute('transform', content.style.transform = \`matrix(\${scale},0,0,\${scale},\${scrollX - offsetX},\${scrollY - offsetY})\`);
+					content.style.margin = 0;
+					container.scrollLeft = scrollX;
+					container.scrollTop = scrollY;
+					if (container.scrollLeft !== scrollX) {
+						content.style.marginRight = \`\${scrollX}px\`;
+						container.scrollLeft = scrollX;
+					}
+					if (container.scrollTop !== scrollY) {
+						content.style.marginBottom = \`\${scrollY}px\`;
+						container.scrollTop = scrollY;
+					}
+				};
+				const parseOptions = (optionsString) => {
+					const options = {};
+					if (optionsString) {
+						for (const s of optionsString.split(';')) {
+							const index = s.indexOf(':');
+							options[s.slice(0, index).trim().replace(/[a-zA-Z0-9_]-[a-z]/g, $0 => $0[0] + $0[2].toUpperCase())] = s.slice(index + 1).trim();
+						}
+					}
+					return options;
+				};
+				const findTargetAndParseOptions = (element, attributeName) => {
+					const target = element?.closest(\`[\${attributeName}]\`);
+					return target instanceof HTMLElement ? [target, parseOptions(target.getAttribute(attributeName))] : [];
+				};
+			
+				const pan = (container, deltaX, deltaY) => {
+					const content = container.firstElementChild;
+					const [scale, previousOffsetX, previousOffsetY] = getScaleAndOffset(container, content);
+					setScaleAndOffset(container, content, scale, previousOffsetX + deltaX, previousOffsetY + deltaY);
+				};
+			
+				const panOnDrag = (attributeName, defaultOptions) => {
+					addEventListener('mousedown', event => {
+						if (event.button !== 0 && event.button !== 2) {
+							return;
+						}
+						const [target, options] = findTargetAndParseOptions(event.target, attributeName);
+						if (!target || !options || !isPanButtonPressed(event, options, defaultOptions)) {
+							return;
+						}
+						event.preventDefault();
+						let previousClientX = event.clientX;
+						let previousClientY = event.clientY;
+						const onMouseMove = (event) => {
+							pan(target, previousClientX - event.clientX, previousClientY - event.clientY);
+							previousClientX = event.clientX;
+							previousClientY = event.clientY;
+							event.preventDefault();
+						};
+						const preventDefault = (event) => event.preventDefault();
+						const onMouseUp = () => {
+							removeEventListener('mouseup', onMouseUp);
+							removeEventListener('mousemove', onMouseMove);
+							setTimeout(() => removeEventListener('contextmenu', preventDefault));
+						};
+						addEventListener('mouseup', onMouseUp);
+						addEventListener('mousemove', onMouseMove);
+						addEventListener('contextmenu', preventDefault);
+					});
+				};
+				const isPanButtonPressed = (event, options, defaultOptions) => (!options.modifier || event.getModifierState(options.modifier)) &&
+					event.button === ((options.button || defaultOptions.button) === 'right' ? 2 : 0);
+			
+				const getScale = (container) => getScaleAndOffset(container, container.firstElementChild)[0];
+				const setScale = (container, value, options = {}) => {
+					const scale = clamp(value, options.minScale || 1, options.maxScale || 10);
+					const origin = options.origin;
+					const content = container.firstElementChild;
+					const [previousScale, previousOffsetX, previousOffsetY] = getScaleAndOffset(container, content);
+					if (scale === previousScale) {
+						return;
+					}
+					const offsetScale = scale / previousScale - 1;
+					const previousClientRect = content.getBoundingClientRect();
+					const centerOffsetX = (origin && origin.clientX || 0) - previousClientRect.left;
+					const centerOffsetY = (origin && origin.clientY || 0) - previousClientRect.top;
+					const offsetX = previousOffsetX + offsetScale * centerOffsetX;
+					const offsetY = previousOffsetY + offsetScale * centerOffsetY;
+					setScaleAndOffset(container, content, scale, offsetX, offsetY);
+				};
+				const resetScale = (container) => {
+					const content = container.firstElementChild;
+					content.style.margin = container.scrollLeft = container.scrollTop = 0;
+					content.removeAttribute('transform');
+					content.style.transform = '';
+				};
+				const zoom = (container, ratio, options) => setScale(container, getScale(container) * ratio, options);
+			
+				const zoomOnWheel = (attributeName, defaultOptions, initializationOptions = {}) => {
+					if (!initializationOptions.noEmitStyle) {
+						(document.head || document.body || document.documentElement)
+							.appendChild(document.createElement('style'))
+							.textContent = \`[\${attributeName}]{overflow:scroll}[\${attributeName}]>:first-child{width:100%;height:100%;vertical-align:middle;transform-origin:0 0}\`;
+					}
+					addEventListener('wheel', event => {
+						const [target, options] = findTargetAndParseOptions(event.target, attributeName);
+						if (target instanceof HTMLElement) {
+							const zoomAmount = +options.zoomAmount || defaultOptions.zoomAmount;
+							zoom(target, (1 + zoomAmount) ** -event.deltaY, {
+								origin: event,
+								minScale: +options.minScale || defaultOptions.minScale,
+								maxScale: +options.maxScale || defaultOptions.maxScale,
+							});
+							event.preventDefault();
+						}
+					}, { passive: false });
+					addEventListener('resize', () => {
+						const targets = document.querySelectorAll(\`[\${attributeName}]\`);
+						for (let i = 0; i < targets.length; i++) {
+							const target = targets[i];
+							if (target instanceof HTMLElement) {
+								const options = parseOptions(target.getAttribute(attributeName));
+								zoom(target, 1, options);
+							}
+						}
+					});
+				};
+			
+				panOnDrag('data-pan-on-drag', {
+					button: 'left',
+				});
+				zoomOnWheel('data-zoom-on-wheel', {
+					minScale: 1,
+					maxScale: 10,
+					zoomAmount: .002,
+				});
+			
+				exports.getScale = getScale;
+				exports.pan = pan;
+				exports.resetScale = resetScale;
+				exports.setScale = setScale;
+				exports.setScaleAndOffset = setScaleAndOffset;
+				exports.zoom = zoom;
+			
+				Object.defineProperty(exports, '__esModule', { value: true });
+			
+				return exports;
+			
+			})({});
+			const { pan, zoom, getScale, setScale, resetScale, setScaleAndOffset } = svgPanZoomContainer;</script>`}
 			<script>
 				function cssVariableGet(variable) {
 					let root = document.querySelector(':root');

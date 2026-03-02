@@ -7,7 +7,7 @@ const { abs, ceil, floor, pow, round, sqrt, trunc } = Math;
 
 const path = require("path");
 const fsp = require("fs/promises");
-const { writeFileSync, mkdirSync } = require("node:fs");
+const { readFileSync, writeFileSync, mkdirSync } = require("node:fs");
 const writeFile = async(filename, data, increment = 0) => {
 	// const name = `/mnt/c/Users/Michael/${path.basename(filename, path.extname(filename))}${"(" + increment + ")" || ""}${path.extname(filename)}`;
 	const name = `${path.dirname(filename)}/${path.basename(filename, path.extname(filename))}${ increment ? "(" + increment + ")" : ""}${path.extname(filename)}`;
@@ -53,6 +53,7 @@ function angle(line) {
 function convert(font, references) {
 	const dimWght = font.fvar.axes[0].dim;
 	const instanceShsWghtMax = new Map([[dimWght, 1]]);
+	const instanceShsWghtBold = new Map([[dimWght, 0.8125]]);
 	const masterDimWghtMax = { dim: dimWght, min: 0, peak: 1, max: 1 };
 	const masterWghtMax = new Ot.Var.Master([masterDimWghtMax]);
 	const masterSet = new Ot.Var.MasterSet();
@@ -63,12 +64,20 @@ function convert(font, references) {
 		return Ot.Var.Ops.originOf(point);
 	}
 	
+	function originBold(point) {
+		return Ot.Var.Ops.evaluate(point, instanceShsWghtBold);
+	}
+	
 	function originHeavy(point) {
 		return Ot.Var.Ops.evaluate(point, instanceShsWghtMax);
 	}
 	
 	function pointLight(p) {
 		return { x: originLight(p?.x) ?? p.x, y: originLight(p?.y) ?? p.x };
+	}
+	
+	function pointBold(p) {
+		return { x: originBold(p.x), y: originBold(p.y) };
 	}
 	
 	function pointHeavy(p) {
@@ -120,137 +129,6 @@ function convert(font, references) {
 			originHeavy(topRight.x) - originHeavy(topLeft.x) <= params.strokeWidth.heavy;
 	}
 	
-	//             1            
-	//             ●            
-	//           .    .         
-	// 3     2 .         .      
-	// ●  .  ●              .  0
-	// 4                       ●
-	// ●                        
-	function canBeLeftFalling(topRight, topPeak, topLeft, flatLeft, downLeft, leftC1, leftC2, bottomLeft, bottomRight, rightC1, rightC2) {
-		return topRight.kind == 0 && topPeak.kind == 0 && topLeft.kind == 0 && flatLeft.kind == 0 && downLeft.kind == 0 &&
-		leftC1.kind == 1 && leftC2.kind == 2 && bottomLeft.kind == 0 && bottomRight.kind == 0 && rightC1.kind == 1 && rightC2.kind == 2 &&
-		originLight(topRight.x) - originLight(topPeak.x) > 0 &&
-		originLight(topPeak.x) - originLight(topLeft.x) > 0 &&
-		originLight(topLeft.x) - originLight(flatLeft.x) > 0 &&
-		originLight(flatLeft.x) - originLight(downLeft.x) == 0 &&
-		originLight(topRight.y) - originLight(topPeak.y) <= 0 &&
-		originLight(topPeak.y) - originLight(topLeft.y) > 0 &&
-		originLight(topLeft.y) - originLight(flatLeft.y) == 0 &&
-		originLight(flatLeft.y) - originLight(downLeft.y) > 0 &&
-		originLight(topRight.y) > originLight(bottomRight.y) &&
-		originLight(topRight.x) > originLight(bottomRight.x) &&
-		originLight(downLeft.y) > originLight(bottomLeft.y) &&
-		originLight(downLeft.x) > originLight(bottomLeft.x);
-	}
-	
-	//            2              
-	//            ●              
-	//         .     .           
-	//      .            .       
-	// 3 .   4               .  1
-	// ●  .  ●                  ●
-	//                         0 
-	//                         ● 
-	function canBeLeftFalling2(topRight, farRight, topPeak, farLeft, topLeft, leftC1, leftC2, bottomLeft, bottomRight, rightC1, rightC2) {
-		return topRight.kind == 0 && farRight.kind == 0 && topPeak.kind == 0 && farLeft.kind == 0 && topLeft.kind == 0 &&
-		leftC1.kind == 1 && leftC2.kind == 2 && bottomLeft.kind == 0 && bottomRight.kind == 0 && rightC1.kind == 1 && rightC2.kind == 2 &&
-		originLight(topRight.x) - originLight(farRight.x) < 0 &&
-		originLight(farRight.x) - originLight(topPeak.x) > 0 &&
-		originLight(topPeak.x) - originLight(farLeft.x) > 0 &&
-		originLight(farLeft.x) - originLight(topLeft.x) < 0 &&
-		originLight(topRight.y) - originLight(farRight.y) < 0 &&
-		originLight(farRight.y) - originLight(topPeak.y) < 0 &&
-		originLight(topPeak.y) - originLight(farLeft.y) > 0 &&
-		abs(originLight(farLeft.y) - originLight(topLeft.y)) <= 2 &&
-		originLight(topRight.y) > originLight(bottomRight.y) &&
-		originLight(topRight.x) > originLight(bottomRight.x) &&
-		originLight(topLeft.y) > originLight(bottomLeft.y) &&
-		originLight(topLeft.x) > originLight(bottomLeft.x);
-	}
-	
-	//            2              
-	//            ●              
-	//      3  .     .           
-	//      ●            .       
-	// 4 .   5               .  1
-	// ●  .  ●                  ●
-	//                         0 
-	//                         ● 
-	// function canBeLeftFalling2b(topRight, farRight, topPeak, slopeLeft, farLeft, topLeft, leftC1, leftC2, bottomLeft, bottomRight, rightC1, rightC2) {
-	function canBeLeftFalling2b(topRight, farRight, topPeak, slopeLeft, farLeft, topLeft) {
-		return topRight.kind == 0 && farRight.kind == 0 && topPeak.kind == 0 && slopeLeft.kind == 0 && farLeft.kind == 0 && topLeft.kind == 0 &&
-		// leftC1.kind == 1 && leftC2.kind == 2 && bottomLeft.kind == 0 && bottomRight.kind == 0 && rightC1.kind == 1 && rightC2.kind == 2 &&
-		originLight(topRight.x) < originLight(farRight.x) &&
-		originLight(farRight.x) > originLight(topPeak.x) &&
-		originLight(topPeak.x) > originLight(slopeLeft.x) &&
-		originLight(slopeLeft.x) > originLight(farLeft.x) &&
-		originLight(farLeft.x) < originLight(topLeft.x) &&
-		originLight(topRight.y) < originLight(farRight.y) &&
-		originLight(farRight.y) < originLight(topPeak.y) &&
-		originLight(topPeak.y) > originLight(slopeLeft.y) &&
-		originLight(slopeLeft.y) > originLight(farLeft.y) 
-		// &&
-		// abs(originLight(farLeft.y) - originLight(topLeft.y)) <= 4 
-		// &&
-		// originLight(topRight.y) > originLight(bottomRight.y) &&
-		// originLight(topRight.x) > originLight(bottomRight.x) &&
-		// originLight(topLeft.y) > originLight(bottomLeft.y) &&
-		// originLight(topLeft.x) > originLight(bottomLeft.x);
-	}
-	
-	//            1              
-	//            ●              
-	//         .     .           
-	//      .            .       
-	// 2 .                   .  0
-	// ●                        ●
-	// ●                         
-	// 3                         
-	function canBeLeftFalling3(topRight, topPeak, topLeft, downLeft, leftC1, leftC2, bottomLeft, bottomRight, rightC1, rightC2) {
-		return topRight.kind == 0 && topPeak.kind == 0 && topLeft.kind == 0 && downLeft.kind == 0 &&
-		leftC1.kind == 1 && leftC2.kind == 2 && bottomLeft.kind == 0 && bottomRight.kind == 0 && rightC1.kind == 1 && rightC2.kind == 2 &&
-		originLight(topRight.x) - originLight(topPeak.x) > 0 &&
-		originLight(topPeak.x) - originLight(topLeft.x) > 0 &&
-		originLight(topLeft.x) - originLight(downLeft.x) === 0 &&
-		originLight(topRight.y) - originLight(topPeak.y) < 0 &&
-		originLight(topPeak.y) - originLight(topLeft.y) > 0 &&
-		originLight(topLeft.y) - originLight(downLeft.y) > 0 &&
-		originLight(topRight.y) > originLight(bottomRight.y) &&
-		originLight(topRight.x) > originLight(bottomRight.x) &&
-		originLight(downLeft.y) > originLight(bottomLeft.y) &&
-		originLight(downLeft.x) > originLight(bottomLeft.x);
-	}
-	
-	//               4               
-	//               ●               
-	//           .        .          
-	//  6   5 .                .    3
-	//  ●   ●                     2 ●
-	//                          1 ○   
-	//                        0 ○     
-	//                        ●       
-	function canBeLeftFalling4(rightC2, topRight, topRightC1, topRightC2, farRight, topPeak, topLeft, flatLeft, leftC1) {
-		return rightC2.kind == 2 && topRight.kind == 0 && topRightC1.kind == 1 && topRightC2.kind == 2 &&
-		farRight.kind == 0 && topPeak.kind == 0 && topLeft.kind == 0 && flatLeft.kind == 0 && leftC1.kind == 1 &&
-		originLight(rightC2.x) < originLight(topRight.x) &&
-		originLight(rightC2.y) < originLight(topRight.y) &&
-		originLight(topRight.x) < originLight(topRightC1.x) &&
-		originLight(topRight.y) <= originLight(topRightC1.y) &&
-		originLight(topRightC1.x) < originLight(topRightC2.x) &&
-		originLight(topRightC1.y) < originLight(topRightC2.y) &&
-		originLight(topRightC2.x) < originLight(farRight.x) &&
-		originLight(topRightC2.y) < originLight(farRight.y) &&
-		originLight(farRight.x) > originLight(topPeak.x) &&
-		originLight(farRight.y) < originLight(topPeak.y) &&
-		originLight(topPeak.x) > originLight(topLeft.x) &&
-		originLight(topPeak.y) > originLight(topLeft.y) &&
-		originLight(topLeft.x) > originLight(flatLeft.x) &&
-		abs(originLight(topLeft.y) - originLight(flatLeft.y)) < 3 &&
-		originLight(flatLeft.x) > originLight(leftC1.x) &&
-		originLight(flatLeft.y) > originLight(leftC1.y)
-	}
-	
 	function approxEq(a, b, threshold = 5, thresholdHeavy = false) {
 		if (typeof a == 'number' && typeof b == 'number')
 			return abs(a - b) <= threshold;
@@ -258,7 +136,7 @@ function convert(font, references) {
 			abs(originHeavy(a) - originHeavy(b)) <= (thresholdHeavy || threshold);
 	}
 
-	function isBetween(a, x, b) {
+	function isBetweenPoints(a, x, b) {
 		return (originLight(a) - 2) <= originLight(x) &&
 			originLight(x) <= (originLight(b) + 2) &&
 			(originHeavy(a) - 2) <= originHeavy(x) &&
@@ -412,11 +290,6 @@ function convert(font, references) {
 				}
 			}
 			newContour.reverseContour();
-			// if (name === "D") console.log(JSON.stringify(newContour, null, "  "));
-			// if (["numbersign","registered"].includes(name)) {
-				
-			// }
-			if (name === "D") console.log(newContour);
 			glyph.geometry.contours.push(newContour);
 		}
 		
@@ -426,20 +299,20 @@ function convert(font, references) {
 			let pointsArray = [];
 			for (let point of contour) {
 				let light = pointLight(point);
-				let heavy = pointHeavy(point);
-				let lx = parseFloat(originLight(light.x).toFixed(2));
-				let hx = parseFloat(originLight(heavy.x).toFixed(2));
-				let ly = parseFloat(originLight(light.y).toFixed(2));
-				let hy = parseFloat(originLight(heavy.y).toFixed(2));
+				let heavy = pointBold(point);
+				let lx = parseFloat(light.x.toFixed(2));
+				let hx = parseFloat(heavy.x.toFixed(2));
+				let ly = parseFloat(light.y.toFixed(2));
+				let hy = parseFloat(heavy.y.toFixed(2));
 				pointsArray.push({ x: [lx, hx], y: [ly, hy], kind: point.kind});
 			}
 			contoursArray.push(pointsArray);
 		}
 		
 		let hStartLight = originLight(glyph.horizontal.start);
-		let hStartHeavy = originHeavy(glyph.horizontal.start) || hStartLight;
+		let hStartHeavy = originBold(glyph.horizontal.start) || hStartLight;
 		let hEndLight = originLight(glyph.horizontal.end);
-		let hEndHeavy = originHeavy(glyph.horizontal.end) || hEndLight;
+		let hEndHeavy = originBold(glyph.horizontal.end) || hEndLight;
 		let glyphData = {
 			horizontal: { start: [hStartLight, hStartHeavy], end: [hEndLight, hEndHeavy]},
 			contours: contoursArray
@@ -499,41 +372,26 @@ function convert(font, references) {
 			}
 		}
 	}
-	let names = "";
+
 	let namesArray = [];
 	let count = 0;
 	for (const glyph of font.glyphs.items) {
 		const name = glyph.name;
-		// if (name === "A") {
-			// console.log(font);
-			// console.log(JSON.stringify(font));
-		// }
-		names += `${name}`;
-		namesArray.push(name);
-		// if (glyph?.geometry?.contours) {
-		// 	let data = JSON.stringify(glyph.geometry.contours);
-		// 	let filename = `/home/mike/Resource-Han-Rounded/replacements/${name}.json`;
-		// 	writeFile(filename, data);
-		// }
-		// console.log(name);
-		progressTick(name);
-		// if (!references.extendSkip.includes(name)) 
-		checkSingleGlyph(glyph);
-		// count++;
-		// if (count % 1000 == 0) console.log("preExtension:", count, "glyphs processed.");
-	}
-	// let filename = `/mnt/c/Users/Michael/ResourceHanRounded/Nunito_character_names.txt`;
-	// writeFile(filename, names);
-	// writeFileSync(filename, names, { flush: true });
 
-	// let arrayname = `/mnt/c/Users/Michael/ResourceHanRounded/Nunito/nunitoGlyphNames.json`;
-	// let arrayData = JSON.stringify(namesArray);
-	// writeFileSync(arrayname, arrayData, { flush: true });
+		namesArray.push(name);
+
+		progressTick(name);
+		checkSingleGlyph(glyph);
+
+	}
+
+	let arrayname = `${__dirname}/nunitoGlyphNames.json`;
+	let arrayData = JSON.stringify(namesArray);
+	writeFileSync(arrayname, arrayData, { flush: true });
 	
-	let nunitoJson = `/mnt/c/Users/Michael/Git/Resource-Han-Rounded/module/nunito.json`;
+	let nunitoJson = `${__dirname}/nunito.json`;
 	let nunitoData = JSON.stringify(glyphsJson, null, "\t");
 	writeFileSync(nunitoJson, nunitoData, { flush: true });
-	// delete references.skipRedundantPoints;
 }
 
 module.exports = {

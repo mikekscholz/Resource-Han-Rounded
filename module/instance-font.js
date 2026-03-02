@@ -48,7 +48,7 @@ function instanceFont(font, parameters) {
 	font.fvar = font.avar = font.stat = null;
 }
 
-function roundCoordinate(font, precision = 1) {
+function roundCoordinate(font, precision = 32) {
 	const rectifier = x => roundTo(x, precision);
 	Rectify.inPlaceRectifyFontCoords(
 		{ coord: rectifier, cv: rectifier },

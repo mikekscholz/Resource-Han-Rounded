@@ -118,7 +118,7 @@ function extendShortStroke(font) {
 		Ot.Var.Ops.originOf(flatLeft.y) - Ot.Var.Ops.originOf(downLeft.y) > 0;
 	}
 
-	function isBetween(a, x, b) {
+	function isBetweenPoints(a, x, b) {
 		return Ot.Var.Ops.originOf(a) <= Ot.Var.Ops.originOf(x) &&
 			Ot.Var.Ops.originOf(x) <= Ot.Var.Ops.originOf(b) + 2 &&
 			Ot.Var.Ops.evaluate(a, instanceShsWghtMax) <= Ot.Var.Ops.evaluate(x, instanceShsWghtMax) &&
@@ -195,8 +195,8 @@ function extendShortStroke(font) {
 									//    ┆  ⇨  │
 									// ───┼──┘  │
 									//    │     │
-									isBetween(verticalTopLeft.x, horizontalTopRight.x, verticalTopRight.x) &&
-									isBetween(verticalBottomRight.y, horizontalTopRight.y, verticalTopRight.y)
+									isBetweenPoints(verticalTopLeft.x, horizontalTopRight.x, verticalTopRight.x) &&
+									isBetweenPoints(verticalBottomRight.y, horizontalTopRight.y, verticalTopRight.y)
 								) {
 									newContour[bottomRightIdx] = {
 										x: makeVariance(
@@ -223,8 +223,8 @@ function extendShortStroke(font) {
 									// │  ⇦  ┊   
 									// │  └──┼───
 									// │     │   
-									isBetween(verticalTopLeft.x, horizontalTopLeft.x, verticalTopRight.x) &&
-									isBetween(verticalBottomRight.y, horizontalTopLeft.y, verticalTopRight.y)
+									isBetweenPoints(verticalTopLeft.x, horizontalTopLeft.x, verticalTopRight.x) &&
+									isBetweenPoints(verticalBottomRight.y, horizontalTopLeft.y, verticalTopRight.y)
 								) {
 									newContour[bottomLeftIdx] = {
 										x: makeVariance(
@@ -258,8 +258,8 @@ function extendShortStroke(font) {
 								const verticalTopLeft = circularArray(ctr, ctrIdx - 1);
 								if (
 									// and 横's (horizontal's) right end inside 竖 (vertical)
-									isBetween(verticalBottomLeft.x, horizontalTopRight.x, verticalBottomRight.x) &&
-									isBetween(verticalBottomRight.y, horizontalTopRight.y, verticalTopRight.y)
+									isBetweenPoints(verticalBottomLeft.x, horizontalTopRight.x, verticalBottomRight.x) &&
+									isBetweenPoints(verticalBottomRight.y, horizontalTopRight.y, verticalTopRight.y)
 								) {
 									newContour[topRightIdx] = {
 										x: makeVariance(
@@ -342,8 +342,8 @@ function extendShortStroke(font) {
 								if (
 									// and 竖's (vertical's) bottom inside 横's (horizontal's) left end
 									Ot.Var.Ops.originOf(horizontalTopLeft.x) <= Ot.Var.Ops.originOf(verticalBottomRight.x) &&
-									// isBetween(horizontalTopLeft.x, verticalBottomRight.x, horizontalTopRight.x) &&
-									isBetween(horizontalBottomLeft.y, verticalBottomLeft.y, horizontalTopLeft.y)
+									// isBetweenPoints(horizontalTopLeft.x, verticalBottomRight.x, horizontalTopRight.x) &&
+									isBetweenPoints(horizontalBottomLeft.y, verticalBottomLeft.y, horizontalTopLeft.y)
 								) {
 									newContour[bottomLeftIdx] = {
 										x: makeVariance(
@@ -373,8 +373,8 @@ function extendShortStroke(font) {
 								// if (
 								// 	// and 竖's (vertical's) top inside 横's (horizontal's) left end
 								// 	// Ot.Var.Ops.originOf(horizontalBottomLeft.x) <= Ot.Var.Ops.originOf(verticalTopLeft.x) &&
-								// 	isBetween(horizontalTopLeft.x, verticalBottomRight.x, horizontalTopRight.x) &&
-								// 	isBetween(horizontalBottomLeft.y, verticalTopLeft.y, horizontalTopRight.y)
+								// 	isBetweenPoints(horizontalTopLeft.x, verticalBottomRight.x, horizontalTopRight.x) &&
+								// 	isBetweenPoints(horizontalBottomLeft.y, verticalTopLeft.y, horizontalTopRight.y)
 								// ) {
 								// 	newContour[topRightIdx] = {
 								// 		x: verticalTopRight.x,
@@ -481,8 +481,8 @@ function extendShortStroke(font) {
 									// ├─⇧─┐
 									// ├╌╌╌┤────
 									// │   │
-									isBetween(horizontalTopLeft.x, verticalBottomRight.x, horizontalTopRight.x) &&
-									isBetween(horizontalBottomLeft.y, verticalTopLeft.y, horizontalTopRight.y)
+									isBetweenPoints(horizontalTopLeft.x, verticalBottomRight.x, horizontalTopRight.x) &&
+									isBetweenPoints(horizontalBottomLeft.y, verticalTopLeft.y, horizontalTopRight.y)
 								) {
 									newContour[topRightIdx] = {
 										x: verticalTopRight.x,
@@ -538,8 +538,8 @@ function extendShortStroke(font) {
 								const verticalBottomRight = circularArray(ctr, ctrIdx - 1);
 								if (
 									// and 横's (horizontal's) left end inside 竖 (vertical)
-									isBetween(verticalTopLeft.x, horizontalTopLeft.x, verticalTopRight.x) &&
-									isBetween(verticalBottomRight.y, horizontalTopLeft.y, verticalTopRight.y)
+									isBetweenPoints(verticalTopLeft.x, horizontalTopLeft.x, verticalTopRight.x) &&
+									isBetweenPoints(verticalBottomRight.y, horizontalTopLeft.y, verticalTopRight.y)
 								) {
 									newContour[topLeftIdx] = {
 										x: makeVariance(
@@ -571,8 +571,8 @@ function extendShortStroke(font) {
 								const verticalTopLeft = circularArray(ctr, ctrIdx - 1);
 								if (
 									// and 横's (horizontal's) left end inside 竖 (vertical)
-									isBetween(verticalBottomLeft.x, horizontalTopLeft.x, verticalBottomRight.x) &&
-									isBetween(verticalBottomRight.y, horizontalTopLeft.y, verticalTopRight.y)
+									isBetweenPoints(verticalBottomLeft.x, horizontalTopLeft.x, verticalBottomRight.x) &&
+									isBetweenPoints(verticalBottomRight.y, horizontalTopLeft.y, verticalTopRight.y)
 								) {
 									newContour[topLeftIdx] = {
 										x: makeVariance(

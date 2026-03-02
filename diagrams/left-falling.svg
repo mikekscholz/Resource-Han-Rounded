@@ -1,0 +1,96 @@
+<svg width="500px" version="1.2" viewBox="0 -3 170 130" xmlns="http://www.w3.org/2000/svg">
+	<defs>
+		<style>
+			svg {
+				background-color:#0007;
+			}
+			.handle-line {
+				stroke:#fff;
+				stroke-dasharray:0.8px 1px;
+				stroke-width:0.4;
+				stroke-linecap:round;
+				stroke-dashoffset:0;
+			}
+			text {
+				fill:#fff;
+				font-size:5px;
+				font-family:Nunito,sans-serif;
+				text-anchor: middle;
+			}
+			circle, .hc {
+				r:1.8;
+				stroke:currentColor;
+				fill:currentColor;
+				fill-opacity:0.7;
+				stroke-width:1;
+			}
+			.c {
+				color:#e06;
+			}
+			.h {
+				color:#9e0;
+			}
+			.s {
+				color:#0cf;
+			}
+			.g {
+				color:#888;
+			}
+			.f {
+				opacity: 50%
+			}
+			.gs {
+				fill: none;
+				stroke: #666;
+				stroke-dasharray: 1 1;
+				stroke-width:.5;
+				stroke-linecap:round;
+			}
+			.ga {
+				fill: none;
+				stroke: #666;
+				stroke-dasharray: none;
+				stroke-width:1;
+				stroke-linecap:round;
+				stroke-linejoin: round;
+			}
+			.gt {
+				fill:#666;
+				font-size:4px;
+				font-weight: 700;
+				font-family:Nunito,sans-serif;
+				transform-box: fill-box;
+				transform-origin: center;
+			}
+		</style>
+		<marker
+			id="arrow"
+			viewBox="0 0 10 12"
+			refX="4"
+			refY="5"
+			markerUnits="strokeWidth"
+			markerWidth="10"
+			markerHeight="12"
+			orient="auto" class="ga">
+			<path d="M 4,2 8,5 4,8 M 8, 5 L 1, 5" />
+		</marker>
+	</defs>
+	<path class="" d="m53.77 12.17v20.45c-16.5 56.51-61.71 147.8-112.1 210.6 22.6 11.3 55.43 33.37 74.09 48.62 55.07-71.22 108.9-169.9 136-249.2l-62.79-33.91-15.43 3.409h-19.73" fill="#fff1" stroke="#fff6" stroke-width=".5"/>
+	<path class="f" d="m-143.9 12.17v82.17h232.3v-82.17h-232.3" fill="#ffffff11" stroke="#fff2" stroke-width=".5"/>
+	<path class="handle-line" d="m124.6 122 27.11-79.35"/>
+	<path class="handle-line" d="m37.25 89.19 16.52-56.57"/>
+	<circle class="h" cx="37.25" cy="89.19"/>
+	<circle class="h" cx="124.6" cy="122"/>
+	<circle class="c" cx="53.77" cy="32.62"/>
+	<circle class="s" cx="53.77" cy="12.17"/>
+	<circle class="c" cx="73.5" cy="12.17"/>
+	<circle class="g f" cx="88.39" cy="12.17"/>
+	<circle class="c" cx="88.93" cy="8.763"/>
+	<circle class="g f" cx="88.39" cy="94.34"/>
+	<circle class="c" cx="151.7" cy="42.67"/>
+	<text x="151.7" y="38.67">0</text>
+	<text x="88.93" y="4.763">1</text>
+	<text x="73.5" y="8.17">2</text>
+	<text x="53.77" y="8.17">3</text>
+	<text x="47.77" y="34.3">4</text>
+</svg>
