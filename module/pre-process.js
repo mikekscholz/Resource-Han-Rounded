@@ -2644,23 +2644,47 @@ function preProcess(font, references, limit) {
 					let p5H = point2GeoJsonHeavy(p5);
 					let p6H = point2GeoJsonHeavy(p6);
 					let p7H = point2GeoJsonHeavy(p7);
-					let r1 = false;
-					let r2 = false;
-					let r5 = false;
-					let r6 = false;
-					for (const [idxC2, contour2] of oldContours.entries()) {
-						if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
-						let polygonLight = polyGlyphLight[idxC2];
-						let polygonHeavy = polyGlyphHeavy[idxC2];
-						if (inside(p1L, polygonLight) !== false && inside(p1H, polygonHeavy) !== false) r1 = true;
-						if (inside(p2L, polygonLight) !== false && inside(p2H, polygonHeavy) !== false) r2 = true;
-						if (inside(p5L, polygonLight) !== false && inside(p5H, polygonHeavy) !== false) r5 = true;
-						if (inside(p6L, polygonLight) !== false && inside(p6H, polygonHeavy) !== false) r6 = true;
-					}
 					let curve1L = bezierGeoJson(p1L, p0L, p7L, p6L);
 					let curve2L = bezierGeoJson(p2L, p3L, p4L, p5L);
 					let curve1H = bezierGeoJson(p1H, p0H, p7H, p6H);
 					let curve2H = bezierGeoJson(p2H, p3H, p4H, p5H);
+					let curveLength1L = curve1L.length();
+					let curveLength2L = curve2L.length();
+					let curveLength1H = curve1H.length();
+					let curveLength2H = curve2H.length();
+					let sideLength1L = geometric.lineLength([p1L, p6L]);
+					let sideLength2L = geometric.lineLength([p2L, p5L]);
+					let sideLength1H = geometric.lineLength([p1H, p6H]);
+					let sideLength2H = geometric.lineLength([p2H, p5H]);
+					let endLength1L = geometric.lineLength([p1L, p2L]);
+					let endLength2L = geometric.lineLength([p5L, p6L]);
+					let endLength1H = geometric.lineLength([p1H, p2H]);
+					let endLength2H = geometric.lineLength([p5H, p6H]);
+					let curvature1L = sideLength1L / curveLength1L;
+					let curvature2L = sideLength2L / curveLength2L;
+					let curvature1H = sideLength1H / curveLength1H;
+					let curvature2H = sideLength2H / curveLength2H;
+					let edge1 = false;
+					let edge2 = false;
+					let edge5 = false;
+					let edge6 = false;
+					let inside1;
+					let inside2;
+					let inside5;
+					let inside6;
+					for (const [idxC2, contour2] of oldContours.entries()) {
+						if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
+						let polygonLight = polyGlyphLight[idxC2];
+						let polygonHeavy = polyGlyphHeavy[idxC2];
+						if (inside(p1L, polygonLight) === 0 || inside(p1H, polygonHeavy) === 0) edge1 = true;
+						if (inside(p2L, polygonLight) === 0 || inside(p2H, polygonHeavy) === 0) edge2 = true;
+						if (inside(p5L, polygonLight) === 0 || inside(p5H, polygonHeavy) === 0) edge5 = true;
+						if (inside(p6L, polygonLight) === 0 || inside(p6H, polygonHeavy) === 0) edge6 = true;
+						if (inside(p1L, polygonLight) === true && inside(p1H, polygonHeavy) === true) inside1 ??= idxC2;
+						if (inside(p2L, polygonLight) === true && inside(p2H, polygonHeavy) === true) inside2 ??= idxC2;
+						if (inside(p5L, polygonLight) === true && inside(p5H, polygonHeavy) === true) inside5 ??= idxC2;
+						if (inside(p6L, polygonLight) === true && inside(p6H, polygonHeavy) === true) inside6 ??= idxC2;
+					}
 					let midpoint1L = curve1L.get(0.5);
 					let midpoint2L = curve2L.get(0.5);
 					let midpoint1H = curve1H.get(0.5);
@@ -2672,11 +2696,11 @@ function preProcess(font, references, limit) {
 					let sideAngle2H = geometric.lineAngle([p2H, p5H]);
 					let sideAngleH = (sideAngle1H + sideAngle2H) / 2;
 					let origin1L, origin2L;
-					if (r1 || r5) {
+					if (edge1 || edge5) {
 						origin1L = p1L;
 						origin2L = p5L;
 					} 
-					else if (r2 || r6) {
+					else if (edge2 || edge6) {
 						origin1L = p6L;
 						origin2L = p2L;
 					}
@@ -2699,14 +2723,14 @@ function preProcess(font, references, limit) {
 					let endAngles2L = strokeEndAnglesGeo(p4L, p5L, p6L, p7L);
 					let endAngles1H = strokeEndAnglesGeo(p0H, p1H, p2H, p3H);
 					let endAngles2H = strokeEndAnglesGeo(p4H, p5H, p6H, p7H);
-					if (!r1 && !r2 && endAngles1H[0].isBetween(-50,-130) && endAngles1H[1].isBetween(-50,-130)) {
+					if (!edge1 && !edge2 && endAngles1H[0].isBetween(-50,-130) && endAngles1H[1].isBetween(-50,-130)) {
 						if (endAngles1L[0] < endAngles1L[1]) {
 							p2L = closestPointOnLine(p1L, [p2L, p3L]);
 						} else {
 							p1L = closestPointOnLine(p2L, [p0L, p1L]);
 						}
 					}
-					if (!r5 && !r6 && endAngles2H[0].isBetween(-50,-130) && endAngles2H[1].isBetween(-50,-130)) {
+					if (!edge5 && !edge6 && endAngles2H[0].isBetween(-50,-130) && endAngles2H[1].isBetween(-50,-130)) {
 						if (endAngles2L[0] < endAngles2L[1]) {
 							p6L = closestPointOnLine(p5L, [p6L, p7L]);
 						} else {
@@ -2716,11 +2740,11 @@ function preProcess(font, references, limit) {
 
 					
 					let origin1H, origin2H;
-					if (r1 || r5) {
+					if (edge1 || edge5) {
 						origin1H = p1H;
 						origin2H = p5H;
 					} 
-					else if (r2 || r6) {
+					else if (edge2 || edge6) {
 						origin1H = p6H;
 						origin2H = p2H;
 					}
@@ -2740,14 +2764,14 @@ function preProcess(font, references, limit) {
 					// 	p5H = geometric.pointRotate(p5H, sideAngleH - sideAngle2H, origin2H);
 					// }
 					
-					if (!r1 && !r2 && endAngles1H[0].isBetween(-50,-130) && endAngles1H[1].isBetween(-50,-130)) {
+					if (!edge1 && !edge2 && endAngles1H[0].isBetween(-50,-130) && endAngles1H[1].isBetween(-50,-130)) {
 						if (endAngles1H[0] < endAngles1H[1]) {
 							p2H = closestPointOnLine(p1H, [p2H, p3H]);
 						} else {
 							p1H = closestPointOnLine(p2H, [p0H, p1H]);
 						}
 					}
-					if (!r5 && !r6 && endAngles2H[0].isBetween(-50,-130) && endAngles2H[1].isBetween(-50,-130)) {
+					if (!edge5 && !edge6 && endAngles2H[0].isBetween(-50,-130) && endAngles2H[1].isBetween(-50,-130)) {
 						if (endAngles2H[0] < endAngles2H[1]) {
 							p6H = closestPointOnLine(p5H, [p6H, p7H]);
 						} else {
