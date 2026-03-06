@@ -2668,10 +2668,10 @@ function preProcess(font, references, limit) {
 					let edge2 = false;
 					let edge5 = false;
 					let edge6 = false;
-					let inside1;
-					let inside2;
-					let inside5;
-					let inside6;
+					let inside1 = [];
+					let inside2 = [];
+					let inside5 = [];
+					let inside6 = [];
 					for (const [idxC2, contour2] of oldContours.entries()) {
 						if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
 						let polygonLight = polyGlyphLight[idxC2];
@@ -2680,10 +2680,10 @@ function preProcess(font, references, limit) {
 						if (inside(p2L, polygonLight) === 0 || inside(p2H, polygonHeavy) === 0) edge2 = true;
 						if (inside(p5L, polygonLight) === 0 || inside(p5H, polygonHeavy) === 0) edge5 = true;
 						if (inside(p6L, polygonLight) === 0 || inside(p6H, polygonHeavy) === 0) edge6 = true;
-						if (inside(p1L, polygonLight) === true && inside(p1H, polygonHeavy) === true) inside1 ??= idxC2;
-						if (inside(p2L, polygonLight) === true && inside(p2H, polygonHeavy) === true) inside2 ??= idxC2;
-						if (inside(p5L, polygonLight) === true && inside(p5H, polygonHeavy) === true) inside5 ??= idxC2;
-						if (inside(p6L, polygonLight) === true && inside(p6H, polygonHeavy) === true) inside6 ??= idxC2;
+						if (inside(p1L, polygonLight) === true && inside(p1H, polygonHeavy) === true) inside1.push(idxC2);
+						if (inside(p2L, polygonLight) === true && inside(p2H, polygonHeavy) === true) inside2.push(idxC2);
+						if (inside(p5L, polygonLight) === true && inside(p5H, polygonHeavy) === true) inside5.push(idxC2);
+						if (inside(p6L, polygonLight) === true && inside(p6H, polygonHeavy) === true) inside6.push(idxC2);
 					}
 					let midpoint1L = curve1L.get(0.5);
 					let midpoint2L = curve2L.get(0.5);
@@ -2691,9 +2691,11 @@ function preProcess(font, references, limit) {
 					let midpoint2H = curve2H.get(0.5);
 					let sideAngle1L = geometric.lineAngle([p1L, p6L]);
 					let sideAngle2L = geometric.lineAngle([p2L, p5L]);
-					let sideAngleL = (sideAngle1L + sideAngle2L) / 2;
 					let sideAngle1H = geometric.lineAngle([p1H, p6H]);
 					let sideAngle2H = geometric.lineAngle([p2H, p5H]);
+					let sideAngleDelta1 = abs(sideAngle1L - sideAngle1H);
+					let sideAngleDelta2 = abs(sideAngle2L - sideAngle2H);
+					let sideAngleL = (sideAngle1L + sideAngle2L) / 2;
 					let sideAngleH = (sideAngle1H + sideAngle2H) / 2;
 					let origin1L, origin2L;
 					if (edge1 || edge5) {
