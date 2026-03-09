@@ -324,6 +324,14 @@ function preProcess(font, references, limit) {
 		let b2H = bearing(lineHeavy(p4, p3));
 		return ((b1L >= 45 && b1L <= 135) && (b2L >= 45 && b2L <= 135) && (b1H >= 45 && b1H <= 135) && (b2H >= 45 && b2H <= 135));
 	}
+	
+	function isSquare(p1, p2) {
+		let p1L = pointLight(p1);
+		let p2L = pointLight(p2);
+		let p1H = pointHeavy(p2);
+		let p2H = pointHeavy(p2);
+		return ((p1L.x === p2L.x && p1H.x === p2H.x) || (p1L.y === p2L.y && p1H.y === p2H.y));
+	}
 
 	function canBeRightEnd(bottomRight, topRight) {
 		return bottomRight.kind == 0 && topRight.kind == 0 &&
@@ -742,7 +750,7 @@ function preProcess(font, references, limit) {
 		if (glyph.name === "uni8F4F") {
 			oldContours.splice(9, 1);
 		}
-
+		let sharedPoints = [];
 		// for (let [idxC1, contour] of oldContours.entries()) {
 		for (let idxC1 = 0; idxC1 < oldContours.length; idxC1++) {
 			let contour = oldContours[idxC1];
@@ -796,6 +804,7 @@ function preProcess(font, references, limit) {
 										makeVariance(p1l.y, p1h.y),
 										0
 									);
+									sharedPoints.push({idxC1, idxP1, idxC2, idxP2});
 									// matched = true;
 									// break;
 								}
@@ -812,7 +821,7 @@ function preProcess(font, references, limit) {
 			// 	contour.push(contour[0]);
 			// }
 		}
-		// fix all intersects like ㄥ to align rounded ends
+		// ANCHOR - fix all intersects like ㄥ to align rounded ends
 		// HOVERIMAGE - [img "diagrams/eng2.svg"]
 		let engHandledContours = [];
 		let engNewContours = [];
@@ -1160,6 +1169,8 @@ function preProcess(font, references, limit) {
 								// }
 								
 								if (contour2.length.isBetween(17,18)) {
+									let pV0Intersects;
+									let objIndex = sharedPoints.findIndex((obj) => obj["contourIdx"] === idxC2);
 									let pVn1I = previousNode(contour2, pV0I);
 									let pVn2I = previousNode(contour2, pVn1I);
 									let pVNew2I = nextNode(contour2, pVNew1I);
@@ -2366,6 +2377,10 @@ function preProcess(font, references, limit) {
 									};
 								}
 							}
+							if (name in references.skipRedundantPoints === false) {
+								references.skipRedundantPoints[name] = [];
+							}
+							references.skipRedundantPoints[name].push(idxC1);
 							break;
 						}
 					}
@@ -2589,10 +2604,30 @@ function preProcess(font, references, limit) {
 						if (inside(point2GeoJsonHeavy(p3), polygonHeavy) !== false) score++
 						if (inside(point2GeoJsonHeavy(p4), polygonHeavy) !== false) score++
 						// if (inside(point2GeoJsonHeavy(p5), polygonHeavy) !== false) score++
-						if (score >=3) {
-							splicePoints.push(p3I, p4I);
+						if (score >= 3) {
+							if (!splicePoints.includes(p3I)) splicePoints.push(p3I);
+							if (!splicePoints.includes(p4I)) splicePoints.push(p4I);
 						}
 					// }
+				}
+				if (canBeStrokeEnd(p1, p2, p4, p5) && p3.kind === 0) {
+					for (const [idxC2, contour2] of oldContours.entries()) {
+						if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
+						let polygonLight = polyGlyphLight[idxC2];
+						let polygonHeavy = polyGlyphHeavy[idxC2];
+						let score = 0;
+						if (inside(point2GeoJsonLight(p2), polygonLight) === true) score++
+						if (inside(point2GeoJsonLight(p3), polygonLight) === true) score++
+						if (inside(point2GeoJsonLight(p4), polygonLight) === true) score++
+						// if (inside(point2GeoJsonLight(p5), polygonLight) !== false) score++
+						if (inside(point2GeoJsonHeavy(p2), polygonHeavy) === true) score++
+						if (inside(point2GeoJsonHeavy(p3), polygonHeavy) === true) score++
+						if (inside(point2GeoJsonHeavy(p4), polygonHeavy) === true) score++
+						// if (inside(point2GeoJsonHeavy(p5), polygonHeavy) !== false) score++
+						if (score === 6 && !splicePoints.includes(p3I)) {
+							splicePoints.push(p3I);
+						}
+					}
 				}
 			}
 			if (splicePoints.length) {
@@ -2627,7 +2662,12 @@ function preProcess(font, references, limit) {
 				let p5 = circularArray(contour, p5I);
 				let p6 = circularArray(contour, p6I);
 				let p7 = circularArray(contour, p7I);
-				if (canBeStrokeEnd(p0, p1, p2, p3) && canBeStrokeEnd(p4, p5, p6, p7) && p0.kind === 2 && p3.kind === 1 && p4.kind === 2 && p7.kind === 1) {
+				if (
+					canBeStrokeEnd(p0, p1, p2, p3) &&
+					canBeStrokeEnd(p4, p5, p6, p7) &&
+					p0.kind === 2 && p3.kind === 1 &&
+					p4.kind === 2 && p7.kind === 1
+				) {
 					let p0L = point2GeoJsonLight(p0);
 					let p1L = point2GeoJsonLight(p1);
 					let p2L = point2GeoJsonLight(p2);
@@ -2660,6 +2700,7 @@ function preProcess(font, references, limit) {
 					let endLength2L = geometric.lineLength([p5L, p6L]);
 					let endLength1H = geometric.lineLength([p1H, p2H]);
 					let endLength2H = geometric.lineLength([p5H, p6H]);
+					let endsSquare = (isSquare(p1, p2) && isSquare(p5, p6));
 					let curvature1L = sideLength1L / curveLength1L;
 					let curvature2L = sideLength2L / curveLength2L;
 					let curvature1H = sideLength1H / curveLength1H;
@@ -2676,14 +2717,14 @@ function preProcess(font, references, limit) {
 						if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
 						let polygonLight = polyGlyphLight[idxC2];
 						let polygonHeavy = polyGlyphHeavy[idxC2];
-						if (inside(p1L, polygonLight) === 0 || inside(p1H, polygonHeavy) === 0) edge1 = true;
-						if (inside(p2L, polygonLight) === 0 || inside(p2H, polygonHeavy) === 0) edge2 = true;
-						if (inside(p5L, polygonLight) === 0 || inside(p5H, polygonHeavy) === 0) edge5 = true;
-						if (inside(p6L, polygonLight) === 0 || inside(p6H, polygonHeavy) === 0) edge6 = true;
-						if (inside(p1L, polygonLight) === true && inside(p1H, polygonHeavy) === true) inside1.push(idxC2);
-						if (inside(p2L, polygonLight) === true && inside(p2H, polygonHeavy) === true) inside2.push(idxC2);
-						if (inside(p5L, polygonLight) === true && inside(p5H, polygonHeavy) === true) inside5.push(idxC2);
-						if (inside(p6L, polygonLight) === true && inside(p6H, polygonHeavy) === true) inside6.push(idxC2);
+						if (inside(p1L, polygonLight) === 0 && inside(p1H, polygonHeavy) === 0) edge1 = true;
+						if (inside(p2L, polygonLight) === 0 && inside(p2H, polygonHeavy) === 0) edge2 = true;
+						if (inside(p5L, polygonLight) === 0 && inside(p5H, polygonHeavy) === 0) edge5 = true;
+						if (inside(p6L, polygonLight) === 0 && inside(p6H, polygonHeavy) === 0) edge6 = true;
+						if (inside(p1L, polygonLight) !== false && inside(p1H, polygonHeavy) !== false) inside1.push(idxC2);
+						if (inside(p2L, polygonLight) !== false && inside(p2H, polygonHeavy) !== false) inside2.push(idxC2);
+						if (inside(p5L, polygonLight) !== false && inside(p5H, polygonHeavy) !== false) inside5.push(idxC2);
+						if (inside(p6L, polygonLight) !== false && inside(p6H, polygonHeavy) !== false) inside6.push(idxC2);
 					}
 					let midpoint1L = curve1L.get(0.5);
 					let midpoint2L = curve2L.get(0.5);
@@ -2711,32 +2752,101 @@ function preProcess(font, references, limit) {
 						origin2L = [midpoint2L.x, midpoint2L.y];
 					}
 					// if (curve1H.length() < 400 && curve2H.length() < 400) {
-					// 	p1L = geometric.pointRotate(p1L, sideAngleL - sideAngle1L, origin1L);
-					// 	p0L = geometric.pointRotate(p0L, sideAngleL - sideAngle1L, origin1L);
-					// 	p7L = geometric.pointRotate(p7L, sideAngleL - sideAngle1L, origin1L);
-					// 	p6L = geometric.pointRotate(p6L, sideAngleL - sideAngle1L, origin1L);
+					if (curvature1H.isBetween(0.978, 1) && curvature2H.isBetween(0.978, 1) && !endsSquare) {
+						p1L = geometric.pointRotate(p1L, sideAngleL - sideAngle1L, origin1L);
+						p0L = geometric.pointRotate(p0L, sideAngleL - sideAngle1L, origin1L);
+						p7L = geometric.pointRotate(p7L, sideAngleL - sideAngle1L, origin1L);
+						p6L = geometric.pointRotate(p6L, sideAngleL - sideAngle1L, origin1L);
 						
-					// 	p2L = geometric.pointRotate(p2L, sideAngleL - sideAngle2L, origin2L);
-					// 	p3L = geometric.pointRotate(p3L, sideAngleL - sideAngle2L, origin2L);
-					// 	p4L = geometric.pointRotate(p4L, sideAngleL - sideAngle2L, origin2L);
-					// 	p5L = geometric.pointRotate(p5L, sideAngleL - sideAngle2L, origin2L);
-					// }
+						p2L = geometric.pointRotate(p2L, sideAngleL - sideAngle2L, origin2L);
+						p3L = geometric.pointRotate(p3L, sideAngleL - sideAngle2L, origin2L);
+						p4L = geometric.pointRotate(p4L, sideAngleL - sideAngle2L, origin2L);
+						p5L = geometric.pointRotate(p5L, sideAngleL - sideAngle2L, origin2L);
+					}
 					let endAngles1L = strokeEndAnglesGeo(p0L, p1L, p2L, p3L);
 					let endAngles2L = strokeEndAnglesGeo(p4L, p5L, p6L, p7L);
 					let endAngles1H = strokeEndAnglesGeo(p0H, p1H, p2H, p3H);
 					let endAngles2H = strokeEndAnglesGeo(p4H, p5H, p6H, p7H);
-					if (!edge1 && !edge2 && endAngles1H[0].isBetween(-50,-130) && endAngles1H[1].isBetween(-50,-130)) {
-						if (endAngles1L[0] < endAngles1L[1]) {
-							p2L = closestPointOnLine(p1L, [p2L, p3L]);
+					if (!edge1 && !edge2 && endAngles1H[0].isBetween(-40,-130) && endAngles1H[1].isBetween(-40,-130)) {
+						if (endAngles1L[0] > endAngles1L[1]) {
+							let n2L = closestPointOnLine(p1L, [p2L, p3L]);
+							let fail = false;
+							if (inside2.length > 0) {
+								for (const idxC2 of inside2) {
+									if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
+									let polygonLight = polyGlyphLight[idxC2];
+									if (inside(n2L, polygonLight) === false) fail = true;
+								}
+							// } else {
+							// 	for (let idxC2 = 0; idxC2 < oldContours.length; idxC2++) {
+							// 		if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
+							// 		let polygonLight = polyGlyphLight[idxC2];
+							// 		if (inside(n2L, polygonLight) !== false) fail = true;
+							// 	}
+							}
+							if (!fail) {
+								p2L = n2L;
+							}
 						} else {
-							p1L = closestPointOnLine(p2L, [p0L, p1L]);
+							let n1L = closestPointOnLine(p2L, [p0L, p1L]);
+							let fail = false;
+							if (inside1.length > 0) {
+								for (const idxC2 of inside1) {
+									if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
+									let polygonLight = polyGlyphLight[idxC2];
+									if (inside(n1L, polygonLight) === false) fail = true;
+								}
+							// } else {
+							// 	for (let idxC2 = 0; idxC2 < oldContours.length; idxC2++) {
+							// 		if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
+							// 		let polygonLight = polyGlyphLight[idxC2];
+							// 		if (inside(n1L, polygonLight) !== false) fail = true;
+							// 	}
+							}
+							if (!fail) {
+								p1L = n1L;
+							}
 						}
 					}
-					if (!edge5 && !edge6 && endAngles2H[0].isBetween(-50,-130) && endAngles2H[1].isBetween(-50,-130)) {
-						if (endAngles2L[0] < endAngles2L[1]) {
-							p6L = closestPointOnLine(p5L, [p6L, p7L]);
+					if (!edge5 && !edge6 && endAngles2H[0].isBetween(-40,-130) && endAngles2H[1].isBetween(-40,-130)) {
+						if (endAngles2L[0] > endAngles2L[1]) {
+							let n6L = closestPointOnLine(p5L, [p6L, p7L]);
+							let fail = false;
+							if (inside6.length > 0) {
+								for (const idxC2 of inside6) {
+									if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
+									let polygonLight = polyGlyphLight[idxC2];
+									if (inside(n6L, polygonLight) === false) fail = true;
+								}
+							// } else {
+							// 	for (let idxC2 = 0; idxC2 < oldContours.length; idxC2++) {
+							// 		if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
+							// 		let polygonLight = polyGlyphLight[idxC2];
+							// 		if (inside(n6L, polygonLight) !== false) fail = true;
+							// 	}
+							}
+							if (!fail) {
+								p6L = n6L;
+							}
 						} else {
-							p5L = closestPointOnLine(p6L, [p4L, p5L]);
+							let n5L = closestPointOnLine(p6L, [p4L, p5L]);
+							let fail = false;
+							if (inside5.length > 0) {
+								for (const idxC2 of inside5) {
+									if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
+									let polygonLight = polyGlyphLight[idxC2];
+									if (inside(n5L, polygonLight) === false) fail = true;
+								}
+							// } else {
+							// 	for (let idxC2 = 0; idxC2 < oldContours.length; idxC2++) {
+							// 		if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
+							// 		let polygonLight = polyGlyphLight[idxC2];
+							// 		if (inside(n5L, polygonLight) !== false) fail = true;
+							// 	}
+							}
+							if (!fail) {
+								p5L = n5L;
+							}
 						}
 					}
 
@@ -2755,29 +2865,110 @@ function preProcess(font, references, limit) {
 						origin2H = [midpoint2H.x, midpoint2H.y];
 					}
 					// if (curve1H.length() < 400 && curve2H.length() < 400) {
-					// 	p1H = geometric.pointRotate(p1H, sideAngleH - sideAngle1H, origin1H);
-					// 	p0H = geometric.pointRotate(p0H, sideAngleH - sideAngle1H, origin1H);
-					// 	p7H = geometric.pointRotate(p7H, sideAngleH - sideAngle1H, origin1H);
-					// 	p6H = geometric.pointRotate(p6H, sideAngleH - sideAngle1H, origin1H);
+					if (curvature1H.isBetween(0.978, 1) && curvature2H.isBetween(0.978, 1) && !endsSquare) {
+						p1H = geometric.pointRotate(p1H, sideAngleL - sideAngle1H, origin1H);
+						p0H = geometric.pointRotate(p0H, sideAngleL - sideAngle1H, origin1H);
+						p7H = geometric.pointRotate(p7H, sideAngleL - sideAngle1H, origin1H);
+						p6H = geometric.pointRotate(p6H, sideAngleL - sideAngle1H, origin1H);
+						p0H = geometric.pointTranslate(p1H, geometric.lineAngle([p1L, p0L]), geometric.lineLength([p1H, p0H]));
+						p7H = geometric.pointTranslate(p6H, geometric.lineAngle([p6L, p7L]), geometric.lineLength([p6H, p7H]));
+						p1H = geometric.pointRotate(p1H, sideAngleH - sideAngleL, origin1H);
+						p0H = geometric.pointRotate(p0H, sideAngleH - sideAngleL, origin1H);
+						p7H = geometric.pointRotate(p7H, sideAngleH - sideAngleL, origin1H);
+						p6H = geometric.pointRotate(p6H, sideAngleH - sideAngleL, origin1H);
 						
-					// 	p2H = geometric.pointRotate(p2H, sideAngleH - sideAngle2H, origin2H);
-					// 	p3H = geometric.pointRotate(p3H, sideAngleH - sideAngle2H, origin2H);
-					// 	p4H = geometric.pointRotate(p4H, sideAngleH - sideAngle2H, origin2H);
-					// 	p5H = geometric.pointRotate(p5H, sideAngleH - sideAngle2H, origin2H);
-					// }
+						p2H = geometric.pointRotate(p2H, sideAngleL - sideAngle2H, origin2H);
+						p3H = geometric.pointRotate(p3H, sideAngleL - sideAngle2H, origin2H);
+						p4H = geometric.pointRotate(p4H, sideAngleL - sideAngle2H, origin2H);
+						p5H = geometric.pointRotate(p5H, sideAngleL - sideAngle2H, origin2H);
+						p3H = geometric.pointTranslate(p2H, geometric.lineAngle([p2L, p3L]), geometric.lineLength([p2H, p3H]));
+						p4H = geometric.pointTranslate(p5H, geometric.lineAngle([p5L, p4L]), geometric.lineLength([p5H, p4H]));
+						p2H = geometric.pointRotate(p2H, sideAngleH - sideAngleL, origin2H);
+						p3H = geometric.pointRotate(p3H, sideAngleH - sideAngleL, origin2H);
+						p4H = geometric.pointRotate(p4H, sideAngleH - sideAngleL, origin2H);
+						p5H = geometric.pointRotate(p5H, sideAngleH - sideAngleL, origin2H);
+					}
 					
-					if (!edge1 && !edge2 && endAngles1H[0].isBetween(-50,-130) && endAngles1H[1].isBetween(-50,-130)) {
-						if (endAngles1H[0] < endAngles1H[1]) {
-							p2H = closestPointOnLine(p1H, [p2H, p3H]);
+					if (!edge1 && !edge2 && endAngles1H[0].isBetween(-40,-130) && endAngles1H[1].isBetween(-40,-130)) {
+						if (endAngles1H[0] > endAngles1H[1]) {
+							let n2H = closestPointOnLine(p1H, [p2H, p3H]);
+							let fail = false;
+							if (inside2.length > 0) {
+								for (const idxC2 of inside2) {
+									if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
+									let polygonHeavy = polyGlyphHeavy[idxC2];
+									if (inside(n2H, polygonHeavy) === false) fail = true;
+								}
+							// } else {
+							// 	for (let idxC2 = 0; idxC2 < oldContours.length; idxC2++) {
+							// 		if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
+							// 		let polygonHeavy = polyGlyphHeavy[idxC2];
+							// 		if (inside(n2H, polygonHeavy) !== false) fail = true;
+							// 	}
+							}
+							if (!fail) {
+								p2H = n2H;
+							}
 						} else {
-							p1H = closestPointOnLine(p2H, [p0H, p1H]);
+							let n1H = closestPointOnLine(p2H, [p0H, p1H]);
+							let fail = false;
+							if (inside1.length > 0) {
+								for (const idxC2 of inside1) {
+									if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
+									let polygonHeavy = polyGlyphHeavy[idxC2];
+									if (inside(n1H, polygonHeavy) === false) fail = true;
+								}
+							// } else {
+							// 	for (let idxC2 = 0; idxC2 < oldContours.length; idxC2++) {
+							// 		if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
+							// 		let polygonHeavy = polyGlyphHeavy[idxC2];
+							// 		if (inside(n1H, polygonHeavy) !== false) fail = true;
+							// 	}
+							}
+							if (!fail) {
+								p1H = n1H;
+							}
 						}
 					}
-					if (!edge5 && !edge6 && endAngles2H[0].isBetween(-50,-130) && endAngles2H[1].isBetween(-50,-130)) {
-						if (endAngles2H[0] < endAngles2H[1]) {
-							p6H = closestPointOnLine(p5H, [p6H, p7H]);
+					if (!edge5 && !edge6 && endAngles2H[0].isBetween(-40,-130) && endAngles2H[1].isBetween(-40,-130)) {
+						if (endAngles2H[0] > endAngles2H[1]) {
+							let n6H = closestPointOnLine(p5H, [p6H, p7H]);
+							let fail = false;
+							if (inside6.length > 0) {
+								for (const idxC2 of inside6) {
+									if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
+									let polygonHeavy = polyGlyphHeavy[idxC2];
+									if (inside(n6H, polygonHeavy) === false) fail = true;
+								}
+							// } else {
+							// 	for (let idxC2 = 0; idxC2 < oldContours.length; idxC2++) {
+							// 		if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
+							// 		let polygonHeavy = polyGlyphHeavy[idxC2];
+							// 		if (inside(n6H, polygonHeavy) !== false) fail = true;
+							// 	}
+							}
+							if (!fail) {
+								p6H = n6H;
+							}
 						} else {
-							p5H = closestPointOnLine(p6H, [p4H, p5H]);
+							let n5H = closestPointOnLine(p6H, [p4H, p5H]);
+							let fail = false;
+							if (inside5.length > 0) {
+								for (const idxC2 of inside5) {
+									if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
+									let polygonHeavy = polyGlyphHeavy[idxC2];
+									if (inside(n5H, polygonHeavy) === false) fail = true;
+								}
+							// } else {
+							// 	for (let idxC2 = 0; idxC2 < oldContours.length; idxC2++) {
+							// 		if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
+							// 		let polygonHeavy = polyGlyphHeavy[idxC2];
+							// 		if (inside(n5H, polygonHeavy) !== false) fail = true;
+							// 	}
+							}
+							if (!fail) {
+								p5H = n5H;
+							}
 						}
 					}
 					oldContours[idxC1][p0I] = Ot.Glyph.Point.create(

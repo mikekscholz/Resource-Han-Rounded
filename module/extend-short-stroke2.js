@@ -815,7 +815,7 @@ function extendShortStroke(font, references, limit) {
 							let j3h = false;
 							let heavyLimit = endsHidden ? 20 : (polygonHeavy.length > 1) ? 55 : 120;
 							let intersects = false;
-							if (edge.isBetween(1,2)) {
+							if (edge.isBetween(2,2)) {
 								function test2l() {
 									n2l = extendLineGeoJson(p1l, p2l, e2l);
 									t2l = inside(n2l, polygonLight) !== false;
