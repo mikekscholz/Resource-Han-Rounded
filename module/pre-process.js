@@ -804,7 +804,7 @@ function preProcess(font, references, limit) {
 										makeVariance(p1l.y, p1h.y),
 										0
 									);
-									sharedPoints.push({idxC1, idxP1, idxC2, idxP2});
+									sharedPoints.push({idxC1, p1I, idxC2, p2I});
 									// matched = true;
 									// break;
 								}
@@ -1170,7 +1170,7 @@ function preProcess(font, references, limit) {
 								
 								if (contour2.length.isBetween(17,18)) {
 									let pV0Intersects;
-									let objIndex = sharedPoints.findIndex((obj) => obj["contourIdx"] === idxC2);
+									let objIndex = sharedPoints.findIndex((obj) => (obj["idxC1"] === idxC2 && obj["p1I"] === pV0I) || (obj["idxC2"] === idxC2 && obj["p2I"] === pV0I));
 									let pVn1I = previousNode(contour2, pV0I);
 									let pVn2I = previousNode(contour2, pVn1I);
 									let pVNew2I = nextNode(contour2, pVNew1I);
@@ -2700,6 +2700,8 @@ function preProcess(font, references, limit) {
 					let endLength2L = geometric.lineLength([p5L, p6L]);
 					let endLength1H = geometric.lineLength([p1H, p2H]);
 					let endLength2H = geometric.lineLength([p5H, p6H]);
+					let strokeL = (endLength1L + endLength2L) / 2;
+					let strokeH = (endLength1H + endLength2H) / 2;
 					let endsSquare = (isSquare(p1, p2) && isSquare(p5, p6));
 					let curvature1L = sideLength1L / curveLength1L;
 					let curvature2L = sideLength2L / curveLength2L;
