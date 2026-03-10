@@ -39,7 +39,7 @@ const font = readOtf(filename.shs(param.subfamily));
 // convert(font, references);
 substitute(font, references);
 preProcess(font, references, limit);
-// extendShortStroke(font, references, limit);
+extendShortStroke(font, references, limit);
 correctGlyphs(font, references, limit);
 // roundFont(font, references, limit);
 // postProcess(font, references, limit);

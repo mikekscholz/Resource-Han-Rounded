@@ -797,9 +797,16 @@ function preProcess(font, references, limit) {
 								if (
 									(JSON.stringify(p1l) === JSON.stringify(p2l) && JSON.stringify(p1h) !== JSON.stringify(p2h) && distanceHeavy(p1, p2) < 4) ||
 									(JSON.stringify(p1l) !== JSON.stringify(p2l) && JSON.stringify(p1h) === JSON.stringify(p2h) && distanceLight(p1, p2) < 4) ||
-									(distanceLight(p1, p2) <= 1.6 && distanceHeavy(p1, p2) <= 1.6)
+									(distanceLight(p1, p2) <= 2 && distanceHeavy(p1, p2) <= 2)
 								) {
-									contour2[p2I] = Ot.Glyph.Point.create(
+									if (JSON.stringify(contour2[p2I]) === JSON.stringify(circularArray(contour2, p2I + 1))) {
+										oldContours[idxC2][circularIndex(contour2, idxP2 + 1)] = Ot.Glyph.Point.create(
+											makeVariance(p1l.x, p1h.x),
+											makeVariance(p1l.y, p1h.y),
+											0
+										);
+									}
+									oldContours[idxC2][p2I] = Ot.Glyph.Point.create(
 										makeVariance(p1l.x, p1h.x),
 										makeVariance(p1l.y, p1h.y),
 										0
@@ -1169,8 +1176,8 @@ function preProcess(font, references, limit) {
 								// }
 								
 								if (contour2.length.isBetween(17,18)) {
-									let pV0Intersects;
 									let objIndex = sharedPoints.findIndex((obj) => (obj["idxC1"] === idxC2 && obj["p1I"] === pV0I) || (obj["idxC2"] === idxC2 && obj["p2I"] === pV0I));
+									let pV0Intersects = objIndex >= 0;
 									let pVn1I = previousNode(contour2, pV0I);
 									let pVn2I = previousNode(contour2, pVn1I);
 									let pVNew2I = nextNode(contour2, pVNew1I);
@@ -1212,11 +1219,30 @@ function preProcess(font, references, limit) {
 									let nV2H = geometric.pointTranslate(pV1H, angle2_1L - 180, distanceHeavy(pV2, pV1));
 									let nV0L = geometric.pointRotate(pV0L, delta1bL, pV1L);
 									let nV0H = geometric.pointRotate(pV0H, delta1bH, pV1H);
-									let nVn1H = geometric.pointRotate(pVn1H, delta1, pV1H);
-									let nVn2H = geometric.pointRotate(pVn2H, delta1, pV1H);
-									let nVNew1H = geometric.pointRotate(pVNew1H, delta2, pVNew0H);
-									let nVNew2H = geometric.pointRotate(pVNew2H, delta2, pVNew0H);
-									let nVNew3H = geometric.pointRotate(pVNew3H, delta2, pVNew0H);
+									let nVn1H;
+									let nVn2H;
+									let nVNew0H;
+									let nVNew1H;
+									let nVNew2H;
+									let nVNew3H;
+									if (pV0Intersects) {
+										nVn1H = pVn1H
+										nVn2H = pVn2H
+										nVNew0H = geometric.pointRotate(pVNew0H, delta2, pVNew3H);
+										nVNew1H = geometric.pointRotate(pVNew1H, delta2, pVNew3H);
+										nVNew2H = geometric.pointRotate(pVNew2H, delta2, pVNew3H);
+										nVNew3H = pVNew3H;
+									} else {
+										nVn1H = geometric.pointRotate(pVn1H, delta1, pV1H);
+										nVn2H = geometric.pointRotate(pVn2H, delta1, pV1H);
+										nVNew0H = pVNew0H;
+										nVNew1H = geometric.pointRotate(pVNew1H, delta2, pVNew0H);
+										nVNew2H = geometric.pointRotate(pVNew2H, delta2, pVNew0H);
+										nVNew3H = geometric.pointRotate(pVNew3H, delta2, pVNew0H);
+									}
+									
+									
+									
 									
 									contour2[pV2I] = Ot.Glyph.Point.create(
 										makeVariance(pV2L[0], nV2H[0]),
@@ -1242,6 +1268,12 @@ function preProcess(font, references, limit) {
 										0
 									);
 									pVn2 = contour2[pVn2I]
+									contour2[pVNew0I] = Ot.Glyph.Point.create(
+										makeVariance(pVNew0L[0], nVNew0H[0]),
+										makeVariance(pVNew0L[1], nVNew0H[1]),
+										0
+									);
+									pVNew0 = contour2[pVNew0I]
 									contour2[pVNew1I] = Ot.Glyph.Point.create(
 										makeVariance(pVNew1L[0], nVNew1H[0]),
 										makeVariance(pVNew1L[1], nVNew1H[1]),
@@ -2696,12 +2728,7 @@ function preProcess(font, references, limit) {
 					let sideLength2L = geometric.lineLength([p2L, p5L]);
 					let sideLength1H = geometric.lineLength([p1H, p6H]);
 					let sideLength2H = geometric.lineLength([p2H, p5H]);
-					let endLength1L = geometric.lineLength([p1L, p2L]);
-					let endLength2L = geometric.lineLength([p5L, p6L]);
-					let endLength1H = geometric.lineLength([p1H, p2H]);
-					let endLength2H = geometric.lineLength([p5H, p6H]);
-					let strokeL = (endLength1L + endLength2L) / 2;
-					let strokeH = (endLength1H + endLength2H) / 2;
+
 					let endsSquare = (isSquare(p1, p2) && isSquare(p5, p6));
 					let curvature1L = sideLength1L / curveLength1L;
 					let curvature2L = sideLength2L / curveLength2L;
@@ -2753,17 +2780,18 @@ function preProcess(font, references, limit) {
 						origin1L = [midpoint1L.x, midpoint1L.y];
 						origin2L = [midpoint2L.x, midpoint2L.y];
 					}
-					// if (curve1H.length() < 400 && curve2H.length() < 400) {
-					if (curvature1H.isBetween(0.978, 1) && curvature2H.isBetween(0.978, 1) && !endsSquare) {
-						p1L = geometric.pointRotate(p1L, sideAngleL - sideAngle1L, origin1L);
-						p0L = geometric.pointRotate(p0L, sideAngleL - sideAngle1L, origin1L);
-						p7L = geometric.pointRotate(p7L, sideAngleL - sideAngle1L, origin1L);
-						p6L = geometric.pointRotate(p6L, sideAngleL - sideAngle1L, origin1L);
-						
-						p2L = geometric.pointRotate(p2L, sideAngleL - sideAngle2L, origin2L);
-						p3L = geometric.pointRotate(p3L, sideAngleL - sideAngle2L, origin2L);
-						p4L = geometric.pointRotate(p4L, sideAngleL - sideAngle2L, origin2L);
-						p5L = geometric.pointRotate(p5L, sideAngleL - sideAngle2L, origin2L);
+					let origin1H, origin2H;
+					if (edge1 || edge5) {
+						origin1H = p1H;
+						origin2H = p5H;
+					} 
+					else if (edge2 || edge6) {
+						origin1H = p6H;
+						origin2H = p2H;
+					}
+					else {
+						origin1H = [midpoint1H.x, midpoint1H.y];
+						origin2H = [midpoint2H.x, midpoint2H.y];
 					}
 					let endAngles1L = strokeEndAnglesGeo(p0L, p1L, p2L, p3L);
 					let endAngles2L = strokeEndAnglesGeo(p4L, p5L, p6L, p7L);
@@ -2851,46 +2879,6 @@ function preProcess(font, references, limit) {
 							}
 						}
 					}
-
-					
-					let origin1H, origin2H;
-					if (edge1 || edge5) {
-						origin1H = p1H;
-						origin2H = p5H;
-					} 
-					else if (edge2 || edge6) {
-						origin1H = p6H;
-						origin2H = p2H;
-					}
-					else {
-						origin1H = [midpoint1H.x, midpoint1H.y];
-						origin2H = [midpoint2H.x, midpoint2H.y];
-					}
-					// if (curve1H.length() < 400 && curve2H.length() < 400) {
-					if (curvature1H.isBetween(0.978, 1) && curvature2H.isBetween(0.978, 1) && !endsSquare) {
-						p1H = geometric.pointRotate(p1H, sideAngleL - sideAngle1H, origin1H);
-						p0H = geometric.pointRotate(p0H, sideAngleL - sideAngle1H, origin1H);
-						p7H = geometric.pointRotate(p7H, sideAngleL - sideAngle1H, origin1H);
-						p6H = geometric.pointRotate(p6H, sideAngleL - sideAngle1H, origin1H);
-						p0H = geometric.pointTranslate(p1H, geometric.lineAngle([p1L, p0L]), geometric.lineLength([p1H, p0H]));
-						p7H = geometric.pointTranslate(p6H, geometric.lineAngle([p6L, p7L]), geometric.lineLength([p6H, p7H]));
-						p1H = geometric.pointRotate(p1H, sideAngleH - sideAngleL, origin1H);
-						p0H = geometric.pointRotate(p0H, sideAngleH - sideAngleL, origin1H);
-						p7H = geometric.pointRotate(p7H, sideAngleH - sideAngleL, origin1H);
-						p6H = geometric.pointRotate(p6H, sideAngleH - sideAngleL, origin1H);
-						
-						p2H = geometric.pointRotate(p2H, sideAngleL - sideAngle2H, origin2H);
-						p3H = geometric.pointRotate(p3H, sideAngleL - sideAngle2H, origin2H);
-						p4H = geometric.pointRotate(p4H, sideAngleL - sideAngle2H, origin2H);
-						p5H = geometric.pointRotate(p5H, sideAngleL - sideAngle2H, origin2H);
-						p3H = geometric.pointTranslate(p2H, geometric.lineAngle([p2L, p3L]), geometric.lineLength([p2H, p3H]));
-						p4H = geometric.pointTranslate(p5H, geometric.lineAngle([p5L, p4L]), geometric.lineLength([p5H, p4H]));
-						p2H = geometric.pointRotate(p2H, sideAngleH - sideAngleL, origin2H);
-						p3H = geometric.pointRotate(p3H, sideAngleH - sideAngleL, origin2H);
-						p4H = geometric.pointRotate(p4H, sideAngleH - sideAngleL, origin2H);
-						p5H = geometric.pointRotate(p5H, sideAngleH - sideAngleL, origin2H);
-					}
-					
 					if (!edge1 && !edge2 && endAngles1H[0].isBetween(-40,-130) && endAngles1H[1].isBetween(-40,-130)) {
 						if (endAngles1H[0] > endAngles1H[1]) {
 							let n2H = closestPointOnLine(p1H, [p2H, p3H]);
@@ -2972,6 +2960,112 @@ function preProcess(font, references, limit) {
 								p5H = n5H;
 							}
 						}
+					}
+					let endLength1L = geometric.lineLength([p1L, p2L]);
+					let endLength2L = geometric.lineLength([p5L, p6L]);
+					let endLength1H = geometric.lineLength([p1H, p2H]);
+					let endLength2H = geometric.lineLength([p5H, p6H]);
+					let strokeL = (endLength1L + endLength2L) / 2;
+					let strokeH = (endLength1H + endLength2H) / 2;
+					// if (curve1H.length() < 400 && curve2H.length() < 400) {
+					if (curvature1H.isBetween(0.978, 1) && curvature2H.isBetween(0.978, 1) && !endsSquare) {
+						p1L = geometric.pointRotate(p1L, sideAngleL - sideAngle1L, origin1L);
+						p0L = geometric.pointRotate(p0L, sideAngleL - sideAngle1L, origin1L);
+						p7L = geometric.pointRotate(p7L, sideAngleL - sideAngle1L, origin1L);
+						p6L = geometric.pointRotate(p6L, sideAngleL - sideAngle1L, origin1L);
+						
+						p2L = geometric.pointRotate(p2L, sideAngleL - sideAngle2L, origin2L);
+						p3L = geometric.pointRotate(p3L, sideAngleL - sideAngle2L, origin2L);
+						p4L = geometric.pointRotate(p4L, sideAngleL - sideAngle2L, origin2L);
+						p5L = geometric.pointRotate(p5L, sideAngleL - sideAngle2L, origin2L);
+					}
+
+
+					
+
+					// if (curve1H.length() < 400 && curve2H.length() < 400) {
+					if (curvature1H.isBetween(0.978, 1) && curvature2H.isBetween(0.978, 1) && !endsSquare) {
+						p1H = geometric.pointRotate(p1H, sideAngleL - sideAngle1H, origin1H);
+						p0H = geometric.pointRotate(p0H, sideAngleL - sideAngle1H, origin1H);
+						p7H = geometric.pointRotate(p7H, sideAngleL - sideAngle1H, origin1H);
+						p6H = geometric.pointRotate(p6H, sideAngleL - sideAngle1H, origin1H);
+						p0H = geometric.pointTranslate(p1H, geometric.lineAngle([p1L, p0L]), geometric.lineLength([p1H, p0H]));
+						p7H = geometric.pointTranslate(p6H, geometric.lineAngle([p6L, p7L]), geometric.lineLength([p6H, p7H]));
+						p1H = geometric.pointRotate(p1H, sideAngleH - sideAngleL, origin1H);
+						p0H = geometric.pointRotate(p0H, sideAngleH - sideAngleL, origin1H);
+						p7H = geometric.pointRotate(p7H, sideAngleH - sideAngleL, origin1H);
+						p6H = geometric.pointRotate(p6H, sideAngleH - sideAngleL, origin1H);
+						
+						p2H = geometric.pointRotate(p2H, sideAngleL - sideAngle2H, origin2H);
+						p3H = geometric.pointRotate(p3H, sideAngleL - sideAngle2H, origin2H);
+						p4H = geometric.pointRotate(p4H, sideAngleL - sideAngle2H, origin2H);
+						p5H = geometric.pointRotate(p5H, sideAngleL - sideAngle2H, origin2H);
+						p3H = geometric.pointTranslate(p2H, geometric.lineAngle([p2L, p3L]), geometric.lineLength([p2H, p3H]));
+						p4H = geometric.pointTranslate(p5H, geometric.lineAngle([p5L, p4L]), geometric.lineLength([p5H, p4H]));
+						p2H = geometric.pointRotate(p2H, sideAngleH - sideAngleL, origin2H);
+						p3H = geometric.pointRotate(p3H, sideAngleH - sideAngleL, origin2H);
+						p4H = geometric.pointRotate(p4H, sideAngleH - sideAngleL, origin2H);
+						p5H = geometric.pointRotate(p5H, sideAngleH - sideAngleL, origin2H);
+					}
+					
+
+					let curStroke1L = geometric.lineLength([p1L, p2L]);
+					let curStroke2L = geometric.lineLength([p5L, p6L]);
+					let curStroke1H = geometric.lineLength([p1H, p2H]);
+					let curStroke2H = geometric.lineLength([p5H, p6H]);
+					let objIndex1 = sharedPoints.findIndex((obj) => (obj["idxC1"] === idxC1 && obj["p1I"] === p1I) || (obj["idxC2"] === idxC1 && obj["p2I"] === p1I));
+					let objIndex2 = sharedPoints.findIndex((obj) => (obj["idxC1"] === idxC1 && obj["p1I"] === p2I) || (obj["idxC2"] === idxC1 && obj["p2I"] === p2I));
+					let objIndex5 = sharedPoints.findIndex((obj) => (obj["idxC1"] === idxC1 && obj["p1I"] === p5I) || (obj["idxC2"] === idxC1 && obj["p2I"] === p5I));
+					let objIndex6 = sharedPoints.findIndex((obj) => (obj["idxC1"] === idxC1 && obj["p1I"] === p6I) || (obj["idxC2"] === idxC1 && obj["p2I"] === p6I));
+					let fixed1 = objIndex1 >= 0;
+					let fixed2 = objIndex2 >= 0;
+					let fixed5 = objIndex5 >= 0;
+					let fixed6 = objIndex6 >= 0;
+					let adjLength1L = (strokeL - curStroke1L) / 2;
+					let adjLength2L = (strokeL - curStroke2L) / 2;
+					let adjLength1H = (strokeH - curStroke1H) / 2;
+					let adjLength2H = (strokeH - curStroke2H) / 2;
+					let adjAngle1L = geometric.lineAngle([p1L, p2L]);
+					let adjAngle2L = geometric.lineAngle([p5L, p6L]);
+					let adjAngle1H = geometric.lineAngle([p1H, p2H]);
+					let adjAngle2H = geometric.lineAngle([p5H, p6H]);
+					if (!fixed1 && !fixed2 && !fixed5 && !fixed6) {
+						p1H = geometric.pointTranslate(p1H, adjAngle1H - 180, adjLength1H);
+						p0H = geometric.pointTranslate(p0H, adjAngle1H - 180, adjLength1H);
+						p2H = geometric.pointTranslate(p2H, adjAngle1H, adjLength1H);
+						p3H = geometric.pointTranslate(p3H, adjAngle1H, adjLength1H);
+						p4H = geometric.pointTranslate(p4H, adjAngle2H - 180, adjLength2H);
+						p5H = geometric.pointTranslate(p5H, adjAngle2H - 180, adjLength2H);
+						p6H = geometric.pointTranslate(p6H, adjAngle2H, adjLength2H);
+						p7H = geometric.pointTranslate(p7H, adjAngle2H, adjLength2H);
+						p1L = geometric.pointTranslate(p1L, adjAngle1L - 180, adjLength1L);
+						p0L = geometric.pointTranslate(p0L, adjAngle1L - 180, adjLength1L);
+						p2L = geometric.pointTranslate(p2L, adjAngle1L, adjLength1L);
+						p3L = geometric.pointTranslate(p3L, adjAngle1L, adjLength1L);
+						p4L = geometric.pointTranslate(p4L, adjAngle2L - 180, adjLength2L);
+						p5L = geometric.pointTranslate(p5L, adjAngle2L - 180, adjLength2L);
+						p6L = geometric.pointTranslate(p6L, adjAngle2L, adjLength2L);
+						p7L = geometric.pointTranslate(p7L, adjAngle2L, adjLength2L);
+					}
+					if (fixed1 || fixed6) {
+						p2H = geometric.pointTranslate(p2H, adjAngle1H, adjLength1H * 2);
+						p3H = geometric.pointTranslate(p3H, adjAngle1H, adjLength1H * 2);
+						p4H = geometric.pointTranslate(p4H, adjAngle2H - 180, adjLength2H * 2);
+						p5H = geometric.pointTranslate(p5H, adjAngle2H - 180, adjLength2H * 2);
+						p2L = geometric.pointTranslate(p2L, adjAngle1L, adjLength1L * 2);
+						p3L = geometric.pointTranslate(p3L, adjAngle1L, adjLength1L * 2);
+						p4L = geometric.pointTranslate(p4L, adjAngle2L - 180, adjLength2L * 2);
+						p5L = geometric.pointTranslate(p5L, adjAngle2L - 180, adjLength2L * 2);
+					}
+					if (fixed2 || fixed5) {
+						p1H = geometric.pointTranslate(p1H, adjAngle1H - 180, adjLength1H * 2);
+						p0H = geometric.pointTranslate(p0H, adjAngle1H - 180, adjLength1H * 2);
+						p6H = geometric.pointTranslate(p6H, adjAngle2H, adjLength2H * 2);
+						p7H = geometric.pointTranslate(p7H, adjAngle2H, adjLength2H * 2);
+						p1L = geometric.pointTranslate(p1L, adjAngle1L - 180, adjLength1L * 2);
+						p0L = geometric.pointTranslate(p0L, adjAngle1L - 180, adjLength1L * 2);
+						p6L = geometric.pointTranslate(p6L, adjAngle2L, adjLength2L * 2);
+						p7L = geometric.pointTranslate(p7L, adjAngle2L, adjLength2L * 2);
 					}
 					oldContours[idxC1][p0I] = Ot.Glyph.Point.create(
 						makeVariance(p0L[0], p0H[0]),
