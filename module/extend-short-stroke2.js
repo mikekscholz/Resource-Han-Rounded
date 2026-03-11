@@ -5,7 +5,7 @@ const inside = require("point-in-polygon-hao");
 const geometric = require("geometric");
 const polyClockwise = require("polygon-direction");
 const ProgressBar = require('./node-progress');
-const { angle, approximateBezier, base60, bearing, horizontalSlope, isBetween, roundTo, turn, verticalSlope } = require("./util");
+const { angle, approximateBezier, base60, bearing, horizontalSlope, isBetween, roundTo, turn, verticalSlope, closestPointOnLine } = require("./util");
 const { abs, ceil, floor, pow, round, sqrt, trunc, max, min } = Math;
 
 // based on measurement of SHS
@@ -283,11 +283,21 @@ function extendShortStroke(font, references, limit) {
 	}
 	
 	function lineLight(p1, p2) {
-		return { p1: pointLight(p1) ,p2: pointLight(p2) };
+		return { p1: pointLight(p1), p2: pointLight(p2) };
 	}
 	
 	function lineHeavy(p1, p2) {
-		return { p1: pointHeavy(p1) ,p2: pointHeavy(p2) };
+		return { p1: pointHeavy(p1), p2: pointHeavy(p2) };
+	}
+		
+	function line2GeoJsonLight(p1, p2) {
+		let lineObj = lineLight(p1, p2);
+		return [[lineObj.p1.x, lineObj.p1.y], [lineObj.p2.x, lineObj.p2.y]];
+	}
+	
+	function line2GeoJsonHeavy(p1, p2) {
+		let lineObj = lineHeavy(p1, p2);
+		return [[lineObj.p1.x, lineObj.p1.y], [lineObj.p2.x, lineObj.p2.y]];
 	}
 	
 	function contour2GeoJsonLight(contour) {
@@ -504,7 +514,9 @@ function extendShortStroke(font, references, limit) {
 				const p3 = circularArray(contour, p3I);
 				const p4 = circularArray(contour, p4I);
 				if (canBeStrokeEnd(p1, p2, p3, p4)) {
-					setCustomRadius(name, idxC1, distanceLight(p2, p3) / 2, distanceHeavy(p2, p3) / 2);
+					let squarePointL = closestPointOnLine(point2GeoJsonLight(p2), line2GeoJsonLight(p3, p4));
+					let squarePointH = closestPointOnLine(point2GeoJsonHeavy(p2), line2GeoJsonHeavy(p3, p4));
+					setCustomRadius(name, idxC1, geometric.lineLength([point2GeoJsonLight(p2), squarePointL]) / 2, geometric.lineLength([point2GeoJsonHeavy(p2), squarePointH]) / 2);
 					strokeEnds.push([p2,p3]);
 				}
 			}
@@ -890,8 +902,16 @@ function extendShortStroke(font, references, limit) {
 									j3h = geometric.lineIntersectsPolygon([p4h, n3h], polygonHeavy[0]);
 								}
 								test2l();
-								if (t2l) {
-									while (t2l && e2l <= 20 && (!i2l || !j2l)) {
+								// if (!t2l) {
+								// 	while (!t2l) {
+								// 		e2l++;
+								// 		test2l();
+								// 	}
+								// }
+								// if (t2l) {
+								// 	while (t2l && e2l <= 20 && (!i2l || !j2l)) {
+								if (t2l || (!t2l && i2l && !j2l)) {
+									while ((t2l || (!t2l && i2l && !j2l)) && e2l <= 20 && (!i2l || !j2l)) {	
 										e2l++;
 										test2l();
 									}
@@ -900,8 +920,16 @@ function extendShortStroke(font, references, limit) {
 								}
 								
 								test3l();
-								if (t3l) {
-									while (t3l && e3l <= 20 && (!i3l || !j3l)) {
+								// if (!t3l) {
+								// 	while (!t3l) {
+								// 		e3l++;
+								// 		test3l();
+								// 	}
+								// }
+								// if (t3l) {
+								// 	while (t3l && e3l <= 20 && (!i3l || !j3l)) {
+								if (t3l || (!t3l && i3l && !j3l)) {
+									while ((t3l || (!t3l && i3l && !j3l)) && e3l <= 20 && (!i3l || !j3l)) {	
 										e3l++;
 										test3l();
 									}
@@ -920,8 +948,8 @@ function extendShortStroke(font, references, limit) {
 								}
 								
 								test3h();
-								if (t3h) {
-									while (t3h && e3h <= heavyLimit && (!i3h || !j3h)) {
+								if (t3h || (!t3h && i3h && !j3h)) {
+									while ((t3h || (!t3h && i3h && !j3h)) && e3h <= heavyLimit && (!i3h || !j3h)) {
 										e3h++;
 										test3h();
 									}	

@@ -2670,9 +2670,41 @@ function preProcess(font, references, limit) {
 			}
 		}
 		
+		//NOTE - re-index shared points
+		sharedPoints = [];
+		for (let idxC1 = 0; idxC1 < oldContours.length; idxC1++) {
+			let contour = oldContours[idxC1];
+			for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
+				let p1I = circularIndex(contour, idxP1);
+				let p1 = circularArray(contour, p1I);
+				if (p1.kind === 0) {
+					for (let idxC2 = 0; idxC2 < oldContours.length; idxC2++) {
+						let contour2 = oldContours[idxC2];
+						if (idxC2 === idxC1) continue;
+						for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
+							let p2I = circularIndex(contour2, idxP2);
+							let p2 = circularArray(contour2, p2I);
+							if (p2.kind === 0) {
+								let p1l = pointLight(p1);
+								let p1h = pointHeavy(p1);
+								let p2l = pointLight(p2);
+								let p2h = pointHeavy(p2);
+								if (
+									(JSON.stringify(p1l) === JSON.stringify(p2l) && JSON.stringify(p1h) !== JSON.stringify(p2h) && distanceHeavy(p1, p2) < 4) ||
+									(JSON.stringify(p1l) !== JSON.stringify(p2l) && JSON.stringify(p1h) === JSON.stringify(p2h) && distanceLight(p1, p2) < 4) ||
+									(distanceLight(p1, p2) <= 2 && distanceHeavy(p1, p2) <= 2)
+								) {
+									sharedPoints.push({idxC1, p1I, idxC2, p2I});
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
 		// ANCHOR - even out mis-matched stroke end lengths
 		for (let idxC1 = 0; idxC1 < oldContours.length; idxC1++) {
-			// if (JSON.stringify(oldContours[idxC1][0]) === JSON.stringify(circularArray(oldContours[idxC1], - 1))) oldContours[idxC1].pop();
 			let contour = oldContours[idxC1];
 			if (!contour.length.isBetween(8,9) || skipContours.includes(idxC1)) {
 				continue;
