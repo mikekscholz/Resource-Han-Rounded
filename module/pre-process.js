@@ -3040,8 +3040,7 @@ function preProcess(font, references, limit) {
 						p5L = geometric.pointTranslate(p5L, adjAngle2L - 180, adjLength2L);
 						p6L = geometric.pointTranslate(p6L, adjAngle2L, adjLength2L);
 						p7L = geometric.pointTranslate(p7L, adjAngle2L, adjLength2L);
-					}
-					if (fixed1 || fixed6) {
+					} else if (fixed1 || fixed6) {
 						p2H = geometric.pointTranslate(p2H, adjAngle1H, adjLength1H * 2);
 						p3H = geometric.pointTranslate(p3H, adjAngle1H, adjLength1H * 2);
 						p4H = geometric.pointTranslate(p4H, adjAngle2H - 180, adjLength2H * 2);
@@ -3050,8 +3049,7 @@ function preProcess(font, references, limit) {
 						p3L = geometric.pointTranslate(p3L, adjAngle1L, adjLength1L * 2);
 						p4L = geometric.pointTranslate(p4L, adjAngle2L - 180, adjLength2L * 2);
 						p5L = geometric.pointTranslate(p5L, adjAngle2L - 180, adjLength2L * 2);
-					}
-					if (fixed2 || fixed5) {
+					} else if (fixed2 || fixed5) {
 						p1H = geometric.pointTranslate(p1H, adjAngle1H - 180, adjLength1H * 2);
 						p0H = geometric.pointTranslate(p0H, adjAngle1H - 180, adjLength1H * 2);
 						p6H = geometric.pointTranslate(p6H, adjAngle2H, adjLength2H * 2);
