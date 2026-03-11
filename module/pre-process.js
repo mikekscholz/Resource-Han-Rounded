@@ -2742,6 +2742,14 @@ function preProcess(font, references, limit) {
 					let inside2 = [];
 					let inside5 = [];
 					let inside6 = [];
+					let objIndex1 = sharedPoints.findIndex((obj) => (obj["idxC1"] === idxC1 && obj["p1I"] === p1I) || (obj["idxC2"] === idxC1 && obj["p2I"] === p1I));
+					let objIndex2 = sharedPoints.findIndex((obj) => (obj["idxC1"] === idxC1 && obj["p1I"] === p2I) || (obj["idxC2"] === idxC1 && obj["p2I"] === p2I));
+					let objIndex5 = sharedPoints.findIndex((obj) => (obj["idxC1"] === idxC1 && obj["p1I"] === p5I) || (obj["idxC2"] === idxC1 && obj["p2I"] === p5I));
+					let objIndex6 = sharedPoints.findIndex((obj) => (obj["idxC1"] === idxC1 && obj["p1I"] === p6I) || (obj["idxC2"] === idxC1 && obj["p2I"] === p6I));
+					let fixed1 = objIndex1 >= 0;
+					let fixed2 = objIndex2 >= 0;
+					let fixed5 = objIndex5 >= 0;
+					let fixed6 = objIndex6 >= 0;
 					for (const [idxC2, contour2] of oldContours.entries()) {
 						if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
 						let polygonLight = polyGlyphLight[idxC2];
@@ -2767,32 +2775,26 @@ function preProcess(font, references, limit) {
 					let sideAngleDelta2 = abs(sideAngle2L - sideAngle2H);
 					let sideAngleL = (sideAngle1L + sideAngle2L) / 2;
 					let sideAngleH = (sideAngle1H + sideAngle2H) / 2;
-					let origin1L, origin2L;
-					if (edge1 || edge5) {
+					let origin1L, origin2L, origin1H, origin2H;
+					if (fixed1 || fixed5) {
 						origin1L = p1L;
 						origin2L = p5L;
-					} 
-					else if (edge2 || edge6) {
-						origin1L = p6L;
-						origin2L = p2L;
-					}
-					else {
-						origin1L = [midpoint1L.x, midpoint1L.y];
-						origin2L = [midpoint2L.x, midpoint2L.y];
-					}
-					let origin1H, origin2H;
-					if (edge1 || edge5) {
 						origin1H = p1H;
 						origin2H = p5H;
 					} 
-					else if (edge2 || edge6) {
+					else if (fixed2 || fixed6) {
+						origin1L = p6L;
+						origin2L = p2L;
 						origin1H = p6H;
 						origin2H = p2H;
 					}
 					else {
+						origin1L = [midpoint1L.x, midpoint1L.y];
+						origin2L = [midpoint2L.x, midpoint2L.y];
 						origin1H = [midpoint1H.x, midpoint1H.y];
 						origin2H = [midpoint2H.x, midpoint2H.y];
 					}
+
 					let endAngles1L = strokeEndAnglesGeo(p0L, p1L, p2L, p3L);
 					let endAngles2L = strokeEndAnglesGeo(p4L, p5L, p6L, p7L);
 					let endAngles1H = strokeEndAnglesGeo(p0H, p1H, p2H, p3H);
@@ -3013,14 +3015,6 @@ function preProcess(font, references, limit) {
 					let curStroke2L = geometric.lineLength([p5L, p6L]);
 					let curStroke1H = geometric.lineLength([p1H, p2H]);
 					let curStroke2H = geometric.lineLength([p5H, p6H]);
-					let objIndex1 = sharedPoints.findIndex((obj) => (obj["idxC1"] === idxC1 && obj["p1I"] === p1I) || (obj["idxC2"] === idxC1 && obj["p2I"] === p1I));
-					let objIndex2 = sharedPoints.findIndex((obj) => (obj["idxC1"] === idxC1 && obj["p1I"] === p2I) || (obj["idxC2"] === idxC1 && obj["p2I"] === p2I));
-					let objIndex5 = sharedPoints.findIndex((obj) => (obj["idxC1"] === idxC1 && obj["p1I"] === p5I) || (obj["idxC2"] === idxC1 && obj["p2I"] === p5I));
-					let objIndex6 = sharedPoints.findIndex((obj) => (obj["idxC1"] === idxC1 && obj["p1I"] === p6I) || (obj["idxC2"] === idxC1 && obj["p2I"] === p6I));
-					let fixed1 = objIndex1 >= 0;
-					let fixed2 = objIndex2 >= 0;
-					let fixed5 = objIndex5 >= 0;
-					let fixed6 = objIndex6 >= 0;
 					let adjLength1L = (strokeL - curStroke1L) / 2;
 					let adjLength2L = (strokeL - curStroke2L) / 2;
 					let adjLength1H = (strokeH - curStroke1H) / 2;
