@@ -1,7 +1,7 @@
 // round to 1/precision, where precision should be power of 2 to get smaller size
 function roundTo(x, precision) {
 // function roundTo(x) {
-	return Math.round(x * 32) / 32;
+	return Math.round(x * 10) / 10;
 	// return parseFloat(x.toFixed(4));
 }
 

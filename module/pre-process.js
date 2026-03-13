@@ -2786,10 +2786,10 @@ function preProcess(font, references, limit) {
 						if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
 						let polygonLight = polyGlyphLight[idxC2];
 						let polygonHeavy = polyGlyphHeavy[idxC2];
-						if (inside(p1L, polygonLight) === 0 && inside(p1H, polygonHeavy) === 0) edge1 = true;
-						if (inside(p2L, polygonLight) === 0 && inside(p2H, polygonHeavy) === 0) edge2 = true;
-						if (inside(p5L, polygonLight) === 0 && inside(p5H, polygonHeavy) === 0) edge5 = true;
-						if (inside(p6L, polygonLight) === 0 && inside(p6H, polygonHeavy) === 0) edge6 = true;
+						if (inside(p1L, polygonLight) === 0 || inside(p1H, polygonHeavy) === 0) edge1 = true;
+						if (inside(p2L, polygonLight) === 0 || inside(p2H, polygonHeavy) === 0) edge2 = true;
+						if (inside(p5L, polygonLight) === 0 || inside(p5H, polygonHeavy) === 0) edge5 = true;
+						if (inside(p6L, polygonLight) === 0 || inside(p6H, polygonHeavy) === 0) edge6 = true;
 						if (inside(p1L, polygonLight) !== false && inside(p1H, polygonHeavy) !== false) inside1.push(idxC2);
 						if (inside(p2L, polygonLight) !== false && inside(p2H, polygonHeavy) !== false) inside2.push(idxC2);
 						if (inside(p5L, polygonLight) !== false && inside(p5H, polygonHeavy) !== false) inside5.push(idxC2);
