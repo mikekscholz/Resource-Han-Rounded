@@ -957,7 +957,7 @@ function extendShortStroke(font, references, limit) {
 									test3h();
 								}
 								
-								if (e2l === e3l && e2h !== e3h) {
+								// if (e2l === e3l && e2h !== e3h) {
 									let minL = min(e2l, e3l);
 									e2l = minL;
 									e3l = minL;
@@ -968,7 +968,7 @@ function extendShortStroke(font, references, limit) {
 									test3l();
 									test2h();
 									test3h();
-								}
+								// }
 							}
 							newContour[p2I] = {
 								x: makeVariance(n2l[0], n2h[0]),

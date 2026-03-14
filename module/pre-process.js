@@ -137,7 +137,7 @@ function preProcess(font, references, limit) {
 				let cp1 = pointLight(contour[i + 1]);
 				let cp2 = pointLight(contour[i + 2]);
 				let p2 = pointLight(contour[i + 3]);
-				let curve = approximateBezier(p1, cp1, cp2, p2, 0.1);
+				let curve = approximateBezier(p1, cp1, cp2, p2, 5);
 				curve.pop();
 				for (const coord of curve) {
 					const { x, y } = coord;
@@ -172,7 +172,7 @@ function preProcess(font, references, limit) {
 				let cp1 = pointHeavy(contour[i + 1]);
 				let cp2 = pointHeavy(contour[i + 2]);
 				let p2 = pointHeavy(contour[i + 3]);
-				let curve = approximateBezier(p1, cp1, cp2, p2, 0.1);
+				let curve = approximateBezier(p1, cp1, cp2, p2, 5);
 				curve.pop();
 				for (const coord of curve) {
 					const { x, y } = coord;
@@ -322,7 +322,7 @@ function preProcess(font, references, limit) {
 		let b2L = bearing(lineLight(p4, p3));
 		let b1H = bearing(lineHeavy(p1, p2));
 		let b2H = bearing(lineHeavy(p4, p3));
-		return ((b1L >= 45 && b1L <= 135) && (b2L >= 45 && b2L <= 135) && (b1H >= 45 && b1H <= 135) && (b2H >= 45 && b2H <= 135));
+		return ((b1L >= 42 && b1L <= 135) && (b2L >= 42 && b2L <= 135) && (b1H >= 42 && b1H <= 135) && (b2H >= 42 && b2H <= 135));
 	}
 	
 	function isSquare(p1, p2) {
@@ -920,6 +920,10 @@ function preProcess(font, references, limit) {
 									let h1 = circularArray(contour, h1I);
 									let h2 = circularArray(contour, h2I);
 									let h3 = circularArray(contour, h3I);
+									if (name === "uni8BBD" && canBeStrokeEnd(h0, h1, h2, h3)) console.log(bearingLight(h0, h1));
+									if (name === "uni8BBD" && canBeStrokeEnd(h0, h1, h2, h3)) console.log(bearingLight(h3, h2));
+									if (name === "uni8BBD" && canBeStrokeEnd(h0, h1, h2, h3)) console.log(bearingHeavy(h0, h1));
+									if (name === "uni8BBD" && canBeStrokeEnd(h0, h1, h2, h3)) console.log(bearingHeavy(h3, h2));
 									if (canBeStrokeEnd(h0, h1, h2, h3) && strokeEndRight(h0, h1, h2, h3)) {
 										hStrokeL = distanceLight(h1, h2);
 										hStrokeH = distanceHeavy(h1, h2);
@@ -1006,6 +1010,10 @@ function preProcess(font, references, limit) {
 										makeVariance(nV3L[1], nV3H[1]),
 										contour2[pV3I].kind
 									);
+									if (name === "uni8BBD") console.log(vStrokeTopL);
+									if (name === "uni8BBD") console.log(vStrokeTopH);
+									if (name === "uni8BBD") console.log(hStrokeL);
+									if (name === "uni8BBD") console.log(hStrokeH);
 									contour2[pV2I] = Ot.Glyph.Point.create(
 										makeVariance(pV1L[0], pV1H[0]),
 										makeVariance(nV4L[1] + (hStrokeL * 0.38), nV4H[1] + (hStrokeH * 0.4)),
@@ -1421,7 +1429,7 @@ function preProcess(font, references, limit) {
 									}
 								} */
 								//---------------------------------------------------------------------------------------------
-
+								if (name === "uni8BBD") console.log(contour2);
 								let testPolyL = [contour2GeoJsonLight(contour2)];
 								let testPolyH = [contour2GeoJsonHeavy(contour2)];
 								let testOffsetL = 0;
@@ -3861,35 +3869,41 @@ function preProcess(font, references, limit) {
 	}
 
 	let len = font.glyphs.items.length;
-	let consoleWidth = process.stdout.columns || 150
-	let bar = new ProgressBar('\u001b[38;5;82mpreProcessing\u001b[0m [1/6]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete: '\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+	let consoleWidth = process.stdout.columns || 150;
+	let bar, progressTick;
+	let debug = true;
+	if (debug) {
+		bar = new ProgressBar('\u001b[38;5;82mpreProcessing\u001b[0m [1/5]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
 
-	function progressTick() {
-		if (len) {
-			var chunk = 1;
-			bar.tick(chunk);
-			if (bar.curr > 0 && bar.curr < len - 2) {
-				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
+		progressTick = function(info = "") {
+			if (len) {
+				var chunk = 1;
+				bar.tick(chunk);
+				if (bar.curr > 0 && bar.curr < len - 2) { 
+					bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+				}
+				if (bar.curr === len - 1) { 
+					bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+				}
 			}
-			if (bar.curr === len - 1) {
-				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
+		}
+	} else {
+		bar = new ProgressBar('\u001b[38;5;82mpreProcessing\u001b[0m [1/6]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete: '\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+
+		progressTick = function() {
+			if (len) {
+				var chunk = 1;
+				bar.tick(chunk);
+				if (bar.curr > 0 && bar.curr < len - 2) {
+					bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
+				}
+				if (bar.curr === len - 1) {
+					bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
+				}
 			}
 		}
 	}
-	// let bar = new ProgressBar('\u001b[38;5;82mpreProcessing\u001b[0m [1/5]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
 
-	// function progressTick(info = "") {
-	// 	if (len) {
-	// 		var chunk = 1;
-	// 		bar.tick(chunk);
-	// 		if (bar.curr > 0 && bar.curr < len - 2) { 
-	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
-	// 		}
-	// 		if (bar.curr === len - 1) { 
-	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
-	// 		}
-	// 	}
-	// }
 
 	let count = 0;
 	for (const glyph of font.glyphs.items) {
@@ -3913,6 +3927,7 @@ function preProcess(font, references, limit) {
 		// checkSingleGlyph(glyph);
 		// if (!references.preProcessSkip.includes(name) && count < 200) checkSingleGlyph(glyph);
 		if (!references.preProcessSkip.includes(name) && (limit === false || count < limit)) checkSingleGlyph(glyph);
+		// if (name === "uni8BBD") checkSingleGlyph(glyph);
 		count++;
 		// if (count % 1000 == 0) console.log("preExtension:", count, "glyphs processed.");
 	}
