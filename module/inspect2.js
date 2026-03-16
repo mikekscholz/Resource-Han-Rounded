@@ -580,8 +580,6 @@ const htmlHeader = `
 		}
 		#dialogGlyphContainer {
 			max-height: 100%;
-			display: flex;
-			justify-content: center;
 			overflow: hidden;
 		}
 		#dialogGlyphContainer svg {

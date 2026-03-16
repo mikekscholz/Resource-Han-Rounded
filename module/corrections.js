@@ -7,7 +7,7 @@ const { hangulSios } = require("./correctionsUnicode");
 const ProgressBar = require('./node-progress');
 const fs = require("node:fs");
 const path = require("node:path");
-const { angle, approximateBezier, base60, closestPointOnLine, findIntersection, horizontalSlope, isBetween, midpoint, pointOnLine, roundTo, turn, verticalSlope } = require("./util");
+const { angle, approximateBezier, base60, bearing, closestPointOnLine, findIntersection, horizontalSlope, isBetween, midpoint, pointOnLine, roundTo, turn, verticalSlope } = require("./util");
 const { abs, ceil, floor, pow, round, sqrt, trunc, max } = Math;
 
 // based on measurement of SHS
@@ -201,9 +201,9 @@ function correctGlyphs(font, references, limit) {
 		return (Math.atan2((p1.x - p2.x), (p1.y - p2.y)) + Math.PI) * 360 / (2 * Math.PI);
 	}
 	
-	function bearing(start, end) {
-		return { l: bearingLight(start, end), h: bearingHeavy(start, end) };
-	}
+	// function bearing(start, end) {
+	// 	return { l: bearingLight(start, end), h: bearingHeavy(start, end) };
+	// }
 	function isBreve(contour) {
 		if (contour.length < 15) return false;
 		const c = contour;
@@ -431,7 +431,31 @@ function correctGlyphs(font, references, limit) {
 		}
 		return  circularIndex(contour, idx + 1);
 	}
-
+	function strokeEndAnglesLight(p1, p2, p3, p4) {
+		let bearingLight1 = bearingLight(p1, p2);
+		let bearingLight2 = bearingLight(p2, p3);
+		let bearingLight3 = bearingLight(p3, p4);
+		let angleLight1 = angle(bearingLight1, bearingLight2);
+		let angleLight2 = angle(bearingLight2, bearingLight3);
+		return ([angleLight1, angleLight2]);
+	}
+	
+	function strokeEndAnglesHeavy(p1, p2, p3, p4) {
+		let bearingHeavy1 = bearingHeavy(p1, p2);
+		let bearingHeavy2 = bearingHeavy(p2, p3);
+		let bearingHeavy3 = bearingHeavy(p3, p4);
+		let angleHeavy1 = angle(bearingHeavy1, bearingHeavy2);
+		let angleHeavy2 = angle(bearingHeavy2, bearingHeavy3);
+		return ([angleHeavy1, angleHeavy2]);
+	}
+	function strokeEndAnglesGeo(p1, p2, p3, p4) {
+		let bearingHeavy1 = bearing({p1: { x: p1[0], y: p1[1]}, p2: { x: p2[0], y: p2[1]} });
+		let bearingHeavy2 = bearing({p1: { x: p2[0], y: p2[1]}, p2: { x: p3[0], y: p3[1]} });
+		let bearingHeavy3 = bearing({p1: { x: p3[0], y: p3[1]}, p2: { x: p4[0], y: p4[1]} });
+		let angleHeavy1 = angle(bearingHeavy1, bearingHeavy2);
+		let angleHeavy2 = angle(bearingHeavy2, bearingHeavy3);
+		return ([angleHeavy1, angleHeavy2]);
+	}
 	function isBetweenPoints(a, x, b) {
 		return originLight(a) <= originLight(x) &&
 			originLight(x) <= originLight(b) + 2 &&
@@ -700,12 +724,6 @@ function correctGlyphs(font, references, limit) {
 					let vtrI = circularIndex(contour3, idxP3);
 					let vtlI = circularIndex(contour3, idxP3 + 1);
 					let vbrI = circularIndex(contour3, idxP3 - 1);
-					let r1 = circularArray(contour2, idxP2 - 3);
-					let r2 = circularArray(contour2, idxP2 - 2);
-					let r3 = circularArray(contour2, idxP2 - 1);
-					let r4 = circularArray(contour2, idxP2);
-					let l3 = circularArray(contour2, idxP2 + 6);
-					let l4 = circularArray(contour2, idxP2 + 7);
 					let r1I = circularIndex(contour2, idxP2 - 3);
 					let r2I = circularIndex(contour2, idxP2 - 2);
 					let r3I = circularIndex(contour2, idxP2 - 1);
@@ -714,6 +732,14 @@ function correctGlyphs(font, references, limit) {
 					let l4I = circularIndex(contour2, idxP2 + 7);
 					let b1I = circularIndex(contour2, idxP2 + 8);
 					let b2I = circularIndex(contour2, idxP2 + 9);
+					let r1 = circularArray(contour2, r1I);
+					let r2 = circularArray(contour2, r2I);
+					let r3 = circularArray(contour2, r3I);
+					let r4 = circularArray(contour2, r4I);
+					let l3 = circularArray(contour2, l3I);
+					let l4 = circularArray(contour2, l4I);
+					let b1 = circularArray(contour2, b1I);
+					let b2 = circularArray(contour2, b2I);
 					if (originLight(verticalTopRight.y) < originLight(verticalTopLeft.y)) {
 						verticalTopRight = {
 							x: makeVariance(originLight(verticalTopRight.x), originHeavy(verticalTopRight.x)),
@@ -797,6 +823,74 @@ function correctGlyphs(font, references, limit) {
 						y: makeVariance(originLight(l4.y), originHeavy(l4.y)),
 						kind: 0,
 					};
+				} else if (contour2.length.isBetween(13,14)) {
+					let r1I = circularIndex(contour2, idxP2 - 3);
+					let r2I = circularIndex(contour2, idxP2 - 2);
+					let r3I = circularIndex(contour2, idxP2 - 1);
+					let r4I = circularIndex(contour2, idxP2);
+					let l3I = circularIndex(contour2, idxP2 + 6);
+					let l4I = circularIndex(contour2, idxP2 + 7);
+					let b1I = circularIndex(contour2, idxP2 + 8);
+					let b2I = circularIndex(contour2, idxP2 + 9);
+					let r1 = circularArray(contour2, r1I);
+					let r2 = circularArray(contour2, r2I);
+					let r3 = circularArray(contour2, r3I);
+					let r4 = circularArray(contour2, r4I);
+					let l3 = circularArray(contour2, l3I);
+					let l4 = circularArray(contour2, l4I);
+					let b1 = circularArray(contour2, b1I);
+					let b2 = circularArray(contour2, b2I);
+					let p6L = point2GeoJsonLight(l3);
+					let p7L = point2GeoJsonLight(l4);
+					let p8L = point2GeoJsonLight(b1);
+					let p9L = point2GeoJsonLight(b2);
+					let p10L = point2GeoJsonLight(r1);
+					let p11L = point2GeoJsonLight(r2);
+					let p6H = point2GeoJsonHeavy(l3);
+					let p7H = point2GeoJsonHeavy(l4);
+					let p8H = point2GeoJsonHeavy(b1);
+					let p9H = point2GeoJsonHeavy(b2);
+					let p10H = point2GeoJsonHeavy(r1);
+					let p11H = point2GeoJsonHeavy(r2);
+					let endAngles1L = strokeEndAnglesGeo(p6L, p7L, p10L, p11L);
+					let endAngles1H = strokeEndAnglesGeo(p6H, p7H, p10H, p11H);
+					// let n7L, n7H, n10L, n10H;
+					if (endAngles1L[0] > endAngles1L[1]) {
+							p10L = closestPointOnLine(p7L, [p10L, p11L]);
+					} else {
+							p7L = closestPointOnLine(p10L, [p6L, p7L]);
+					}
+					if (endAngles1H[0] > endAngles1H[1]) {
+							p10H = closestPointOnLine(p7H, [p10H, p11H]);
+					} else {
+							p7H = closestPointOnLine(p10H, [p6H, p7H]);
+					}
+					let interpolatorL = geometric.lineInterpolate([p7L, p10L]);
+					let interpolatorH = geometric.lineInterpolate([p7H, p10H]);
+					p8L = interpolatorL(0.25);
+					p8H = interpolatorH(0.25);
+					p9L = interpolatorL(0.75);
+					p9H = interpolatorH(0.75);
+					oldContours[idxC2][l4I] = Ot.Glyph.Point.create(
+						makeVariance(p7L[0], p7H[0]),
+						makeVariance(p7L[1], p7H[1]),
+						oldContours[idxC2][l4I].kind
+					);
+					oldContours[idxC2][b1I] = Ot.Glyph.Point.create(
+						makeVariance(p8L[0], p8H[0]),
+						makeVariance(p8L[1], p8H[1]),
+						oldContours[idxC2][b1I].kind
+					);
+					oldContours[idxC2][b2I] = Ot.Glyph.Point.create(
+						makeVariance(p9L[0], p9H[0]),
+						makeVariance(p9L[1], p9H[1]),
+						oldContours[idxC2][b2I].kind
+					);
+					oldContours[idxC2][r1I] = Ot.Glyph.Point.create(
+						makeVariance(p10L[0], p10H[0]),
+						makeVariance(p10L[1], p10H[1]),
+						oldContours[idxC2][r1I].kind
+					);
 				}
 			}
 		}

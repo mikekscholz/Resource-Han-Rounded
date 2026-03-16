@@ -29,7 +29,7 @@ let coords = [
 // ]
 let c = 12
 // for (let j = 0; j < n.length; j++) {
-for (let i = 0; i < 8; i++) {
+for (let i = 0; i < 11; i++) {
 // let tmpl = `oldContour[i + 1][${i}] = {
 // 	x: makeVariance(originLight(oldContour[i + 1][${i}].x), originHeavy(oldContour[i + 1][${i}].x)),
 // 	y: makeVariance(originLight(oldContour[i + 1][${i}].y), originHeavy(oldContour[i + 1][${i}].y)),
@@ -46,10 +46,10 @@ for (let i = 0; i < 8; i++) {
 // 	y: makeVariance(${i}L.y, ${i}H.y),
 // 	kind: ${i}.kind,
 // };`
-let tmpl = `oldContours[idxC1][p${i}I] = Ot.Glyph.Point.create(
+let tmpl = `oldContours[idxC2][p${i}I] = Ot.Glyph.Point.create(
 	makeVariance(p${i}L[0], p${i}H[0]),
 	makeVariance(p${i}L[1], p${i}H[1]),
-	oldContours[idxC1][p${i}I].kind
+	oldContours[idxC2][p${i}I].kind
 );`
 console.log(tmpl);
 }

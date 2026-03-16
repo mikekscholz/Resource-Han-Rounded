@@ -1,0 +1,99 @@
+<svg width="500px" version="1.1" viewBox="0 0 326 249" xmlns="http://www.w3.org/2000/svg">
+	<defs>
+		<style>
+			svg {
+				background-color:#0007;
+			}
+			.handle-line {
+				stroke:#fff;
+				stroke-dasharray:2.4px 2px;
+				stroke-width:0.8;
+				stroke-linecap:round;
+				stroke-dashoffset:0;
+			}
+			text {
+				fill:#fff;
+				font-size:8px;
+				font-family:Nunito,sans-serif;
+				text-anchor: middle;
+			}
+			circle, .hc {
+				r:1.8;
+				stroke:currentColor;
+				fill:currentColor;
+				fill-opacity:0.7;
+				stroke-width:1;
+			}
+			.c {
+				color:#e06;
+			}
+			.h {
+				color:#9e0;
+			}
+			.s {
+				color:#0cf;
+			}
+			.g {
+				color:#888;
+			}
+			.f {
+				opacity: 50%
+			}
+			.gs {
+				fill: none;
+				stroke: #666;
+				stroke-dasharray: 1 1;
+				stroke-width:.5;
+				stroke-linecap:round;
+			}
+			.ga {
+				fill: none;
+				stroke: #666;
+				stroke-dasharray: none;
+				stroke-width:1;
+				stroke-linecap:round;
+				stroke-linejoin: round;
+			}
+			.gt {
+				fill:#666;
+				font-size:4px;
+				font-weight: 700;
+				font-family:Nunito,sans-serif;
+				transform-box: fill-box;
+				transform-origin: center;
+			}
+		</style>
+		<marker
+			id="arrow"
+			viewBox="0 0 10 12"
+			refX="4"
+			refY="5"
+			markerUnits="strokeWidth"
+			markerWidth="10"
+			markerHeight="12"
+			orient="auto" class="ga">
+			<path d="M 4,2 8,5 4,8 M 8, 5 L 1, 5" />
+		</marker>
+	</defs>
+	<path d="m195 13c-46 49-123 112-181 149l91 74c60-33 137-86 206-138z" fill="#fff1" stroke="#fff6" stroke-width=".5"/>
+	<line class="handle-line" x1="195" x2="149" y1="13" y2="62"/>
+	<line class="handle-line" x1="72" x2="14" y1="125" y2="162"/>
+	<line class="handle-line" x1="105" x2="165" y1="236" y2="203"/>
+	<line class="handle-line" x1="242" x2="311" y1="150" y2="98"/>
+	<circle class="h" cx="149" cy="62" r="8"/>
+	<circle class="h" cx="72" cy="125" r="8"/>
+	<circle class="c" cx="14" cy="162" r="8"/>
+	<circle class="c" cx="105" cy="236" r="8"/>
+	<circle class="h" cx="165" cy="203" r="8"/>
+	<circle class="h" cx="242" cy="150" r="8"/>
+	<circle class="c" cx="311" cy="98" r="8"/>
+	<circle class="s" cx="195" cy="13" r="8"/>
+	<text x="65" y="123">0</text>
+	<text x="10" y="157">1</text>
+	<text x="97" y="242">2</text>
+	<text x="172" y="205">3</text>
+	<text x="250" y="154">4</text>
+	<text x="317" y="97">5</text>
+	<text x="187" y="13">6</text>
+	<text x="141" y="62">7</text>
+</svg>
