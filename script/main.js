@@ -1,6 +1,6 @@
 "use strict";
-let limit = 200;
-// let limit = false;
+// let limit = 200;
+let limit = false;
 const path = require("node:path");
 const fsp = require("node:fs/promises");
 const { readFileSync, writeFileSync, mkdirSync } = require("node:fs");

@@ -2711,6 +2711,59 @@ function preProcess(font, references, limit) {
 			}
 		}
 		
+		for (let idxC1 = 0; idxC1 < oldContours.length; idxC1++) {
+			let contour = oldContours[idxC1];
+			if (!contour.length.isBetween(4,5) || skipContours.includes(idxC1)) {
+				continue;
+			}
+			for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
+				const p0I = circularIndex(contour, idxP1);
+				const p1I = nextNode(contour, p0I);
+				const p2I = nextNode(contour, p1I);
+				const p3I = nextNode(contour, p2I);
+				let p0 = circularArray(contour, p0I);
+				let p1 = circularArray(contour, p1I);
+				let p2 = circularArray(contour, p2I);
+				let p3 = circularArray(contour, p3I);
+				if (
+					canBeStrokeEnd(p3, p0, p1, p2) &&
+					canBeStrokeEnd(p1, p2, p3, p0) &&
+					isSquare(p0, p1) && isSquare(p2, p3)
+				) {
+					let p0L = point2GeoJsonLight(p0);
+					let p1L = point2GeoJsonLight(p1);
+					let p2L = point2GeoJsonLight(p2);
+					let p3L = point2GeoJsonLight(p3);
+					let p0H = point2GeoJsonHeavy(p0);
+					let p1H = point2GeoJsonHeavy(p1);
+					let p2H = point2GeoJsonHeavy(p2);
+					let p3H = point2GeoJsonHeavy(p3);
+
+					let edge1 = false;
+					let edge2 = false;
+					let edge5 = false;
+					let edge6 = false;
+					let inside1 = [];
+					let inside2 = [];
+					let inside5 = [];
+					let inside6 = [];
+					for (const [idxC2, contour2] of oldContours.entries()) {
+						if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
+						let polygonLight = polyGlyphLight[idxC2];
+						let polygonHeavy = polyGlyphHeavy[idxC2];
+						if (inside(p1L, polygonLight) === 0 || inside(p1H, polygonHeavy) === 0) edge1 = true;
+						if (inside(p2L, polygonLight) === 0 || inside(p2H, polygonHeavy) === 0) edge2 = true;
+						if (inside(p5L, polygonLight) === 0 || inside(p5H, polygonHeavy) === 0) edge5 = true;
+						if (inside(p6L, polygonLight) === 0 || inside(p6H, polygonHeavy) === 0) edge6 = true;
+						if (inside(p1L, polygonLight) !== false && inside(p1H, polygonHeavy) !== false) inside1.push(idxC2);
+						if (inside(p2L, polygonLight) !== false && inside(p2H, polygonHeavy) !== false) inside2.push(idxC2);
+						if (inside(p5L, polygonLight) !== false && inside(p5H, polygonHeavy) !== false) inside5.push(idxC2);
+						if (inside(p6L, polygonLight) !== false && inside(p6H, polygonHeavy) !== false) inside6.push(idxC2);
+					}
+				}
+			}
+		}
+		
 		// ANCHOR - even out mis-matched stroke end lengths
 		// HOVERIMAGE - [img "diagrams/mis-matched-stroke-ends.svg"]
 		for (let idxC1 = 0; idxC1 < oldContours.length; idxC1++) {
