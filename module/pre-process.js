@@ -2738,15 +2738,6 @@ function preProcess(font, references, limit) {
 					let p1H = point2GeoJsonHeavy(p1);
 					let p2H = point2GeoJsonHeavy(p2);
 					let p3H = point2GeoJsonHeavy(p3);
-
-					let edge1 = false;
-					let edge2 = false;
-					let edge5 = false;
-					let edge6 = false;
-					let inside1 = [];
-					let inside2 = [];
-					let inside5 = [];
-					let inside6 = [];
 					for (const [idxC2, contour2] of oldContours.entries()) {
 						if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
 						let polygonLight = polyGlyphLight[idxC2];
