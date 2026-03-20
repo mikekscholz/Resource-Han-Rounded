@@ -2713,7 +2713,8 @@ function preProcess(font, references, limit) {
 		
 		for (let idxC1 = 0; idxC1 < oldContours.length; idxC1++) {
 			let contour = oldContours[idxC1];
-			if (!contour.length.isBetween(4,5) || skipContours.includes(idxC1)) {
+			// if (!contour.length.isBetween(4,5) || skipContours.includes(idxC1)) {
+			if (skipContours.includes(idxC1)) {
 				continue;
 			}
 			for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
@@ -2726,9 +2727,11 @@ function preProcess(font, references, limit) {
 				let p2 = circularArray(contour, p2I);
 				let p3 = circularArray(contour, p3I);
 				if (
-					canBeStrokeEnd(p3, p0, p1, p2) &&
-					canBeStrokeEnd(p1, p2, p3, p0) &&
-					isSquare(p0, p1) && isSquare(p2, p3)
+					// canBeStrokeEnd(p3, p0, p1, p2) &&
+					canBeStrokeEnd(p0, p1, p2, p3) &&
+					// canBeStrokeEnd(p1, p2, p3, p0) &&
+					isSquare(p1, p2)
+					//  && isSquare(p2, p3)
 				) {
 					let p0L = point2GeoJsonLight(p0);
 					let p1L = point2GeoJsonLight(p1);
@@ -2742,14 +2745,21 @@ function preProcess(font, references, limit) {
 						if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
 						let polygonLight = polyGlyphLight[idxC2];
 						let polygonHeavy = polyGlyphHeavy[idxC2];
-						if (inside(p1L, polygonLight) === 0 || inside(p1H, polygonHeavy) === 0) edge1 = true;
-						if (inside(p2L, polygonLight) === 0 || inside(p2H, polygonHeavy) === 0) edge2 = true;
-						if (inside(p5L, polygonLight) === 0 || inside(p5H, polygonHeavy) === 0) edge5 = true;
-						if (inside(p6L, polygonLight) === 0 || inside(p6H, polygonHeavy) === 0) edge6 = true;
-						if (inside(p1L, polygonLight) !== false && inside(p1H, polygonHeavy) !== false) inside1.push(idxC2);
-						if (inside(p2L, polygonLight) !== false && inside(p2H, polygonHeavy) !== false) inside2.push(idxC2);
-						if (inside(p5L, polygonLight) !== false && inside(p5H, polygonHeavy) !== false) inside5.push(idxC2);
-						if (inside(p6L, polygonLight) !== false && inside(p6H, polygonHeavy) !== false) inside6.push(idxC2);
+						let i1L = inside(p1L, polygonLight);
+						let i2L = inside(p2L, polygonLight);
+						let i1H = inside(p1H, polygonHeavy);
+						let i2H = inside(p2H, polygonHeavy);
+						if (strokeEndLeft(p0, p1, p2, p3) && i1L === true && i1H === true && ((i2L === 0 && i2H !== 0) || (i2L !== 0 && i2H === 0))) {
+							
+						}
+						// if (inside(p1L, polygonLight) === 0 || inside(p1H, polygonHeavy) === 0) edge1 = true;
+						// if (inside(p2L, polygonLight) === 0 || inside(p2H, polygonHeavy) === 0) edge2 = true;
+						// if (inside(p5L, polygonLight) === 0 || inside(p5H, polygonHeavy) === 0) edge5 = true;
+						// if (inside(p6L, polygonLight) === 0 || inside(p6H, polygonHeavy) === 0) edge6 = true;
+						// if (inside(p1L, polygonLight) !== false && inside(p1H, polygonHeavy) !== false) inside1.push(idxC2);
+						// if (inside(p2L, polygonLight) !== false && inside(p2H, polygonHeavy) !== false) inside2.push(idxC2);
+						// if (inside(p5L, polygonLight) !== false && inside(p5H, polygonHeavy) !== false) inside5.push(idxC2);
+						// if (inside(p6L, polygonLight) !== false && inside(p6H, polygonHeavy) !== false) inside6.push(idxC2);
 					}
 				}
 			}
