@@ -2483,7 +2483,7 @@ function preProcess(font, references, limit) {
 						b2L.isBetween(265, 280) === true && b2H.isBetween(265, 280) === true &&
 						b3H.isBetween(140, 168) === true && b5H.isBetween(165, 185) === true
 					) {
-						if (strokeDelta > 0) {
+						if (strokeDelta > 0 && newContour.length.isBetween(12,32)) {
 							for (let i = -3; i <= 4; i++) {
 								let iC = circularIndex(newContour, idxP + i);
 								let pL = pointLight(newContour[iC]);
@@ -2557,6 +2557,7 @@ function preProcess(font, references, limit) {
 		// ANCHOR - build geoJson polygons of glyph for testing points
 		let polyGlyphLight = [];
 		let polyGlyphHeavy = [];
+		function buildPolyGlyph(oldContours) {
 		let rawPolyLight = [];
 		let rawPolyHeavy = [];
 		let rawPolyLightCW = [];
@@ -2610,7 +2611,8 @@ function preProcess(font, references, limit) {
 			polyGlyphLight[idxN1] = polyLight;
 			polyGlyphHeavy[idxN1] = polyHeavy;
 		}
-		
+	}
+		buildPolyGlyph(oldContours);
 		// ANCHOR - clean up hidden bezier stroke ends
 		for (let [idxC1, contour] of oldContours.entries()) {
 			if (contour.length < 4 || skipContours.includes(idxC1)) {
@@ -2749,8 +2751,29 @@ function preProcess(font, references, limit) {
 						let i2L = inside(p2L, polygonLight);
 						let i1H = inside(p1H, polygonHeavy);
 						let i2H = inside(p2H, polygonHeavy);
-						if (strokeEndLeft(p0, p1, p2, p3) && i1L === true && i1H === true && ((i2L === 0 && i2H !== 0) || (i2L !== 0 && i2H === 0))) {
-							
+						if (strokeEndLeft(p0, p1, p2, p3) && i1L === true && i1H === true) {
+							if (i2L === 0 && i2H !== 0) {
+								let idxP2 = polygonLight[0].findIndex((point) => point[1] === p2L[1]);
+								let yH = polygonHeavy[0][idxP2][1];
+								p2H[1] = yH;
+								p3H[1] = yH;
+							}
+							if (i2L !== 0 && i2H === 0) {
+								let idxP2 = polygonHeavy[0].findIndex((point) => point[1] === p2H[1]);
+								let yL = polygonLight[0][idxP2][1];
+								p2L[1] = yL;
+								p3L[1] = yL;
+							}
+							oldContours[idxC1][p2I] = Ot.Glyph.Point.create(
+								makeVariance(p2L[0], p2H[0]),
+								makeVariance(p2L[1], p2H[1]),
+								oldContours[idxC1][p2I].kind
+							);
+							oldContours[idxC1][p3I] = Ot.Glyph.Point.create(
+								makeVariance(p3L[0], p3H[0]),
+								makeVariance(p3L[1], p3H[1]),
+								oldContours[idxC1][p3I].kind
+							);
 						}
 						// if (inside(p1L, polygonLight) === 0 || inside(p1H, polygonHeavy) === 0) edge1 = true;
 						// if (inside(p2L, polygonLight) === 0 || inside(p2H, polygonHeavy) === 0) edge2 = true;
@@ -2764,7 +2787,7 @@ function preProcess(font, references, limit) {
 				}
 			}
 		}
-		
+		buildPolyGlyph(oldContours);
 		// ANCHOR - even out mis-matched stroke end lengths
 		// HOVERIMAGE - [img "diagrams/mis-matched-stroke-ends.svg"]
 		for (let idxC1 = 0; idxC1 < oldContours.length; idxC1++) {
@@ -2824,7 +2847,7 @@ function preProcess(font, references, limit) {
 					let sideLength1H = geometric.lineLength([p1H, p6H]);
 					let sideLength2H = geometric.lineLength([p2H, p5H]);
 
-					let endsSquare = (isSquare(p1, p2) && isSquare(p5, p6));
+					let endsSquare = (isSquare(p1, p2) || isSquare(p5, p6));
 					let curvature1L = sideLength1L / curveLength1L;
 					let curvature2L = sideLength2L / curveLength2L;
 					let curvature1H = sideLength1H / curveLength1H;
