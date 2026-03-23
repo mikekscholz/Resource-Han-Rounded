@@ -70,8 +70,8 @@ function preProcess(font, references, limit) {
 
 	function makeVariance(valueDefault, valueWghtMax) {
 		let valueLight = roundTo(valueDefault);
-		let valueHeavy = roundTo(valueWghtMax);
-		return valueFactory.create(valueLight, [[masterWghtMax, valueHeavy - valueLight]]);
+		let valueHeavy = roundTo(valueWghtMax - valueDefault);
+		return valueFactory.create(valueLight, [[masterWghtMax, valueHeavy]]);
 	}
 
 	function originLight(point) {
@@ -249,7 +249,19 @@ function preProcess(font, references, limit) {
 		let p2 = pointHeavy(end);
 		return (Math.atan2((p1.x - p2.x), (p1.y - p2.y)) + Math.PI) * 360 / (2 * Math.PI);
 	}
-
+	
+	function angleLight(p1, p2, p3) {
+		let bearingLight1 = bearingLight(p1, p2);
+		let bearingLight2 = bearingLight(p2, p3);
+		return angle(bearingLight1, bearingLight2);
+	}
+	
+	function angleHeavy(p1, p2, p3) {
+		let bearingHeavy1 = bearingHeavy(p1, p2);
+		let bearingHeavy2 = bearingHeavy(p2, p3);
+		return angle(bearingHeavy1, bearingHeavy2);
+	}
+	
 	function canBeStrokeEnd(p1, p2, p3, p4) {
 		let cornerPoints = p2.kind === 0 && p3.kind === 0;
 		let strokeWidthLight = approxEq(distanceLight(p2, p3), params.strokeWidth.light, 20);
@@ -651,38 +663,38 @@ function preProcess(font, references, limit) {
 			};
 		}
 		//㓗
-		if (glyph.name === "uni34D7") {
-			oldContours[10][6] = {
-				x: makeVariance(originLight(oldContours[10][6].x), 540),
-				y: makeVariance(originLight(oldContours[10][6].y), 380),
-				kind: oldContours[10][6].kind,
-			};
-			oldContours[10][7] = {
-				x: makeVariance(originLight(oldContours[10][7].x), 599),
-				y: makeVariance(originLight(oldContours[10][7].y), 424),
-				kind: oldContours[10][7].kind,
-			};
-			oldContours[10][9] = {
-				x: makeVariance(originLight(oldContours[10][9].x), 471),
-				y: makeVariance(originLight(oldContours[10][9].y), 426),
-				kind: oldContours[10][9].kind,
-			};
-			oldContours[12][6] = {
-				x: makeVariance(originLight(oldContours[12][6].x), 666),
-				y: makeVariance(originLight(oldContours[12][6].y), 290),
-				kind: oldContours[12][6].kind,
-			};
-			oldContours[12][7] = {
-				x: makeVariance(originLight(oldContours[12][7].x), 780),
-				y: makeVariance(originLight(oldContours[12][7].y), 356),
-				kind: oldContours[12][7].kind,
-			};
-			oldContours[12][9] = {
-				x: makeVariance(originLight(oldContours[12][9].x), 591),
-				y: makeVariance(originLight(oldContours[12][9].y), 347),
-				kind: oldContours[12][9].kind,
-			};
-		}
+		// if (glyph.name === "uni34D7") {
+		// 	oldContours[10][6] = {
+		// 		x: makeVariance(originLight(oldContours[10][6].x), 540),
+		// 		y: makeVariance(originLight(oldContours[10][6].y), 380),
+		// 		kind: oldContours[10][6].kind,
+		// 	};
+		// 	oldContours[10][7] = {
+		// 		x: makeVariance(originLight(oldContours[10][7].x), 599),
+		// 		y: makeVariance(originLight(oldContours[10][7].y), 424),
+		// 		kind: oldContours[10][7].kind,
+		// 	};
+		// 	oldContours[10][9] = {
+		// 		x: makeVariance(originLight(oldContours[10][9].x), 471),
+		// 		y: makeVariance(originLight(oldContours[10][9].y), 426),
+		// 		kind: oldContours[10][9].kind,
+		// 	};
+		// 	oldContours[12][6] = {
+		// 		x: makeVariance(originLight(oldContours[12][6].x), 666),
+		// 		y: makeVariance(originLight(oldContours[12][6].y), 290),
+		// 		kind: oldContours[12][6].kind,
+		// 	};
+		// 	oldContours[12][7] = {
+		// 		x: makeVariance(originLight(oldContours[12][7].x), 780),
+		// 		y: makeVariance(originLight(oldContours[12][7].y), 356),
+		// 		kind: oldContours[12][7].kind,
+		// 	};
+		// 	oldContours[12][9] = {
+		// 		x: makeVariance(originLight(oldContours[12][9].x), 591),
+		// 		y: makeVariance(originLight(oldContours[12][9].y), 347),
+		// 		kind: oldContours[12][9].kind,
+		// 	};
+		// }
 		//㕘
 		if (glyph.name === "uni3558") {
 			oldContours[4][3] = {
@@ -906,9 +918,6 @@ function preProcess(font, references, limit) {
 									pVNew0I = pV9I;
 								}
 								let pVn1 = circularArray(contour2, previousNode(contour2, pV0I));
-								if (name === "uni3116") {
-									console.log(geometric.lineAngle(line2GeoJsonLight(pH3, pV4)));
-								}
 								let hStrokeL;
 								let hStrokeH;
 								for (let idxPh = 0; idxPh < contour.length; idxPh++) {
@@ -920,10 +929,6 @@ function preProcess(font, references, limit) {
 									let h1 = circularArray(contour, h1I);
 									let h2 = circularArray(contour, h2I);
 									let h3 = circularArray(contour, h3I);
-									if (name === "uni8BBD" && canBeStrokeEnd(h0, h1, h2, h3)) console.log(bearingLight(h0, h1));
-									if (name === "uni8BBD" && canBeStrokeEnd(h0, h1, h2, h3)) console.log(bearingLight(h3, h2));
-									if (name === "uni8BBD" && canBeStrokeEnd(h0, h1, h2, h3)) console.log(bearingHeavy(h0, h1));
-									if (name === "uni8BBD" && canBeStrokeEnd(h0, h1, h2, h3)) console.log(bearingHeavy(h3, h2));
 									if (canBeStrokeEnd(h0, h1, h2, h3) && strokeEndRight(h0, h1, h2, h3)) {
 										hStrokeL = distanceLight(h1, h2);
 										hStrokeH = distanceHeavy(h1, h2);
@@ -936,6 +941,21 @@ function preProcess(font, references, limit) {
 								if (contour2.length.isBetween(10, 13)) {
 									let vStrokeBottomL = distanceLight(pV4, pV7);
 									let vStrokeBottomH = roundTo(distanceHeavy(pV4, pV7));
+									let strokeAvgH = Math.min(hStrokeH, vStrokeTopH);
+									let vStrokeDeltaH = vStrokeTopH - strokeAvgH;
+									contour2[pVNew0I] = Ot.Glyph.Point.create(
+										makeVariance(originLight(pVNew0.x), originHeavy(pV0.x) + strokeAvgH),
+										makeVariance(originLight(pVNew0.y), originHeavy(pVNew0.y)),
+										0
+									);
+									contour2[pVNew1I] = Ot.Glyph.Point.create(
+										makeVariance(originLight(pVNew1.x), originHeavy(pV0.x) + strokeAvgH),
+										makeVariance(originLight(pVNew1.y), originHeavy(pVNew1.y)),
+										0
+									);
+									pVNew0 = contour2[pVNew0I];
+									pVNew1 = contour2[pVNew1I];
+									vStrokeTopH = strokeAvgH;
 									let cornerOffsetL = (originLight(pV1.x) - 1) - originLight(pH3.x);
 									let cornerOffsetH = (originHeavy(pV1.x) + 1) - originHeavy(pH3.x);
 
@@ -994,7 +1014,8 @@ function preProcess(font, references, limit) {
 									pH3L = point2GeoJsonLight(pH3);
 									pH3H = point2GeoJsonHeavy(pH3);
 									// let nV4L = geometric.pointTranslate(pH3L, 115 + (270 - horizontalAngleL), hStrokeL * 1.24);
-									let nV4L = geometric.pointTranslate(pH3L, 115, vStrokeTopL * 1.25);
+									// let nV4L = geometric.pointTranslate(pH3L, 115, vStrokeTopL * 1.25);
+									let nV4L = geometric.pointTranslate(pH3L, 115, vStrokeTopL);
 									let nV4H = geometric.pointTranslate(pH3H, 115, vStrokeTopH);
 									// let nV4L = geometric.pointTranslate(pH3L, 115 + (270 - horizontalAngleL), vStrokeTopL);
 									// let nV4H = geometric.pointTranslate(pH3H, 115 + (270 - horizontalAngleH), vStrokeTopH);
@@ -1379,7 +1400,7 @@ function preProcess(font, references, limit) {
 								// let p4h = geometric.pointTranslate(point2GeoJsonHeavy(pV7), angle7_4L, length7_4H);
 								// let p3l = point2GeoJsonLight(pV3);
 								// let p3h = geometric.pointTranslate(p4h, angle4_3L, length4_3H);
-								if (horizontalAngleH > 260) {
+/* 								if (horizontalAngleH > 260) {
 								contour2[pV4I] = Ot.Glyph.Point.create(
 									makeVariance(p4l[0], p4h[0]),
 									makeVariance(p4l[1], p4h[1]),
@@ -1392,7 +1413,7 @@ function preProcess(font, references, limit) {
 								);
 								pV4 = contour2[pV4I];
 								pV3 = contour2[pV3I];
-								}
+								} */
 								
 								
 								/* if (length1_4H < length7_4H * 0.6) {
@@ -2241,7 +2262,8 @@ function preProcess(font, references, limit) {
 		oldContours = glyph.geometry.contours;
 
 		glyph.geometry.contours = [];
-
+		let upwardRightHooks = [];
+		let downwardJHooks = [];
 
 		for (let [idxC1, contour] of oldContours.entries()) {
 			if (contour.length < 4) {
@@ -2250,7 +2272,7 @@ function preProcess(font, references, limit) {
 			}
 
 			let newContour = [...contour];
-			if (name === "uni3F17" && idxC1 === 5) console.log(newContour);
+
 			// ANCHOR - fix upward right hooks
 			// HOVERIMAGE - [img "diagrams/right-upward-hook.svg"]
 			if (newContour.length > 12) {
@@ -2292,7 +2314,6 @@ function preProcess(font, references, limit) {
 						let p3AngleCorrectionH = turn(bearing(lineHeavy(p8, p7)), bearing(lineHeavy(p3, p4)));
 						let p9AngleCorrectionL = turn(bearing(lineLight(p11, p10)), bearing(lineLight(p10, p9)));
 						let p9AngleCorrectionH = turn(bearing(lineHeavy(p11, p10)), bearing(lineHeavy(p10, p9)));
-						if (name === "uni3F3E") console.log(corner1Angle, corner2Angle);
 						if (
 							hookHeight > 10 &&
 							// b0H.isBetween(85, 132) &&
@@ -2420,7 +2441,13 @@ function preProcess(font, references, limit) {
 							if (name in references.skipRedundantPoints === false) {
 								references.skipRedundantPoints[name] = [];
 							}
-							references.skipRedundantPoints[name].push(idxC1);
+							if (!references.skipRedundantPoints[name].includes(idxC1)) {
+								references.skipRedundantPoints[name].push(idxC1);
+							}
+							if (!upwardRightHooks.includes(idxC1)) {
+								upwardRightHooks.push(idxC1);
+							}
+							
 							break;
 						}
 					}
@@ -2537,6 +2564,12 @@ function preProcess(font, references, limit) {
 							y: makeVariance(p5L.y, p5H.y),
 							kind: 2,
 						};
+						// if (!references.skipRedundantPoints[name].includes(idxC1)) {
+						// 	references.skipRedundantPoints[name].push(idxC1);
+						// }
+						if (!downwardJHooks.includes(idxC1)) {
+							downwardJHooks.push(idxC1);
+						}
 						break;
 					}
 				}
@@ -2716,10 +2749,10 @@ function preProcess(font, references, limit) {
 		for (let idxC1 = 0; idxC1 < oldContours.length; idxC1++) {
 			let contour = oldContours[idxC1];
 			// if (!contour.length.isBetween(4,5) || skipContours.includes(idxC1)) {
-			if (skipContours.includes(idxC1)) {
-				continue;
-			}
-			for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
+			// if (skipContours.includes(idxC1)) {
+			// 	continue;
+			// }
+			for (let idxP1 = 0; idxP1 <= contour.length; idxP1++) {
 				const p0I = circularIndex(contour, idxP1);
 				const p1I = nextNode(contour, p0I);
 				const p2I = nextNode(contour, p1I);
@@ -2728,6 +2761,7 @@ function preProcess(font, references, limit) {
 				let p1 = circularArray(contour, p1I);
 				let p2 = circularArray(contour, p2I);
 				let p3 = circularArray(contour, p3I);
+				let modified = false;
 				if (
 					// canBeStrokeEnd(p3, p0, p1, p2) &&
 					canBeStrokeEnd(p0, p1, p2, p3) &&
@@ -2751,19 +2785,77 @@ function preProcess(font, references, limit) {
 						let i2L = inside(p2L, polygonLight);
 						let i1H = inside(p1H, polygonHeavy);
 						let i2H = inside(p2H, polygonHeavy);
-						if (strokeEndLeft(p0, p1, p2, p3) && i1L === true && i1H === true) {
+						if (i1L === true && i1H === true) {
 							if (i2L === 0 && i2H !== 0) {
 								let idxP2 = polygonLight[0].findIndex((point) => point[1] === p2L[1]);
-								let yH = polygonHeavy[0][idxP2][1];
-								p2H[1] = yH;
-								p3H[1] = yH;
+								if (idxP2 >= 0) {
+									let yH = polygonHeavy[0][idxP2][1];
+									p2H[1] = yH;
+									p3H[1] = yH;
+									modified = true;
+								}
 							}
 							if (i2L !== 0 && i2H === 0) {
 								let idxP2 = polygonHeavy[0].findIndex((point) => point[1] === p2H[1]);
-								let yL = polygonLight[0][idxP2][1];
-								p2L[1] = yL;
-								p3L[1] = yL;
+								if (idxP2 >= 0) {
+									let yL = polygonLight[0][idxP2][1];
+									p2L[1] = yL;
+									p3L[1] = yL;
+									modified = true;
+								}
 							}
+						}
+						if (i2L === true && i2H === true) {
+							if (i1L === 0 && i1H !== 0) {
+								let idxP2 = polygonLight[0].findIndex((point) => point[1] === p1L[1]);
+								if (idxP2 >= 0) {
+									let yH = polygonHeavy[0][idxP2][1];
+									p0H[1] = yH;
+									p1H[1] = yH;
+									modified = true;
+								}
+							}
+							if (i1L !== 0 && i1H === 0) {
+								let idxP2 = polygonHeavy[0].findIndex((point) => point[1] === p1H[1]);
+								if (idxP2 >= 0) {
+									let yL = polygonLight[0][idxP2][1];
+									p0L[1] = yL;
+									p1L[1] = yL;
+									modified = true;
+								}
+							}
+						}
+						if (i1L === false && i1H === false) {
+							if (i2L === 0 && i2H !== 0) {
+								let idxP2 = polygonLight[0].findIndex((point) => point[1] === p2L[1]);
+								if (idxP2 >= 0) {
+									let yH = polygonHeavy[0][idxP2][1];
+									p1H[1] = yH;
+									p2H[1] = yH;
+									modified = true;
+								}
+							}
+							if (i2L !== 0 && i2H === 0) {
+								let idxP2 = polygonHeavy[0].findIndex((point) => point[1] === p2H[1]);
+								if (idxP2 >= 0) {
+									let yL = polygonLight[0][idxP2][1];
+									p1L[1] = yL;
+									p2L[1] = yL;
+									modified = true;
+								}
+							}
+						}
+						if (modified) {
+							oldContours[idxC1][p0I] = Ot.Glyph.Point.create(
+								makeVariance(p0L[0], p0H[0]),
+								makeVariance(p0L[1], p0H[1]),
+								oldContours[idxC1][p0I].kind
+							);
+							oldContours[idxC1][p1I] = Ot.Glyph.Point.create(
+								makeVariance(p1L[0], p1H[0]),
+								makeVariance(p1L[1], p1H[1]),
+								oldContours[idxC1][p1I].kind
+							);
 							oldContours[idxC1][p2I] = Ot.Glyph.Point.create(
 								makeVariance(p2L[0], p2H[0]),
 								makeVariance(p2L[1], p2H[1]),
@@ -2774,6 +2866,7 @@ function preProcess(font, references, limit) {
 								makeVariance(p3L[1], p3H[1]),
 								oldContours[idxC1][p3I].kind
 							);
+							buildPolyGlyph(oldContours);
 						}
 						// if (inside(p1L, polygonLight) === 0 || inside(p1H, polygonHeavy) === 0) edge1 = true;
 						// if (inside(p2L, polygonLight) === 0 || inside(p2H, polygonHeavy) === 0) edge2 = true;
@@ -2860,6 +2953,8 @@ function preProcess(font, references, limit) {
 					let inside2 = [];
 					let inside5 = [];
 					let inside6 = [];
+					let skip12 = false;
+					let skip56 = false;
 					let objIndex1 = sharedPoints.findIndex((obj) => (obj["idxC1"] === idxC1 && obj["p1I"] === p1I) || (obj["idxC2"] === idxC1 && obj["p2I"] === p1I));
 					let objIndex2 = sharedPoints.findIndex((obj) => (obj["idxC1"] === idxC1 && obj["p1I"] === p2I) || (obj["idxC2"] === idxC1 && obj["p2I"] === p2I));
 					let objIndex5 = sharedPoints.findIndex((obj) => (obj["idxC1"] === idxC1 && obj["p1I"] === p5I) || (obj["idxC2"] === idxC1 && obj["p2I"] === p5I));
@@ -2880,6 +2975,8 @@ function preProcess(font, references, limit) {
 						if (inside(p2L, polygonLight) !== false && inside(p2H, polygonHeavy) !== false) inside2.push(idxC2);
 						if (inside(p5L, polygonLight) !== false && inside(p5H, polygonHeavy) !== false) inside5.push(idxC2);
 						if (inside(p6L, polygonLight) !== false && inside(p6H, polygonHeavy) !== false) inside6.push(idxC2);
+						if (polygonHeavy.length > 1 && inside(p1H, polygonHeavy) ===  true && inside(p2H, polygonHeavy) === true) skip12 = true;
+						if (polygonHeavy.length > 1 && inside(p5H, polygonHeavy) ===  true && inside(p6H, polygonHeavy) === true) skip56 = true;
 					}
 					let midpoint1L = curve1L.get(0.5);
 					let midpoint2L = curve2L.get(0.5);
@@ -2918,7 +3015,7 @@ function preProcess(font, references, limit) {
 					let endAngles1H = strokeEndAnglesGeo(p0H, p1H, p2H, p3H, true);
 					let endAngles2H = strokeEndAnglesGeo(p4H, p5H, p6H, p7H, true);
 					// if (!edge1 && !edge2 && endAngles1H[0].isBetween(-40,-130) && endAngles1H[1].isBetween(-40,-130)) {
-					if (!edge1 && !edge2) {
+					if (!edge1 && !edge2 && !skip12) {
 						if (endAngles1L[0] < endAngles1L[1]) {
 							let n2L = closestPointOnLine(p1L, [p2L, p3L]);
 							let fail = false;
@@ -2964,7 +3061,7 @@ function preProcess(font, references, limit) {
 						}
 					}
 					// if (!edge5 && !edge6 && endAngles2H[0].isBetween(-40,-130) && endAngles2H[1].isBetween(-40,-130)) {
-					if (!edge5 && !edge6) {
+					if (!edge5 && !edge6 && !skip56) {
 						if (endAngles2L[0] < endAngles2L[1]) {
 							let n6L = closestPointOnLine(p5L, [p6L, p7L]);
 							let fail = false;
@@ -3010,7 +3107,7 @@ function preProcess(font, references, limit) {
 						}
 					}
 					// if (!edge1 && !edge2 && endAngles1H[0].isBetween(-40,-130) && endAngles1H[1].isBetween(-40,-130)) {
-					if (!edge1 && !edge2) {
+					if (!edge1 && !edge2 && !skip12) {
 						if (endAngles1H[0] < endAngles1H[1]) {
 							let n2H = closestPointOnLine(p1H, [p2H, p3H]);
 							let fail = false;
@@ -3054,7 +3151,6 @@ function preProcess(font, references, limit) {
 							if (!fail) {
 								p1H = n1H;
 							} else {
-								// p2H = closestPointOnLine(p1H, [p2H, p3H]);
 								let n2H = closestPointOnLine(p1H, [p2H, p3H]);
 								let m2H = geometric.lineMidpoint([p2H, n2H]);
 								p2H = m2H;
@@ -3063,7 +3159,7 @@ function preProcess(font, references, limit) {
 						}
 					}
 					// if (!edge5 && !edge6 && endAngles2H[0].isBetween(-40,-130) && endAngles2H[1].isBetween(-40,-130)) {
-					if (!edge5 && !edge6) {
+					if (!edge5 && !edge6 && !skip56) {
 						if (endAngles2H[0] < endAngles2H[1]) {
 							let n6H = closestPointOnLine(p5H, [p6H, p7H]);
 							let fail = false;
@@ -3259,14 +3355,278 @@ function preProcess(font, references, limit) {
 							oldContours[idxC1][last].kind
 						);
 					}
-					// if (JSON.stringify(oldContours[idxC1][0]) !== JSON.stringify(oldContours[idxC1][last])) {
-					// 	oldContours[idxC1][0] = oldContours[idxC1][last];
-					// }
-					// oldContours[idxC1] = [...oldContours[idxC1], oldContours[idxC1][0]];
-					if (name === "uni3598" && idxC1 === 6) console.log(oldContours[idxC1]);
-					// 
 					skipContours.push(idxC1);
 					break;
+				}
+			}
+		}
+		
+		// ANCHOR - even out concave stroke end lengths
+		for (let idxC1 = 0; idxC1 < oldContours.length; idxC1++) {
+			let contour = oldContours[idxC1];
+			if (!contour.length.isBetween(6,11) || skipContours.includes(idxC1)) {
+				continue;
+			}
+			if (contour.length.isBetween(6,7)) {
+				for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
+					const p0I = circularIndex(contour, idxP1);
+					const p1I = nextNode(contour, p0I);
+					const p2I = nextNode(contour, p1I);
+					const p3I = nextNode(contour, p2I);
+					const p4I = nextNode(contour, p3I);
+					const p5I = nextNode(contour, p4I);
+					let p0 = circularArray(contour, p0I);
+					let p1 = circularArray(contour, p1I);
+					let p2 = circularArray(contour, p2I);
+					let p3 = circularArray(contour, p3I);
+					let p4 = circularArray(contour, p4I);
+					let p5 = circularArray(contour, p5I);
+					if (
+						canBeStrokeEnd(p0, p1, p2, p3) &&
+						canBeStrokeEnd(p3, p4, p5, p0) &&
+						angleHeavy(p2, p3, p4) === 90
+					) {
+						let minStroke = Math.min(distanceHeavy(p1, p2), distanceHeavy(p4, p5));
+						let p0L = pointLight(p0);
+						let p1L = pointLight(p1);
+						let p2L = pointLight(p2);
+						let p3L = pointLight(p3);
+						let p4L = pointLight(p4);
+						let p5L = pointLight(p5);
+						let p0H = pointHeavy(p0);
+						let p1H = pointHeavy(p1);
+						let p2H = pointHeavy(p2);
+						let p3H = pointHeavy(p3);
+						let p4H = pointHeavy(p4);
+						let p5H = pointHeavy(p5);
+						if (strokeEndBottom(p0, p1, p2, p3) && strokeEndRight(p3, p4, p5, p0)) {
+							oldContours[idxC1][p2I] = Ot.Glyph.Point.create(
+								makeVariance(p2L.x, p0H.x + minStroke),
+								makeVariance(p2L.y, p2H.y),
+								oldContours[idxC1][p2I].kind
+							);
+							oldContours[idxC1][p3I] = Ot.Glyph.Point.create(
+								makeVariance(p3L.x, p0H.x + minStroke),
+								makeVariance(p3L.y, p0H.y - minStroke),
+								oldContours[idxC1][p3I].kind
+							);
+							oldContours[idxC1][p4I] = Ot.Glyph.Point.create(
+								makeVariance(p4L.x, p4H.x),
+								makeVariance(p4L.y, p0H.y - minStroke),
+								oldContours[idxC1][p4I].kind
+							);
+							break;
+						}
+						if (strokeEndLeft(p0, p1, p2, p3) && strokeEndBottom(p3, p4, p5, p0)) {
+							oldContours[idxC1][p2I] = Ot.Glyph.Point.create(
+								makeVariance(p2L.x, p2H.x),
+								makeVariance(p2L.y, p0H.y - minStroke),
+								oldContours[idxC1][p2I].kind
+							);
+							oldContours[idxC1][p3I] = Ot.Glyph.Point.create(
+								makeVariance(p3L.x, p0H.x - minStroke),
+								makeVariance(p3L.y, p0H.y - minStroke),
+								oldContours[idxC1][p3I].kind
+							);
+							oldContours[idxC1][p4I] = Ot.Glyph.Point.create(
+								makeVariance(p4L.x, p0H.x - minStroke),
+								makeVariance(p4L.y, p4H.y),
+								oldContours[idxC1][p4I].kind
+							);
+							break;
+						}
+						if (strokeEndRight(p0, p1, p2, p3) && strokeEndUp(p3, p4, p5, p0)) {
+							oldContours[idxC1][p2I] = Ot.Glyph.Point.create(
+								makeVariance(p2L.x, p2H.x),
+								makeVariance(p2L.y, p0H.y + minStroke),
+								oldContours[idxC1][p2I].kind
+							);
+							oldContours[idxC1][p3I] = Ot.Glyph.Point.create(
+								makeVariance(p3L.x, p0H.x + minStroke),
+								makeVariance(p3L.y, p0H.y + minStroke),
+								oldContours[idxC1][p3I].kind
+							);
+							oldContours[idxC1][p4I] = Ot.Glyph.Point.create(
+								makeVariance(p4L.x, p0H.x + minStroke),
+								makeVariance(p4L.y, p4H.y),
+								oldContours[idxC1][p4I].kind
+							);
+							break;
+						}
+					}
+				}
+			}
+			if (contour.length.isBetween(8,9)) {
+				for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
+					const p0I = circularIndex(contour, idxP1);
+					const p1I = nextNode(contour, p0I);
+					const p2I = nextNode(contour, p1I);
+					const p3I = nextNode(contour, p2I);
+					const p4I = nextNode(contour, p3I);
+					const p5I = nextNode(contour, p4I);
+					const p6I = nextNode(contour, p5I);
+					const p7I = nextNode(contour, p6I);
+					let p0 = circularArray(contour, p0I);
+					let p1 = circularArray(contour, p1I);
+					let p2 = circularArray(contour, p2I);
+					let p3 = circularArray(contour, p3I);
+					let p4 = circularArray(contour, p4I);
+					let p5 = circularArray(contour, p5I);
+					let p6 = circularArray(contour, p6I);
+					let p7 = circularArray(contour, p7I);
+					if (
+						canBeStrokeEnd(p0, p1, p2, p3) &&
+						canBeStrokeEnd(p4, p5, p6, p7) &&
+						angleHeavy(p2, p3, p4) === 90 &&
+						angleHeavy(p3, p4, p5) === 90
+					) {
+						let overlaps = [];
+						for (let idxC2 = 0; idxC2 < oldContours.length; idxC2++) {
+							let contour2 = oldContours[idxC2];
+							if (idxC2 === idxC1 || !contour2.length.isBetween(4,5) || skipContours.includes(idxC2)) {
+								continue;
+							}
+							let score = 0;
+							let polygonTest = polyGlyphHeavy[idxC1];
+							for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
+								let pointTest = point2GeoJsonHeavy(contour2[idxP2]);
+								if (inside(pointTest, polygonTest) === true) score++;
+							}
+							if (score >= 4) overlaps.push(idxC2);
+						}
+						let p0L = pointLight(p0);
+						let p1L = pointLight(p1);
+						let p2L = pointLight(p2);
+						let p3L = pointLight(p3);
+						let p4L = pointLight(p4);
+						let p5L = pointLight(p5);
+						let p6L = pointLight(p6);
+						let p7L = pointLight(p7);
+						let p0H = pointHeavy(p0);
+						let p1H = pointHeavy(p1);
+						let p2H = pointHeavy(p2);
+						let p3H = pointHeavy(p3);
+						let p4H = pointHeavy(p4);
+						let p5H = pointHeavy(p5);
+						let p6H = pointHeavy(p6);
+						let p7H = pointHeavy(p7);
+						let minStroke = Math.min(distanceHeavy(p1, p2), distanceHeavy(p5, p6), pointToLineDistance(p3H, p0H, p7H));
+						if (strokeEndLeft(p0, p1, p2, p3) && strokeEndLeft(p4, p5, p6, p7)) {
+							oldContours[idxC1][p2I] = Ot.Glyph.Point.create(
+								makeVariance(p2L.x, p2H.x),
+								makeVariance(p2L.y, p0H.y - minStroke),
+								oldContours[idxC1][p2I].kind
+							);
+							oldContours[idxC1][p3I] = Ot.Glyph.Point.create(
+								makeVariance(p3L.x, p0H.x - minStroke),
+								makeVariance(p3L.y, p0H.y - minStroke),
+								oldContours[idxC1][p3I].kind
+							);
+							oldContours[idxC1][p4I] = Ot.Glyph.Point.create(
+								makeVariance(p4L.x, p7H.x - minStroke),
+								makeVariance(p4L.y, p7H.y + minStroke),
+								oldContours[idxC1][p4I].kind
+							);
+							oldContours[idxC1][p5I] = Ot.Glyph.Point.create(
+								makeVariance(p5L.x, p5H.x),
+								makeVariance(p5L.y, p7H.y + minStroke),
+								oldContours[idxC1][p5I].kind
+							);
+							break;
+						}
+						if (strokeEndBottom(p0, p1, p2, p3) && strokeEndBottom(p4, p5, p6, p7)) {
+							if (overlaps.length > 0) {
+								for (let idxC2 of overlaps) {
+									let contour2 = oldContours[idxC2];
+									for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
+										const q0I = circularIndex(contour2, idxP2);
+										const q1I = nextNode(contour2, q0I);
+										const q2I = nextNode(contour2, q1I);
+										const q3I = nextNode(contour2, q2I);
+										let q0 = circularArray(contour2, q0I);
+										let q1 = circularArray(contour2, q1I);
+										let q2 = circularArray(contour2, q2I);
+										let q3 = circularArray(contour2, q3I);
+										let q0L = pointLight(q0);
+										let q1L = pointLight(q1);
+										let q2L = pointLight(q2);
+										let q3L = pointLight(q3);
+										let q0H = pointHeavy(q0);
+										let q1H = pointHeavy(q1);
+										let q2H = pointHeavy(q2);
+										let q3H = pointHeavy(q3);
+										if (q0H.y > q1H.y && q1H.x < q2H.x) {
+											oldContours[idxC2][q0I] = Ot.Glyph.Point.create(
+												makeVariance(q0L.x, p0H.x + (minStroke / 2)),
+												makeVariance(q0L.y, q0H.y),
+												oldContours[idxC2][q0I].kind
+											);
+											oldContours[idxC2][q1I] = Ot.Glyph.Point.create(
+												makeVariance(q1L.x, p0H.x + (minStroke / 2)),
+												makeVariance(q1L.y, q1H.y),
+												oldContours[idxC2][q1I].kind
+											);
+											oldContours[idxC2][q2I] = Ot.Glyph.Point.create(
+												makeVariance(q2L.x, p7H.x - (minStroke / 2)),
+												makeVariance(q2L.y, q2H.y),
+												oldContours[idxC2][q2I].kind
+											);
+											oldContours[idxC2][q3I] = Ot.Glyph.Point.create(
+												makeVariance(q3L.x, p7H.x - (minStroke / 2)),
+												makeVariance(q3L.y, q3H.y),
+												oldContours[idxC2][q3I].kind
+											);
+										}
+									}
+								}
+							}
+							oldContours[idxC1][p2I] = Ot.Glyph.Point.create(
+								makeVariance(p2L.x, p0H.x + minStroke),
+								makeVariance(p2L.y, p2H.y),
+								oldContours[idxC1][p2I].kind
+							);
+							oldContours[idxC1][p3I] = Ot.Glyph.Point.create(
+								makeVariance(p3L.x, p0H.x + minStroke),
+								makeVariance(p3L.y, p0H.y - minStroke),
+								oldContours[idxC1][p3I].kind
+							);
+							oldContours[idxC1][p4I] = Ot.Glyph.Point.create(
+								makeVariance(p4L.x, p7H.x - minStroke),
+								makeVariance(p4L.y, p7H.y - minStroke),
+								oldContours[idxC1][p4I].kind
+							);
+							oldContours[idxC1][p5I] = Ot.Glyph.Point.create(
+								makeVariance(p5L.x, p7H.x - minStroke),
+								makeVariance(p5L.y, p5H.y),
+								oldContours[idxC1][p5I].kind
+							);
+							break;
+						}
+					}
+				}
+			}
+			if (contour.length.isBetween(10,11)) {
+				for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
+					const p0I = circularIndex(contour, idxP1);
+					const p1I = nextNode(contour, p0I);
+					const p2I = nextNode(contour, p1I);
+					const p3I = nextNode(contour, p2I);
+					const p4I = nextNode(contour, p3I);
+					const p5I = nextNode(contour, p4I);
+					const p6I = nextNode(contour, p5I);
+					const p7I = nextNode(contour, p6I);
+					const p8I = nextNode(contour, p7I);
+					const p9I = nextNode(contour, p8I);
+					let p0 = circularArray(contour, p0I);
+					let p1 = circularArray(contour, p1I);
+					let p2 = circularArray(contour, p2I);
+					let p3 = circularArray(contour, p3I);
+					let p4 = circularArray(contour, p4I);
+					let p5 = circularArray(contour, p5I);
+					let p6 = circularArray(contour, p6I);
+					let p7 = circularArray(contour, p7I);
+					let p8 = circularArray(contour, p8I);
+					let p9 = circularArray(contour, p9I);
 				}
 			}
 		}
@@ -3982,7 +4342,7 @@ function preProcess(font, references, limit) {
 	let len = font.glyphs.items.length;
 	let consoleWidth = process.stdout.columns || 150;
 	let bar, progressTick;
-	let debug = true;
+	let debug = false;
 	if (debug) {
 		bar = new ProgressBar('\u001b[38;5;82mpreProcessing\u001b[0m [1/5]     :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
 

@@ -135,10 +135,16 @@ function extendShortStroke(font, references, limit) {
 			originHeavy(x) <= (originHeavy(b) + 2);
 	}
 
-	function makeVariance(valueDefault, valueWghtMax) {
-		return valueFactory.create(parseFloat(valueDefault.toFixed(2)), [[masterWghtMax, parseFloat(valueWghtMax.toFixed(2)) - parseFloat(valueDefault.toFixed(2))]]);
-	}
+	// function makeVariance(valueDefault, valueWghtMax) {
+	// 	return valueFactory.create(parseFloat(valueDefault.toFixed(2)), [[masterWghtMax, parseFloat(valueWghtMax.toFixed(2)) - parseFloat(valueDefault.toFixed(2))]]);
+	// }
 
+	function makeVariance(valueDefault, valueWghtMax) {
+		let valueLight = roundTo(valueDefault);
+		let valueHeavy = roundTo(valueWghtMax - valueDefault);
+		return valueFactory.create(valueLight, [[masterWghtMax, valueHeavy]]);
+	}
+	
 	function previousNode(contour, idx, corner = false) {
 		let current = circularArray(contour, idx);
 		let currentXL = originLight(current.x);
@@ -440,63 +446,65 @@ function extendShortStroke(font, references, limit) {
 		}
 		let polyGlyphLight = [];
 		let polyGlyphHeavy = [];
-		let rawPolyLight = [];
-		let rawPolyHeavy = [];
-		let rawPolyLightCW = [];
-		let rawPolyHeavyCW = [];
-		
-		for (let [idxC1, contour] of oldContours.entries()) {
-			let polyLight = contour2GeoJsonLight(contour);
-			let polyHeavy = contour2GeoJsonHeavy(contour);
-			if (polyClockwise(polyLight)) {
-				rawPolyLightCW.push(polyLight);
-				rawPolyHeavyCW.push(polyHeavy);
-				rawPolyLight.push(undefined);
-				rawPolyHeavy.push(undefined);
-				skipContours.push(idxC1);
-			} else {
-				rawPolyLight.push(polyLight);
-				rawPolyHeavy.push(polyHeavy);
-				rawPolyLightCW.push(undefined);
-				rawPolyHeavyCW.push(undefined);
-			}
-		}
-		
-		for (let idxN1 = 0; idxN1 < rawPolyLight.length; idxN1++) {
-			if (rawPolyLight[idxN1] === undefined) {
-				polyGlyphLight[idxN1] = undefined;
-				polyGlyphHeavy[idxN1] = undefined;
-				continue;
-			}
-			let polyLight = [];
-			let polyHeavy = [];
-			polyLight.push(rawPolyLight[idxN1]);
-			polyHeavy.push(rawPolyHeavy[idxN1]);
-			for (let [idxN2, polygonCW] of rawPolyLightCW.entries()) {
-				if (polygonCW === undefined) continue;
-				let fail = false;
-				for (let coord of polygonCW) {
-					let test = inside(coord, polyLight);
-					if (test !== true) {
-						fail = true;
-						break;
-					}
+		function buildPolyGlyph(oldContours) {
+			let rawPolyLight = [];
+			let rawPolyHeavy = [];
+			let rawPolyLightCW = [];
+			let rawPolyHeavyCW = [];
+			
+			for (let [idxC1, contour] of oldContours.entries()) {
+				let polyLight = contour2GeoJsonLight(contour);
+				let polyHeavy = contour2GeoJsonHeavy(contour);
+				if (polyClockwise(polyLight)) {
+					rawPolyLightCW.push(polyLight);
+					rawPolyHeavyCW.push(polyHeavy);
+					rawPolyLight.push(undefined);
+					rawPolyHeavy.push(undefined);
+					skipContours.push(idxC1);
+				} else {
+					rawPolyLight.push(polyLight);
+					rawPolyHeavy.push(polyHeavy);
+					rawPolyLightCW.push(undefined);
+					rawPolyHeavyCW.push(undefined);
 				}
-				if (fail) continue;
-				// pass means all points of hole are inside current polygon
-				polyLight.push(rawPolyLightCW[idxN2]); // add hole to current polygon
-				polyHeavy.push(rawPolyHeavyCW[idxN2]);
-				polyGlyphLight[idxN2] = idxN1; // set holes slot to index of containing polygon
-				polyGlyphHeavy[idxN2] = idxN1;
-				rawPolyLightCW[idxN2] = undefined; // remove from holes array
-				rawPolyHeavyCW[idxN2] = undefined;
-				if (!skipContours.includes(idxN2)) skipContours.push(idxN2);
-				if (!readOnlyContours.includes(idxN1)) readOnlyContours.push(idxN1);
 			}
-			polyGlyphLight[idxN1] = polyLight;
-			polyGlyphHeavy[idxN1] = polyHeavy;
+			
+			for (let idxN1 = 0; idxN1 < rawPolyLight.length; idxN1++) {
+				if (rawPolyLight[idxN1] === undefined) {
+					polyGlyphLight[idxN1] = undefined;
+					polyGlyphHeavy[idxN1] = undefined;
+					continue;
+				}
+				let polyLight = [];
+				let polyHeavy = [];
+				polyLight.push(rawPolyLight[idxN1]);
+				polyHeavy.push(rawPolyHeavy[idxN1]);
+				for (let [idxN2, polygonCW] of rawPolyLightCW.entries()) {
+					if (polygonCW === undefined) continue;
+					let fail = false;
+					for (let coord of polygonCW) {
+						let test = inside(coord, polyLight);
+						if (test !== true) {
+							fail = true;
+							break;
+						}
+					}
+					if (fail) continue;
+					// pass means all points of hole are inside current polygon
+					polyLight.push(rawPolyLightCW[idxN2]); // add hole to current polygon
+					polyHeavy.push(rawPolyHeavyCW[idxN2]);
+					polyGlyphLight[idxN2] = idxN1; // set holes slot to index of containing polygon
+					polyGlyphHeavy[idxN2] = idxN1;
+					rawPolyLightCW[idxN2] = undefined; // remove from holes array
+					rawPolyHeavyCW[idxN2] = undefined;
+					if (!skipContours.includes(idxN2)) skipContours.push(idxN2);
+					if (!readOnlyContours.includes(idxN1)) readOnlyContours.push(idxN1);
+				}
+				polyGlyphLight[idxN1] = polyLight;
+				polyGlyphHeavy[idxN1] = polyHeavy;
+			}
 		}
-		
+		buildPolyGlyph(oldContours);
 		for (let idxC1 = 0; idxC1 < oldContours.length; idxC1++) {
 			let contour = oldContours[idxC1];
 			// NOTE - Compute each contour's radius for improved rounding
@@ -748,20 +756,20 @@ function extendShortStroke(font, references, limit) {
 					}
 				}
 			}
-			const newContour = [...contour];
+			let newContour = [...contour];
 			for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
-				const p1I = circularIndex(contour, idxP1);
-				const p2I = nextNode(contour, p1I);
-				const p3I = nextNode(contour, p2I);
-				const p4I = nextNode(contour, p3I);
-				const p5I = nextNode(contour, p4I);
-				const p6I = nextNode(contour, p5I);
-				const p1 = circularArray(contour, p1I);
-				const p2 = circularArray(contour, p2I);
-				const p3 = circularArray(contour, p3I);
-				const p4 = circularArray(contour, p4I);
-				const p5 = circularArray(contour, p5I);
-				const p6 = circularArray(contour, p6I);
+				let p1I = circularIndex(contour, idxP1);
+				let p2I = nextNode(contour, p1I);
+				let p3I = nextNode(contour, p2I);
+				let p4I = nextNode(contour, p3I);
+				let p5I = nextNode(contour, p4I);
+				let p6I = nextNode(contour, p5I);
+				let p1 = circularArray(contour, p1I);
+				let p2 = circularArray(contour, p2I);
+				let p3 = circularArray(contour, p3I);
+				let p4 = circularArray(contour, p4I);
+				let p5 = circularArray(contour, p5I);
+				let p6 = circularArray(contour, p6I);
 				if (canBeStrokeEnd(p1, p2, p3, p4)) {
 					for (const [idxC2, contour2] of oldContours.entries()) {
 						if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined || skipContours.includes(idxC2)) continue;
@@ -787,15 +795,16 @@ function extendShortStroke(font, references, limit) {
 						let polygonLight = polyGlyphLight[idxC2];
 						let polygonHeavy = polyGlyphHeavy[idxC2];
 						let score = 0;
-						let edge = 0;
+						let edgeL = 0;
+						let edgeH = 0;
 						if (inside(point2GeoJsonLight(p2), polygonLight) !== false) score++;
 						if (inside(point2GeoJsonLight(p3), polygonLight) !== false) score++;
 						if (inside(point2GeoJsonHeavy(p2), polygonHeavy) !== false) score++;
 						if (inside(point2GeoJsonHeavy(p3), polygonHeavy) !== false) score++;
-						if (inside(point2GeoJsonLight(p2), polygonLight) === 0) edge++;
-						if (inside(point2GeoJsonLight(p3), polygonLight) === 0) edge++;
-						if (inside(point2GeoJsonHeavy(p2), polygonHeavy) === 0) edge++;
-						if (inside(point2GeoJsonHeavy(p3), polygonHeavy) === 0) edge++;
+						if (inside(point2GeoJsonLight(p2), polygonLight) === 0) edgeL++;
+						if (inside(point2GeoJsonLight(p3), polygonLight) === 0) edgeL++;
+						if (inside(point2GeoJsonHeavy(p2), polygonHeavy) === 0) edgeH++;
+						if (inside(point2GeoJsonHeavy(p3), polygonHeavy) === 0) edgeH++;
 						if (score >= 3) {
 							let p1l = point2GeoJsonLight(p1);
 							let p2l = point2GeoJsonLight(p2);
@@ -827,7 +836,8 @@ function extendShortStroke(font, references, limit) {
 							let j3h = false;
 							let heavyLimit = endsHidden ? 20 : (polygonHeavy.length > 1) ? 55 : 120;
 							let intersects = false;
-							if (edge.isBetween(1,2)) {
+							// if (edge.isBetween(1,2)) {
+							if (edgeL === 1 && edgeH === 1) {
 								function test2l() {
 									n2l = extendLineGeoJson(p1l, p2l, e2l);
 									t2l = inside(n2l, polygonLight) !== false;
@@ -877,6 +887,10 @@ function extendShortStroke(font, references, limit) {
 									test2h();
 								}
 							} else {
+								e2l = 2;
+								e3l = 2;
+								e2h = 2;
+								e3h = 2;
 								function test2l() {
 									n2l = extendLineGeoJson(p1l, p2l, e2l);
 									t2l = inside(n2l, polygonLight);
@@ -915,9 +929,9 @@ function extendShortStroke(font, references, limit) {
 										e2l++;
 										test2l();
 									}
-									e2l = e2l - 5;
-									test2l();
 								}
+								e2l = e2l - 2;
+								test2l();
 								
 								test3l();
 								// if (!t3l) {
@@ -933,29 +947,33 @@ function extendShortStroke(font, references, limit) {
 										e3l++;
 										test3l();
 									}
-									e3l = e3l - 5;
-									test3l();
 								}
+								e3l = e3l - 2;
+								test3l();
 
 								test2h();
 								if (t2h || (!t2h && i2h && !j2h)) {
 									while ((t2h || (!t2h && i2h && !j2h)) && e2h <= heavyLimit && (!i2h || !j2h)) {
+								// if (t2h || (!t2h && i2h && !j2h)) {
+								// 	while (t2h && e2h <= heavyLimit && !i2h) {
 										e2h++;
 										test2h();
 									}
-									e2h = e2h - 5;
-									test2h();
 								}
+								e2h = e2h - 2;
+								test2h();
 								
 								test3h();
 								if (t3h || (!t3h && i3h && !j3h)) {
 									while ((t3h || (!t3h && i3h && !j3h)) && e3h <= heavyLimit && (!i3h || !j3h)) {
+								// if (t3h || (!t3h && i3h && !j3h)) {
+								// 	while (t3h && e3h <= heavyLimit && !i3h) {
 										e3h++;
 										test3h();
 									}	
-									e3h = e3h - 5;
-									test3h();
 								}
+								e3h = e3h - 2;
+								test3h();
 								
 								// if (e2l === e3l && e2h !== e3h) {
 									let minL = min(e2l, e3l);
@@ -970,23 +988,28 @@ function extendShortStroke(font, references, limit) {
 									test3h();
 								// }
 							}
-							newContour[p2I] = {
-								x: makeVariance(n2l[0], n2h[0]),
-								y: makeVariance(n2l[1], n2h[1]),
-								kind: p2.kind
-							}
-							newContour[p3I] = {
-								x: makeVariance(n3l[0], n3h[0]),
-								y: makeVariance(n3l[1], n3h[1]),
-								kind: p3.kind
-							}
+							
+							let newP2 = Ot.Glyph.Point.create(
+								makeVariance(n2l[0], n2h[0]),
+								makeVariance(n2l[1], n2h[1]),
+								p2.kind
+							);
+							let newP3 = Ot.Glyph.Point.create(
+								makeVariance(n3l[0], n3h[0]),
+								makeVariance(n3l[1], n3h[1]),
+								p3.kind
+							);
+							newContour[p2I] = newP2;
+							newContour[p3I] = newP3;
 							if (JSON.stringify(contour[p2I]) === JSON.stringify(circularArray(contour, p2I + 1))) {
-								newContour[circularIndex(contour, p2I + 1)] = {
-									x: makeVariance(n2l[0], n2h[0]),
-									y: makeVariance(n2l[1], n2h[1]),
-									kind: p2.kind
-								}
+								newContour[circularIndex(contour, p2I + 1)] = newP2;
+								oldContours[idxC1][circularIndex(contour, p2I + 1)] = newP2;
 							}
+							oldContours[idxC1][p2I] = newP2;
+							oldContours[idxC1][p3I] = newP3;
+							p2 = newP2;
+							p3 = newP3;
+							buildPolyGlyph(oldContours);
 						}
 					}
 				}
@@ -1000,34 +1023,34 @@ function extendShortStroke(font, references, limit) {
 	
 	let len = font.glyphs.items.length;
 	let consoleWidth = process.stdout.columns || 150
-	// let bar = new ProgressBar('\u001b[38;5;82mextendShortStroke\u001b[0m [2/6] :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+	let bar = new ProgressBar('\u001b[38;5;82mextendShortStroke\u001b[0m [2/6] :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
 	
-	// function progressTick() {
-	// 	if (len) {
-	// 		var chunk = 1;
-	// 		bar.tick(chunk);
-	// 		if (bar.curr > 0 && bar.curr < len - 2) { 
-	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
-	// 		}
-	// 		if (bar.curr === len - 1) { 
-	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
-	// 		}
-	// 	}
-	// }
-	let bar = new ProgressBar('\u001b[38;5;82mextendShortStroke\u001b[0m [2/5] :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
-	
-	function progressTick(info = "") {
+	function progressTick() {
 		if (len) {
 			var chunk = 1;
 			bar.tick(chunk);
 			if (bar.curr > 0 && bar.curr < len - 2) { 
-				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
 			}
 			if (bar.curr === len - 1) { 
-				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
 			}
 		}
 	}
+	// let bar = new ProgressBar('\u001b[38;5;82mextendShortStroke\u001b[0m [2/5] :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+	
+	// function progressTick(info = "") {
+	// 	if (len) {
+	// 		var chunk = 1;
+	// 		bar.tick(chunk);
+	// 		if (bar.curr > 0 && bar.curr < len - 2) { 
+	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+	// 		}
+	// 		if (bar.curr === len - 1) { 
+	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+	// 		}
+	// 	}
+	// }
 
 	let count = 0;
 	for (const glyph of font.glyphs.items) {

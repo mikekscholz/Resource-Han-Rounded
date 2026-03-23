@@ -463,8 +463,14 @@ function correctGlyphs(font, references, limit) {
 			originHeavy(x) <= originHeavy(b) + 2;
 	}
 
+	// function makeVariance(valueDefault, valueWghtMax) {
+	// 	return valueFactory.create(valueDefault, [[masterWghtMax, valueWghtMax - valueDefault]]);
+	// }
+	
 	function makeVariance(valueDefault, valueWghtMax) {
-		return valueFactory.create(valueDefault, [[masterWghtMax, valueWghtMax - valueDefault]]);
+		let valueLight = roundTo(valueDefault);
+		let valueHeavy = roundTo(valueWghtMax - valueDefault);
+		return valueFactory.create(valueLight, [[masterWghtMax, valueHeavy]]);
 	}
 	
 	function setCustomRadius(glyphName, idx, radiusMin, radiusMax, force = false) {
