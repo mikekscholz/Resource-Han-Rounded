@@ -3602,6 +3602,74 @@ function preProcess(font, references, limit) {
 							);
 							break;
 						}
+						if (strokeEndUp(p0, p1, p2, p3) && strokeEndUp(p4, p5, p6, p7)) {
+							if (overlaps.length > 0) {
+								for (let idxC2 of overlaps) {
+									let contour2 = oldContours[idxC2];
+									for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
+										const q0I = circularIndex(contour2, idxP2);
+										const q1I = nextNode(contour2, q0I);
+										const q2I = nextNode(contour2, q1I);
+										const q3I = nextNode(contour2, q2I);
+										let q0 = circularArray(contour2, q0I);
+										let q1 = circularArray(contour2, q1I);
+										let q2 = circularArray(contour2, q2I);
+										let q3 = circularArray(contour2, q3I);
+										let q0L = pointLight(q0);
+										let q1L = pointLight(q1);
+										let q2L = pointLight(q2);
+										let q3L = pointLight(q3);
+										let q0H = pointHeavy(q0);
+										let q1H = pointHeavy(q1);
+										let q2H = pointHeavy(q2);
+										let q3H = pointHeavy(q3);
+										if (q0H.y > q1H.y && q1H.x < q2H.x) {
+											oldContours[idxC2][q0I] = Ot.Glyph.Point.create(
+												makeVariance(q0L.x, p7H.x + (minStroke / 2)),
+												makeVariance(q0L.y, q0H.y),
+												oldContours[idxC2][q0I].kind
+											);
+											oldContours[idxC2][q1I] = Ot.Glyph.Point.create(
+												makeVariance(q1L.x, p7H.x + (minStroke / 2)),
+												makeVariance(q1L.y, q1H.y),
+												oldContours[idxC2][q1I].kind
+											);
+											oldContours[idxC2][q2I] = Ot.Glyph.Point.create(
+												makeVariance(q2L.x, p0H.x - (minStroke / 2)),
+												makeVariance(q2L.y, q2H.y),
+												oldContours[idxC2][q2I].kind
+											);
+											oldContours[idxC2][q3I] = Ot.Glyph.Point.create(
+												makeVariance(q3L.x, p0H.x - (minStroke / 2)),
+												makeVariance(q3L.y, q3H.y),
+												oldContours[idxC2][q3I].kind
+											);
+										}
+									}
+								}
+							}
+							oldContours[idxC1][p2I] = Ot.Glyph.Point.create(
+								makeVariance(p2L.x, p0H.x - minStroke),
+								makeVariance(p2L.y, p2H.y),
+								oldContours[idxC1][p2I].kind
+							);
+							oldContours[idxC1][p3I] = Ot.Glyph.Point.create(
+								makeVariance(p3L.x, p0H.x - minStroke),
+								makeVariance(p3L.y, p0H.y + minStroke),
+								oldContours[idxC1][p3I].kind
+							);
+							oldContours[idxC1][p4I] = Ot.Glyph.Point.create(
+								makeVariance(p4L.x, p7H.x + minStroke),
+								makeVariance(p4L.y, p7H.y + minStroke),
+								oldContours[idxC1][p4I].kind
+							);
+							oldContours[idxC1][p5I] = Ot.Glyph.Point.create(
+								makeVariance(p5L.x, p7H.x + minStroke),
+								makeVariance(p5L.y, p5H.y),
+								oldContours[idxC1][p5I].kind
+							);
+							break;
+						}
 					}
 				}
 			}
