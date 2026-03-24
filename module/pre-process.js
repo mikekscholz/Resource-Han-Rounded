@@ -3671,6 +3671,43 @@ function preProcess(font, references, limit) {
 							break;
 						}
 					}
+					if (
+						canBeStrokeEnd(p0, p1, p2, p3) &&
+						canBeStrokeEnd(p3, p4, p5, p0) &&
+						angleHeavy(p2, p3, p4) === 90
+					) {
+						let minStroke = Math.min(distanceHeavy(p1, p2), distanceHeavy(p4, p5));
+						let p0L = pointLight(p0);
+						let p1L = pointLight(p1);
+						let p2L = pointLight(p2);
+						let p3L = pointLight(p3);
+						let p4L = pointLight(p4);
+						let p5L = pointLight(p5);
+						let p0H = pointHeavy(p0);
+						let p1H = pointHeavy(p1);
+						let p2H = pointHeavy(p2);
+						let p3H = pointHeavy(p3);
+						let p4H = pointHeavy(p4);
+						let p5H = pointHeavy(p5);
+						if (strokeEndBottom(p0, p1, p2, p3) && strokeEndRight(p3, p4, p5, p0)) {
+							oldContours[idxC1][p2I] = Ot.Glyph.Point.create(
+								makeVariance(p2L.x, p0H.x + minStroke),
+								makeVariance(p2L.y, p2H.y),
+								oldContours[idxC1][p2I].kind
+							);
+							oldContours[idxC1][p3I] = Ot.Glyph.Point.create(
+								makeVariance(p3L.x, p0H.x + minStroke),
+								makeVariance(p3L.y, p0H.y - minStroke),
+								oldContours[idxC1][p3I].kind
+							);
+							oldContours[idxC1][p4I] = Ot.Glyph.Point.create(
+								makeVariance(p4L.x, p4H.x),
+								makeVariance(p4L.y, p0H.y - minStroke),
+								oldContours[idxC1][p4I].kind
+							);
+							break;
+						}
+					}
 				}
 			}
 			if (contour.length.isBetween(10,11)) {
