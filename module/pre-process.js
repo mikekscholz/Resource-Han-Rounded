@@ -3480,20 +3480,7 @@ function preProcess(font, references, limit) {
 						angleHeavy(p2, p3, p4) === 90 &&
 						angleHeavy(p3, p4, p5) === 90
 					) {
-						let overlaps = [];
-						for (let idxC2 = 0; idxC2 < oldContours.length; idxC2++) {
-							let contour2 = oldContours[idxC2];
-							if (idxC2 === idxC1 || !contour2.length.isBetween(4,5) || skipContours.includes(idxC2)) {
-								continue;
-							}
-							let score = 0;
-							let polygonTest = polyGlyphHeavy[idxC1];
-							for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
-								let pointTest = point2GeoJsonHeavy(contour2[idxP2]);
-								if (inside(pointTest, polygonTest) === true) score++;
-							}
-							if (score >= 4) overlaps.push(idxC2);
-						}
+
 						let p0L = pointLight(p0);
 						let p1L = pointLight(p1);
 						let p2L = pointLight(p2);
@@ -3512,6 +3499,62 @@ function preProcess(font, references, limit) {
 						let p7H = pointHeavy(p7);
 						let minStroke = Math.min(distanceHeavy(p1, p2), distanceHeavy(p5, p6), pointToLineDistance(p3H, p0H, p7H));
 						if (strokeEndLeft(p0, p1, p2, p3) && strokeEndLeft(p4, p5, p6, p7)) {
+							let overlaps = [];
+							for (let idxC2 = 0; idxC2 < oldContours.length; idxC2++) {
+								let contour2 = oldContours[idxC2];
+								if (idxC2 === idxC1 || !contour2.length.isBetween(4,5) || skipContours.includes(idxC2)) {
+									continue;
+								}
+								let score = 0;
+								let polygonTest = [
+									[
+										[p0H.x,p0H.y],
+										[p3H.x,p3H.y],
+										[p4H.x,p4H.y],
+										[p7H.x,p7H.y]
+									]
+								];
+								for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
+									let pointTest = point2GeoJsonHeavy(contour2[idxP2]);
+									if (inside(pointTest, polygonTest) === true) score++;
+								}
+								if (score === 2) overlaps.push(idxC2);
+							}
+							if (overlaps.length > 0) {
+								for (let idxC2 of overlaps) {
+									let contour2 = oldContours[idxC2];
+									for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
+										const q0I = circularIndex(contour2, idxP2);
+										const q1I = nextNode(contour2, q0I);
+										const q2I = nextNode(contour2, q1I);
+										const q3I = nextNode(contour2, q2I);
+										let q0 = circularArray(contour2, q0I);
+										let q1 = circularArray(contour2, q1I);
+										let q2 = circularArray(contour2, q2I);
+										let q3 = circularArray(contour2, q3I);
+										let q0L = pointLight(q0);
+										let q1L = pointLight(q1);
+										let q2L = pointLight(q2);
+										let q3L = pointLight(q3);
+										let q0H = pointHeavy(q0);
+										let q1H = pointHeavy(q1);
+										let q2H = pointHeavy(q2);
+										let q3H = pointHeavy(q3);
+										if (q0H.y > q1H.y && q1H.x < q2H.x) {
+											oldContours[idxC2][q2I] = Ot.Glyph.Point.create(
+												makeVariance(q2L.x, p7H.x - (minStroke / 2)),
+												makeVariance(q2L.y, q2H.y),
+												oldContours[idxC2][q2I].kind
+											);
+											oldContours[idxC2][q3I] = Ot.Glyph.Point.create(
+												makeVariance(q3L.x, p7H.x - (minStroke / 2)),
+												makeVariance(q3L.y, q3H.y),
+												oldContours[idxC2][q3I].kind
+											);
+										}
+									}
+								}
+							}
 							oldContours[idxC1][p2I] = Ot.Glyph.Point.create(
 								makeVariance(p2L.x, p2H.x),
 								makeVariance(p2L.y, p0H.y - minStroke),
@@ -3535,6 +3578,20 @@ function preProcess(font, references, limit) {
 							break;
 						}
 						if (strokeEndBottom(p0, p1, p2, p3) && strokeEndBottom(p4, p5, p6, p7)) {
+							let overlaps = [];
+							for (let idxC2 = 0; idxC2 < oldContours.length; idxC2++) {
+								let contour2 = oldContours[idxC2];
+								if (idxC2 === idxC1 || !contour2.length.isBetween(4,5) || skipContours.includes(idxC2)) {
+									continue;
+								}
+								let score = 0;
+								let polygonTest = polyGlyphHeavy[idxC1];
+								for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
+									let pointTest = point2GeoJsonHeavy(contour2[idxP2]);
+									if (inside(pointTest, polygonTest) === true) score++;
+								}
+								if (score >= 4) overlaps.push(idxC2);
+							}
 							if (overlaps.length > 0) {
 								for (let idxC2 of overlaps) {
 									let contour2 = oldContours[idxC2];
@@ -3603,6 +3660,20 @@ function preProcess(font, references, limit) {
 							break;
 						}
 						if (strokeEndUp(p0, p1, p2, p3) && strokeEndUp(p4, p5, p6, p7)) {
+							let overlaps = [];
+							for (let idxC2 = 0; idxC2 < oldContours.length; idxC2++) {
+								let contour2 = oldContours[idxC2];
+								if (idxC2 === idxC1 || !contour2.length.isBetween(4,5) || skipContours.includes(idxC2)) {
+									continue;
+								}
+								let score = 0;
+								let polygonTest = polyGlyphHeavy[idxC1];
+								for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
+									let pointTest = point2GeoJsonHeavy(contour2[idxP2]);
+									if (inside(pointTest, polygonTest) === true) score++;
+								}
+								if (score >= 4) overlaps.push(idxC2);
+							}
 							if (overlaps.length > 0) {
 								for (let idxC2 of overlaps) {
 									let contour2 = oldContours[idxC2];
@@ -3673,7 +3744,7 @@ function preProcess(font, references, limit) {
 					}
 					if (
 						canBeStrokeEnd(p0, p1, p2, p3) &&
-						canBeStrokeEnd(p3, p4, p5, p0) &&
+						canBeStrokeEnd(p3, p4, p5, p6) &&
 						angleHeavy(p2, p3, p4) === 90
 					) {
 						let minStroke = Math.min(distanceHeavy(p1, p2), distanceHeavy(p4, p5));
@@ -3683,26 +3754,28 @@ function preProcess(font, references, limit) {
 						let p3L = pointLight(p3);
 						let p4L = pointLight(p4);
 						let p5L = pointLight(p5);
+						let p6L = pointLight(p6);
 						let p0H = pointHeavy(p0);
 						let p1H = pointHeavy(p1);
 						let p2H = pointHeavy(p2);
 						let p3H = pointHeavy(p3);
 						let p4H = pointHeavy(p4);
 						let p5H = pointHeavy(p5);
-						if (strokeEndBottom(p0, p1, p2, p3) && strokeEndRight(p3, p4, p5, p0)) {
+						let p6H = pointHeavy(p6);
+						if (strokeEndBottom(p0, p1, p2, p3) && strokeEndRight(p3, p4, p5, p6)) {
 							oldContours[idxC1][p2I] = Ot.Glyph.Point.create(
-								makeVariance(p2L.x, p0H.x + minStroke),
+								makeVariance(p2L.x, p1H.x + minStroke),
 								makeVariance(p2L.y, p2H.y),
 								oldContours[idxC1][p2I].kind
 							);
 							oldContours[idxC1][p3I] = Ot.Glyph.Point.create(
-								makeVariance(p3L.x, p0H.x + minStroke),
-								makeVariance(p3L.y, p0H.y - minStroke),
+								makeVariance(p3L.x, p1H.x + minStroke),
+								makeVariance(p3L.y, p5H.y - minStroke),
 								oldContours[idxC1][p3I].kind
 							);
 							oldContours[idxC1][p4I] = Ot.Glyph.Point.create(
 								makeVariance(p4L.x, p4H.x),
-								makeVariance(p4L.y, p0H.y - minStroke),
+								makeVariance(p4L.y, p5H.y - minStroke),
 								oldContours[idxC1][p4I].kind
 							);
 							break;
