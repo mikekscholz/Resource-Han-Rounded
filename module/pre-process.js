@@ -2458,6 +2458,7 @@ function preProcess(font, references, limit) {
 			// HOVERIMAGE - [img "diagrams/j-hook.svg"]
 			if (newContour.length > 12) {
 				for (let idxP = 0; idxP < newContour.length; idxP++) {
+					let pDI = circularIndex(newContour, idxP - 4);
 					let pCI = circularIndex(newContour, idxP - 3);
 					let pBI = circularIndex(newContour, idxP - 2);
 					let pAI = circularIndex(newContour, idxP - 1);
@@ -2474,7 +2475,10 @@ function preProcess(font, references, limit) {
 					let p10I = circularIndex(newContour, idxP + 10);
 					let p11I = circularIndex(newContour, idxP + 11);
 					let p12I = circularIndex(newContour, idxP + 12);
+					let pD = newContour[pDI];
 					let pC = newContour[pCI];
+					let pB = newContour[pBI];
+					let pA = newContour[pAI];
 					let p0 = newContour[p0I];
 					let p1 = newContour[p1I];
 					let p2 = newContour[p2I];
@@ -2521,12 +2525,49 @@ function preProcess(font, references, limit) {
 									kind: newContour[iC].kind,
 								};
 							}
+							pD = newContour[pDI];
+							pC = newContour[pCI];
+							pB = newContour[pBI];
+							pA = newContour[pAI];
 							p0 = newContour[p0I];
 							p1 = newContour[p1I];
 							p2 = newContour[p2I];
 							p3 = newContour[p3I];
 							p4 = newContour[p4I];
 						}
+						if (strokeDelta < 0 && newContour.length.isBetween(18,19)) {
+							for (let i = -4; i <= 4; i++) {
+								let iC = circularIndex(newContour, idxP + i);
+								let pL = pointLight(newContour[iC]);
+								let pH = pointHeavy(newContour[iC]);
+								newContour[iC] = {
+									x: makeVariance(pL.x, pH.x - strokeDelta),
+									y: makeVariance(pL.y, pH.y),
+									kind: newContour[iC].kind,
+								};
+							}
+						}
+						if (strokeDelta < 0 && newContour.length.isBetween(26,27)) {
+							for (let i = -7; i <= 4; i++) {
+								let iC = circularIndex(newContour, idxP + i);
+								let pL = pointLight(newContour[iC]);
+								let pH = pointHeavy(newContour[iC]);
+								newContour[iC] = {
+									x: makeVariance(pL.x, pH.x - strokeDelta),
+									y: makeVariance(pL.y, pH.y),
+									kind: newContour[iC].kind,
+								};
+							}
+						}
+						pD = newContour[pDI];
+						pC = newContour[pCI];
+						pB = newContour[pBI];
+						pA = newContour[pAI];
+						p0 = newContour[p0I];
+						p1 = newContour[p1I];
+						p2 = newContour[p2I];
+						p3 = newContour[p3I];
+						p4 = newContour[p4I];
 						if (p0H.x <= p6H.x && p0p6HDelta.isBetween(-10, 0)) {
 							newContour[p6I] = {
 								x: makeVariance(p6L.x, p0H.x - 1),
@@ -3368,6 +3409,7 @@ function preProcess(font, references, limit) {
 				continue;
 			}
 			if (contour.length.isBetween(6,7)) {
+				let matched = false;
 				for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
 					const p0I = circularIndex(contour, idxP1);
 					const p1I = nextNode(contour, p0I);
@@ -3415,8 +3457,10 @@ function preProcess(font, references, limit) {
 								makeVariance(p4L.y, p0H.y - minStroke),
 								oldContours[idxC1][p4I].kind
 							);
+							matched = true;
 							break;
 						}
+						if (matched) break;
 						if (strokeEndLeft(p0, p1, p2, p3) && strokeEndBottom(p3, p4, p5, p0)) {
 							oldContours[idxC1][p2I] = Ot.Glyph.Point.create(
 								makeVariance(p2L.x, p2H.x),
@@ -3433,8 +3477,10 @@ function preProcess(font, references, limit) {
 								makeVariance(p4L.y, p4H.y),
 								oldContours[idxC1][p4I].kind
 							);
+							matched = true;
 							break;
 						}
+						if (matched) break;
 						if (strokeEndRight(p0, p1, p2, p3) && strokeEndUp(p3, p4, p5, p0)) {
 							oldContours[idxC1][p2I] = Ot.Glyph.Point.create(
 								makeVariance(p2L.x, p2H.x),
@@ -3451,8 +3497,10 @@ function preProcess(font, references, limit) {
 								makeVariance(p4L.y, p4H.y),
 								oldContours[idxC1][p4I].kind
 							);
+							matched = true;
 							break;
 						}
+						if (matched) break;
 					}
 				}
 			}
@@ -3512,7 +3560,8 @@ function preProcess(font, references, limit) {
 										[p0H.x,p0H.y],
 										[p3H.x,p3H.y],
 										[p4H.x,p4H.y],
-										[p7H.x,p7H.y]
+										[p7H.x,p7H.y],
+										[p0H.x,p0H.y]
 									]
 								];
 								for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
