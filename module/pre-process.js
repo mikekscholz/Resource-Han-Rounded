@@ -3549,6 +3549,7 @@ function preProcess(font, references, limit) {
 						let minStroke = Math.min(distanceHeavy(p1, p2), distanceHeavy(p5, p6), pointToLineDistance(p3H, p0H, p7H));
 						if (strokeEndLeft(p0, p1, p2, p3) && strokeEndLeft(p4, p5, p6, p7)) {
 							let overlaps = [];
+							let edges = [];
 							for (let idxC2 = 0; idxC2 < oldContours.length; idxC2++) {
 								let contour2 = oldContours[idxC2];
 								if (idxC2 === idxC1 || !contour2.length.isBetween(4,5) || skipContours.includes(idxC2)) {
@@ -3564,9 +3565,11 @@ function preProcess(font, references, limit) {
 										[p0H.x,p0H.y]
 									]
 								];
+								let polygonEdgeTest = polyGlyphHeavy[idxC1];
 								for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
 									let pointTest = point2GeoJsonHeavy(contour2[idxP2]);
 									if (inside(pointTest, polygonTest) === true) score++;
+									if (inside(pointTest, polygonEdgeTest) === 0 && !edges.includes(idxC2)) edges.push(idxC2);
 								}
 								if (score === 2 && !overlaps.includes(idxC2)) overlaps.push(idxC2);
 							}
