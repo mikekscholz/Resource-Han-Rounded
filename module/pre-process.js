@@ -3457,6 +3457,7 @@ function preProcess(font, references, limit) {
 				}
 			}
 			if (contour.length.isBetween(8,9)) {
+				let matched = false;
 				for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
 					const p0I = circularIndex(contour, idxP1);
 					const p1I = nextNode(contour, p0I);
@@ -3518,7 +3519,7 @@ function preProcess(font, references, limit) {
 									let pointTest = point2GeoJsonHeavy(contour2[idxP2]);
 									if (inside(pointTest, polygonTest) === true) score++;
 								}
-								if (score === 2) overlaps.push(idxC2);
+								if (score === 2 && !overlaps.includes(idxC2)) overlaps.push(idxC2);
 							}
 							if (overlaps.length > 0) {
 								for (let idxC2 of overlaps) {
@@ -3575,8 +3576,10 @@ function preProcess(font, references, limit) {
 								makeVariance(p5L.y, p7H.y + minStroke),
 								oldContours[idxC1][p5I].kind
 							);
+							matched = true;
 							break;
 						}
+						if (matched) break;
 						if (strokeEndBottom(p0, p1, p2, p3) && strokeEndBottom(p4, p5, p6, p7)) {
 							let overlaps = [];
 							for (let idxC2 = 0; idxC2 < oldContours.length; idxC2++) {
@@ -3590,7 +3593,7 @@ function preProcess(font, references, limit) {
 									let pointTest = point2GeoJsonHeavy(contour2[idxP2]);
 									if (inside(pointTest, polygonTest) === true) score++;
 								}
-								if (score >= 4) overlaps.push(idxC2);
+								if (score >= 4 && !overlaps.includes(idxC2)) overlaps.push(idxC2);
 							}
 							if (overlaps.length > 0) {
 								for (let idxC2 of overlaps) {
@@ -3657,8 +3660,10 @@ function preProcess(font, references, limit) {
 								makeVariance(p5L.y, p5H.y),
 								oldContours[idxC1][p5I].kind
 							);
+							matched = true;
 							break;
 						}
+						if (matched) break;
 						if (strokeEndUp(p0, p1, p2, p3) && strokeEndUp(p4, p5, p6, p7)) {
 							let overlaps = [];
 							for (let idxC2 = 0; idxC2 < oldContours.length; idxC2++) {
@@ -3672,7 +3677,7 @@ function preProcess(font, references, limit) {
 									let pointTest = point2GeoJsonHeavy(contour2[idxP2]);
 									if (inside(pointTest, polygonTest) === true) score++;
 								}
-								if (score >= 4) overlaps.push(idxC2);
+								if (score >= 4 && !overlaps.includes(idxC2)) overlaps.push(idxC2);
 							}
 							if (overlaps.length > 0) {
 								for (let idxC2 of overlaps) {
@@ -3739,8 +3744,10 @@ function preProcess(font, references, limit) {
 								makeVariance(p5L.y, p5H.y),
 								oldContours[idxC1][p5I].kind
 							);
+							matched = true;
 							break;
 						}
+						if (matched) break;
 					}
 					if (
 						canBeStrokeEnd(p0, p1, p2, p3) &&
@@ -3778,8 +3785,10 @@ function preProcess(font, references, limit) {
 								makeVariance(p4L.y, p5H.y - minStroke),
 								oldContours[idxC1][p4I].kind
 							);
+							matched = true;
 							break;
 						}
+						if (matched) break;
 					}
 				}
 			}
