@@ -306,35 +306,39 @@ function preProcess(font, references, limit) {
 	}
 
 	function strokeEndUp(p1, p2, p3, p4) {
+		let isStrokeEnd = canBeStrokeEnd(p1, p2, p3, p4);
 		let b1L = bearing(lineLight(p1, p2));
 		let b2L = bearing(lineLight(p4, p3));
 		let b1H = bearing(lineHeavy(p1, p2));
 		let b2H = bearing(lineHeavy(p4, p3));
-		return ((b1L >= 315 || b1L <= 45) && (b2L >= 315 || b2L <= 45) && (b1H >= 315 || b1H <= 45) && (b2H >= 315 || b2H <= 45));
+		return (isStrokeEnd && (b1L >= 315 || b1L <= 45) && (b2L >= 315 || b2L <= 45) && (b1H >= 315 || b1H <= 45) && (b2H >= 315 || b2H <= 45));
 	}
 
 	function strokeEndLeft(p1, p2, p3, p4) {
+		let isStrokeEnd = canBeStrokeEnd(p1, p2, p3, p4);
 		let b1L = bearing(lineLight(p1, p2));
 		let b2L = bearing(lineLight(p4, p3));
 		let b1H = bearing(lineHeavy(p1, p2));
 		let b2H = bearing(lineHeavy(p4, p3));
-		return ((b1L >= 225 && b1L <= 315) && (b2L >= 225 && b2L <= 315) && (b1H >= 225 && b1H <= 315) && (b2H >= 225 && b2H <= 315));
+		return (isStrokeEnd && (b1L >= 225 && b1L <= 315) && (b2L >= 225 && b2L <= 315) && (b1H >= 225 && b1H <= 315) && (b2H >= 225 && b2H <= 315));
 	}
 
 	function strokeEndBottom(p1, p2, p3, p4) {
+		let isStrokeEnd = canBeStrokeEnd(p1, p2, p3, p4);
 		let b1L = bearing(lineLight(p1, p2));
 		let b2L = bearing(lineLight(p4, p3));
 		let b1H = bearing(lineHeavy(p1, p2));
 		let b2H = bearing(lineHeavy(p4, p3));
-		return ((b1L >= 135 && b1L <= 225) && (b2L >= 135 && b2L <= 225) && (b1H >= 135 && b1H <= 225) && (b2H >= 135 && b2H <= 225));
+		return (isStrokeEnd && (b1L >= 135 && b1L <= 225) && (b2L >= 135 && b2L <= 225) && (b1H >= 135 && b1H <= 225) && (b2H >= 135 && b2H <= 225));
 	}
 
 	function strokeEndRight(p1, p2, p3, p4) {
+		let isStrokeEnd = canBeStrokeEnd(p1, p2, p3, p4);
 		let b1L = bearing(lineLight(p1, p2));
 		let b2L = bearing(lineLight(p4, p3));
 		let b1H = bearing(lineHeavy(p1, p2));
 		let b2H = bearing(lineHeavy(p4, p3));
-		return ((b1L >= 42 && b1L <= 135) && (b2L >= 42 && b2L <= 135) && (b1H >= 42 && b1H <= 135) && (b2H >= 42 && b2H <= 135));
+		return (isStrokeEnd && (b1L >= 42 && b1L <= 135) && (b2L >= 42 && b2L <= 135) && (b1H >= 42 && b1H <= 135) && (b2H >= 42 && b2H <= 135));
 	}
 	
 	function isSquare(p1, p2) {
@@ -3548,14 +3552,11 @@ function preProcess(font, references, limit) {
 						let p7H = pointHeavy(p7);
 						let minStroke = Math.min(distanceHeavy(p1, p2), distanceHeavy(p5, p6), pointToLineDistance(p3H, p0H, p7H));
 						if (strokeEndLeft(p0, p1, p2, p3) && strokeEndLeft(p4, p5, p6, p7)) {
-							let overlaps = [];
-							let edges = [];
 							for (let idxC2 = 0; idxC2 < oldContours.length; idxC2++) {
 								let contour2 = oldContours[idxC2];
-								if (idxC2 === idxC1 || !contour2.length.isBetween(4,5) || skipContours.includes(idxC2)) {
+								if (idxC2 === idxC1 || !contour2.length.isBetween(4,9) || skipContours.includes(idxC2)) {
 									continue;
 								}
-								let score = 0;
 								let polygonTest = [
 									[
 										[p0H.x,p0H.y],
@@ -3567,44 +3568,57 @@ function preProcess(font, references, limit) {
 								];
 								let polygonEdgeTest = polyGlyphHeavy[idxC1];
 								for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
-									let pointTest = point2GeoJsonHeavy(contour2[idxP2]);
-									if (inside(pointTest, polygonTest) === true) score++;
-									if (inside(pointTest, polygonEdgeTest) === 0 && !edges.includes(idxC2)) edges.push(idxC2);
-								}
-								if (score === 2 && !overlaps.includes(idxC2)) overlaps.push(idxC2);
-							}
-							if (overlaps.length > 0) {
-								for (let idxC2 of overlaps) {
-									let contour2 = oldContours[idxC2];
-									for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
-										const q0I = circularIndex(contour2, idxP2);
-										const q1I = nextNode(contour2, q0I);
-										const q2I = nextNode(contour2, q1I);
-										const q3I = nextNode(contour2, q2I);
-										let q0 = circularArray(contour2, q0I);
-										let q1 = circularArray(contour2, q1I);
-										let q2 = circularArray(contour2, q2I);
-										let q3 = circularArray(contour2, q3I);
-										let q0L = pointLight(q0);
-										let q1L = pointLight(q1);
-										let q2L = pointLight(q2);
-										let q3L = pointLight(q3);
-										let q0H = pointHeavy(q0);
-										let q1H = pointHeavy(q1);
-										let q2H = pointHeavy(q2);
-										let q3H = pointHeavy(q3);
-										if (q0H.y > q1H.y && q1H.x < q2H.x) {
-											oldContours[idxC2][q2I] = Ot.Glyph.Point.create(
-												makeVariance(q2L.x, p7H.x - (minStroke / 2)),
-												makeVariance(q2L.y, q2H.y),
-												oldContours[idxC2][q2I].kind
-											);
-											oldContours[idxC2][q3I] = Ot.Glyph.Point.create(
-												makeVariance(q3L.x, p7H.x - (minStroke / 2)),
-												makeVariance(q3L.y, q3H.y),
-												oldContours[idxC2][q3I].kind
-											);
-										}
+									const q0I = circularIndex(contour2, idxP2);
+									const q1I = nextNode(contour2, q0I);
+									const q2I = nextNode(contour2, q1I);
+									const q3I = nextNode(contour2, q2I);
+									let q0 = circularArray(contour2, q0I);
+									let q1 = circularArray(contour2, q1I);
+									let q2 = circularArray(contour2, q2I);
+									let q3 = circularArray(contour2, q3I);
+									let q0L = point2GeoJsonLight(q0);
+									let q1L = point2GeoJsonLight(q1);
+									let q2L = point2GeoJsonLight(q2);
+									let q3L = point2GeoJsonLight(q3);
+									let q0H = point2GeoJsonHeavy(q0);
+									let q1H = point2GeoJsonHeavy(q1);
+									let q2H = point2GeoJsonHeavy(q2);
+									let q3H = point2GeoJsonHeavy(q3);
+									if (
+										strokeEndRight(q0, q1, q2, q3) &&
+										inside(q0H, polygonTest) === true &&
+										inside(q1H, polygonTest) === true &&
+										inside(q2H, polygonTest) === true &&
+										inside(q3H, polygonTest) === true
+									) {
+										oldContours[idxC2][q2I] = Ot.Glyph.Point.create(
+											makeVariance(q2L[0], p7H.x - (minStroke / 2)),
+											makeVariance(q2L[1], q2H[1]),
+											oldContours[idxC2][q2I].kind
+										);
+										oldContours[idxC2][q3I] = Ot.Glyph.Point.create(
+											makeVariance(q3L[0], p7H.x - (minStroke / 2)),
+											makeVariance(q3L[1], q3H[1]),
+											oldContours[idxC2][q3I].kind
+										);
+										break;
+									}
+									if (
+										strokeEndUp(q0, q1, q2, q3) &&
+										// inside(q1H, polygonEdgeTest) === 0 &&
+										p4H.y === q1H[1]
+									) {
+										oldContours[idxC2][q2I] = Ot.Glyph.Point.create(
+											makeVariance(q2L[0], q2H[0]),
+											makeVariance(q2L[1], p7H.y + (minStroke / 2)),
+											oldContours[idxC2][q2I].kind
+										);
+										oldContours[idxC2][q1I] = Ot.Glyph.Point.create(
+											makeVariance(q1L[0], q1H[0]),
+											makeVariance(q1L[1], p7H.y + (minStroke / 2)),
+											oldContours[idxC2][q1I].kind
+										);
+										break;
 									}
 								}
 							}
