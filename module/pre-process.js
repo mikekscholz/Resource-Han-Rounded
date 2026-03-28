@@ -3554,7 +3554,8 @@ function preProcess(font, references, limit) {
 						if (strokeEndLeft(p0, p1, p2, p3) && strokeEndLeft(p4, p5, p6, p7)) {
 							for (let idxC2 = 0; idxC2 < oldContours.length; idxC2++) {
 								let contour2 = oldContours[idxC2];
-								if (idxC2 === idxC1 || !contour2.length.isBetween(4,9) || skipContours.includes(idxC2)) {
+								// if (idxC2 === idxC1 || !contour2.length.isBetween(4,9) || skipContours.includes(idxC2)) {
+								if (idxC2 === idxC1 || !contour2.length.isBetween(4,9)) {
 									continue;
 								}
 								let polygonTest = [
@@ -3586,36 +3587,34 @@ function preProcess(font, references, limit) {
 									let q3H = point2GeoJsonHeavy(q3);
 									if (
 										strokeEndRight(q0, q1, q2, q3) &&
-										inside(q0H, polygonTest) === true &&
 										inside(q1H, polygonTest) === true &&
-										inside(q2H, polygonTest) === true &&
-										inside(q3H, polygonTest) === true
+										inside(q2H, polygonTest) === true
 									) {
 										oldContours[idxC2][q2I] = Ot.Glyph.Point.create(
 											makeVariance(q2L[0], p7H.x - (minStroke / 2)),
 											makeVariance(q2L[1], q2H[1]),
 											oldContours[idxC2][q2I].kind
 										);
-										oldContours[idxC2][q3I] = Ot.Glyph.Point.create(
-											makeVariance(q3L[0], p7H.x - (minStroke / 2)),
-											makeVariance(q3L[1], q3H[1]),
-											oldContours[idxC2][q3I].kind
+										oldContours[idxC2][q1I] = Ot.Glyph.Point.create(
+											makeVariance(q1L[0], p7H.x - (minStroke / 2)),
+											makeVariance(q1L[1], q1H[1]),
+											oldContours[idxC2][q1I].kind
 										);
 										break;
 									}
 									if (
 										strokeEndUp(q0, q1, q2, q3) &&
-										// inside(q1H, polygonEdgeTest) === 0 &&
+										inside(q1H, polygonEdgeTest) === 0 &&
 										p4H.y === q1H[1]
 									) {
 										oldContours[idxC2][q2I] = Ot.Glyph.Point.create(
 											makeVariance(q2L[0], q2H[0]),
-											makeVariance(q2L[1], p7H.y + (minStroke / 2)),
+											makeVariance(q2L[1], p7H.y + minStroke),
 											oldContours[idxC2][q2I].kind
 										);
 										oldContours[idxC2][q1I] = Ot.Glyph.Point.create(
 											makeVariance(q1L[0], q1H[0]),
-											makeVariance(q1L[1], p7H.y + (minStroke / 2)),
+											makeVariance(q1L[1], p7H.y + minStroke),
 											oldContours[idxC2][q1I].kind
 										);
 										break;
@@ -3818,7 +3817,8 @@ function preProcess(font, references, limit) {
 					if (
 						canBeStrokeEnd(p0, p1, p2, p3) &&
 						canBeStrokeEnd(p3, p4, p5, p6) &&
-						angleHeavy(p2, p3, p4) === 90
+						angleHeavy(p2, p3, p4) === 90 &&
+						angleHeavy(p5, p6, p7) === 90
 					) {
 						let minStroke = Math.min(distanceHeavy(p1, p2), distanceHeavy(p4, p5));
 						let p0L = pointLight(p0);
