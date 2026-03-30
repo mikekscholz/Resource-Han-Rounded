@@ -46,10 +46,12 @@ for (let i = 0; i < 11; i++) {
 // 	y: makeVariance(${i}L.y, ${i}H.y),
 // 	kind: ${i}.kind,
 // };`
-let tmpl = `oldContours[idxC2][q${i}I] = Ot.Glyph.Point.create(
-	makeVariance(q${i}L[0], q${i}H[0]),
-	makeVariance(q${i}L[1], q${i}H[1]),
-	oldContours[idxC2][q${i}I].kind
-);`
+let tmpl = `
+oldContours[idxC2][p${i}I] = Ot.Glyph.Point.create(
+makeVariance(p${i}L.x, p${i}H.x),
+makeVariance(p${i}L.y, p${i}H.y),
+oldContours[idxC2][p${i}I].kind
+);
+`
 console.log(tmpl);
 }
