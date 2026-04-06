@@ -1,5 +1,5 @@
 "use strict";
-let limit = 400;
+let limit = 800;
 // let limit = false;
 const path = require("node:path");
 const fsp = require("node:fs/promises");
@@ -40,8 +40,8 @@ const font = readOtf(filename.shs(param.subfamily));
 substitute(font, references);
 preProcess(font, references, limit);
 extendShortStroke(font, references, limit);
-// correctGlyphs(font, references, limit);
-// roundFont(font, references, limit);
+correctGlyphs(font, references, limit);
+roundFont(font, references, limit);
 // postProcess(font, references, limit);
 inspect(font, references, param.subfamily, limit);
 // console.log('\u001b[38;5;82mCompiling OpenType font file.\u001b[0m This may take several minutes.');
