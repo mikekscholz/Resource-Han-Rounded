@@ -961,7 +961,7 @@ function preProcess(font, references, limit) {
 								let pVNew1I = pV9I;
 								let pVNew0 = pV8;
 								let pVNew0I = pV8I;
-								if (pV9.kind === 0 && distanceHeavy(pV8, pV9) < 5) {
+								if (pV9.kind === 0 && distanceHeavy(pV8, pV9) < 6) {
 									pVNew1 = pV10;
 									pVNew1I = pV10I;
 									pVNew0 = pV9;
@@ -1154,16 +1154,16 @@ function preProcess(font, references, limit) {
 								}
 								
 								if (contour2.length.isBetween(17,18)) {
-									let objIndex = sharedPoints.findIndex((obj) => (obj["idxC1"] === idxC2 && obj["p1I"] === pV0I) || (obj["idxC2"] === idxC2 && obj["p2I"] === pV0I));
-									let pV0Intersects = objIndex >= 0;
 									let pVn1I = previousNode(contour2, pV0I);
 									let pVn2I = previousNode(contour2, pVn1I);
-									let pVNew2I = nextNode(contour2, pVNew1I);
-									let pVNew3I = nextNode(contour2, pVNew2I);
 									let pVn1 = contour2[pVn1I];
 									let pVn2 = contour2[pVn2I];
+									let pVNew2I = nextNode(contour2, pVNew1I);
+									let pVNew3I = nextNode(contour2, pVNew2I);
 									let pVNew2 = contour2[pVNew2I];
 									let pVNew3 = contour2[pVNew3I];
+									let objIndex = sharedPoints.findIndex((obj) => (obj["idxC1"] === idxC2 && obj["p1I"] === pVn2I) || (obj["idxC2"] === idxC2 && obj["p2I"] === pVn2I));
+									let pVn2Intersects = objIndex >= 0;
 									let angle1_n2L = geometric.lineAngle(line2GeoJsonLight(pV1, pVn2));
 									let angle1_n2H = geometric.lineAngle(line2GeoJsonHeavy(pV1, pVn2));
 									let angle2_1L = geometric.lineAngle(line2GeoJsonLight(pV2, pV1));
@@ -1203,7 +1203,7 @@ function preProcess(font, references, limit) {
 									let nVNew1H;
 									let nVNew2H;
 									let nVNew3H;
-									if (pV0Intersects) {
+									if (pVn2Intersects) {
 										nVn1H = pVn1H
 										nVn2H = pVn2H
 										nVNew0H = geometric.pointRotate(pVNew0H, delta2, pVNew3H);
@@ -1218,7 +1218,14 @@ function preProcess(font, references, limit) {
 										nVNew2H = geometric.pointRotate(pVNew2H, delta2, pVNew0H);
 										nVNew3H = geometric.pointRotate(pVNew3H, delta2, pVNew0H);
 									}
-									
+									let endAngles1H = strokeEndAnglesGeo(pVNew2H, pVNew3H, pVn2H, pVn1H, true);
+									if (endAngles1H[0] < endAngles1H[1]) {
+										nVn2H = geometric.lineMidpoint([nVn2H, closestPointOnLine(nVNew3H, [nVn1H, nVn2H])]);
+										nVNew3H = closestPointOnLine(nVn2H, [nVNew2H, nVNew3H]);
+									} else {
+										nVNew3H = geometric.lineMidpoint([nVNew3H, closestPointOnLine(nVn2H, [nVNew2H, nVNew3H])]);
+										nVn2H = closestPointOnLine(nVNew3H, [nVn1H, nVn2H]);
+									}
 									
 									
 									
@@ -2953,8 +2960,11 @@ function preProcess(font, references, limit) {
 					let endLength2L = geometric.lineLength([p5L, p6L]);
 					let endLength1H = geometric.lineLength([p1H, p2H]);
 					let endLength2H = geometric.lineLength([p5H, p6H]);
-					let strokeL = (endLength1L + endLength2L) / 2;
-					let strokeH = (endLength1H + endLength2H) / 2;
+					let strokeL = Math.min(endLength1L, endLength2L);
+					let strokeH = Math.min(endLength1H, endLength2H);
+					strokeH = strokeH < 100 ? (endLength1H + endLength2H) / 2 : strokeH;
+					// let strokeL = (endLength1L + endLength2L) / 2;
+					// let strokeH = (endLength1H + endLength2H) / 2;
 					// if (curve1H.length() < 400 && curve2H.length() < 400) {
 					if (curvature1H.isBetween(0.978, 1) && curvature2H.isBetween(0.978, 1) && !endsSquare) {
 						p1L = geometric.pointRotate(p1L, sideAngleL - sideAngle1L, origin1L);
@@ -3140,6 +3150,7 @@ function preProcess(font, references, limit) {
 						let p4H = pointHeavy(p4);
 						let p5H = pointHeavy(p5);
 						if (strokeEndBottom(p0, p1, p2, p3) && strokeEndRight(p3, p4, p5, p0)) {
+							// TODO - add overlap detection
 							oldContours[idxC1][p2I] = Ot.Glyph.Point.create(
 								makeVariance(p2L.x, p0H.x + minStroke),
 								makeVariance(p2L.y, p2H.y),
@@ -3160,6 +3171,7 @@ function preProcess(font, references, limit) {
 						}
 						if (matched) break;
 						if (strokeEndLeft(p0, p1, p2, p3) && strokeEndBottom(p3, p4, p5, p0)) {
+							// TODO - add overlap detection
 							oldContours[idxC1][p2I] = Ot.Glyph.Point.create(
 								makeVariance(p2L.x, p2H.x),
 								makeVariance(p2L.y, p0H.y - minStroke),
@@ -3180,6 +3192,57 @@ function preProcess(font, references, limit) {
 						}
 						if (matched) break;
 						if (strokeEndRight(p0, p1, p2, p3) && strokeEndUp(p3, p4, p5, p0)) {
+							for (let idxC2 = 0; idxC2 < oldContours.length; idxC2++) {
+								let contour2 = oldContours[idxC2];
+								// if (idxC2 === idxC1 || !contour2.length.isBetween(4,9) || skipContours.includes(idxC2)) {
+								if (idxC2 === idxC1 || !contour2.length.isBetween(4,9)) {
+									continue;
+								}
+								let polygonTest = [
+									[
+										[p0H.x,p0H.y],
+										[p5H.x,p5H.y],
+										[p4H.x,p4H.y],
+										[p4H.x,p0H.y],
+										[p0H.x,p0H.y]
+									]
+								];
+								for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
+									const q0I = circularIndex(contour2, idxP2);
+									const q1I = nextNode(contour2, q0I);
+									const q2I = nextNode(contour2, q1I);
+									const q3I = nextNode(contour2, q2I);
+									let q0 = circularArray(contour2, q0I);
+									let q1 = circularArray(contour2, q1I);
+									let q2 = circularArray(contour2, q2I);
+									let q3 = circularArray(contour2, q3I);
+									let q0L = point2GeoJsonLight(q0);
+									let q1L = point2GeoJsonLight(q1);
+									let q2L = point2GeoJsonLight(q2);
+									let q3L = point2GeoJsonLight(q3);
+									let q0H = point2GeoJsonHeavy(q0);
+									let q1H = point2GeoJsonHeavy(q1);
+									let q2H = point2GeoJsonHeavy(q2);
+									let q3H = point2GeoJsonHeavy(q3);
+									if (
+										strokeEndLeft(q0, q1, q2, q3) &&
+										inside(q1H, polygonTest) === true &&
+										inside(q2H, polygonTest) === true
+									) {
+										oldContours[idxC2][q2I] = Ot.Glyph.Point.create(
+											makeVariance(q2L[0], p5H.x + (minStroke / 2)),
+											makeVariance(q2L[1], q2H[1]),
+											oldContours[idxC2][q2I].kind
+										);
+										oldContours[idxC2][q1I] = Ot.Glyph.Point.create(
+											makeVariance(q1L[0], p5H.x + (minStroke / 2)),
+											makeVariance(q1L[1], q1H[1]),
+											oldContours[idxC2][q1I].kind
+										);
+										break;
+									}
+								}
+							}
 							oldContours[idxC1][p2I] = Ot.Glyph.Point.create(
 								makeVariance(p2L.x, p2H.x),
 								makeVariance(p2L.y, p0H.y + minStroke),
