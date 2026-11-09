@@ -1999,7 +1999,28 @@ function correctGlyphs(font, references, limit) {
 			if (["uni32C0","uni3359","uni33E0"].includes(glyph.name) && idxC === 0) {
 				newContour.reverseContour();
 			}
-
+			if (glyph.name === "uni3C20" && idxC === 4) {
+				newContour[1] = {
+					x: makeVariance(originLight(contour[1].x), originHeavy(contour[1].x)),
+					y: makeVariance(originLight(contour[1].y), originHeavy(contour[1].y) - 64),
+					kind: contour[1].kind,
+				};
+				newContour[2] = {
+					x: makeVariance(originLight(contour[2].x), originHeavy(contour[2].x)),
+					y: makeVariance(originLight(contour[2].y), originHeavy(contour[2].y) - 64),
+					kind: contour[2].kind,
+				};
+				newContour[7] = {
+					x: makeVariance(originLight(contour[7].x), originHeavy(contour[7].x)),
+					y: makeVariance(originLight(contour[7].y), originHeavy(contour[7].y) - 59),
+					kind: contour[7].kind,
+				};
+				newContour[8] = {
+					x: makeVariance(originLight(contour[8].x), originHeavy(contour[8].x)),
+					y: makeVariance(originLight(contour[8].y), originHeavy(contour[8].y) - 59),
+					kind: contour[8].kind,
+				};
+			}
 			// fix 㰤
 			if (glyph.name == "uni3C24" || glyph.name == "uni3C2D") {
 				if (contour.length === 12) {

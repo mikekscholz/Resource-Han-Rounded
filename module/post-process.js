@@ -749,37 +749,42 @@ function postProcess(font, references, limit) {
 
 	// let len = 200;
 	let len = progressLength;
-	let consoleWidth = process.stdout.columns || 150
-	let bar = new ProgressBar('\u001b[38;5;82mpostProcessing\u001b[0m [5/6]    :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
-	let count = 0;
-	function progressTick() {
-		if (len) {
-			var chunk = 1;
-			bar.tick(chunk);
-			if (bar.curr > 0 && bar.curr < len - 2) { 
-				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
-			}
-			if (bar.curr === len - 1) { 
-				bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
-			}
-		}
-		count++
-	}
-	// let bar = new ProgressBar('\u001b[38;5;82mpostProcessing\u001b[0m [5/6]    :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
-	
-	// function progressTick(info = "") {
-	// 	if (len) {
-	// 		var chunk = 1;
-	// 		bar.tick(chunk);
-	// 		if (bar.curr > 0 && bar.curr < len - 2) { 
-	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
-	// 		}
-	// 		if (bar.curr === len - 1) { 
-	// 			bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
-	// 		}
-	// 	}
-	// }
+	let consoleWidth = process.stdout.columns || 150;
+	let bar, progressTick, count = 0;
+	let debug = true;
+	if (debug) {
+		bar = new ProgressBar('\u001b[38;5;82mpostProcessing\u001b[0m [5/6]    :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining :info', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
 
+		progressTick = function(info = "") {
+			if (len) {
+				var chunk = 1;
+				bar.tick(chunk);
+				if (bar.curr > 0 && bar.curr < len - 2) { 
+					bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+				}
+				if (bar.curr === len - 1) { 
+					bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', info: info }, 'force');
+				}
+			}
+			count++
+		}
+	} else {
+		bar = new ProgressBar('\u001b[38;5;82mpostProcessing\u001b[0m [5/6]    :spinner :left:bar:right :percent \u001b[38;5;199m:eta\u001b[0m remaining', { complete:'\u001b[38;5;51m\u001b[0m', incomplete: '\u001b[38;5;51m\u001b[0m', left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m', width: consoleWidth, total: len });
+
+		progressTick = function() {
+			if (len) {
+				var chunk = 1;
+				bar.tick(chunk);
+				if (bar.curr > 0 && bar.curr < len - 2) { 
+					bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
+				}
+				if (bar.curr === len - 1) { 
+					bar.render({ left: '\u001b[38;5;51m\u001b[0m', right: '\u001b[38;5;51m\u001b[0m' }, 'force');
+				}
+			}
+			count++
+		}
+	}
 
 	for (const glyph of font.glyphs.items) {
 		const name = glyph.name;
