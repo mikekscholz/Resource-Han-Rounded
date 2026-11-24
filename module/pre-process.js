@@ -328,7 +328,7 @@ function preProcess(font, references, limit) {
 		return (isStrokeEnd && (b1L >= 225 && b1L <= 315) && (b2L >= 225 && b2L <= 315) && (b1H >= 225 && b1H <= 315) && (b2H >= 225 && b2H <= 315));
 	}
 
-	function strokeEndBottom(p1, p2, p3, p4) {
+	function strokeEndDown(p1, p2, p3, p4) {
 		let isStrokeEnd = canBeStrokeEnd(p1, p2, p3, p4);
 		let b1L = bearing(lineLight(p1, p2));
 		let b2L = bearing(lineLight(p4, p3));
@@ -581,8 +581,8 @@ function preProcess(font, references, limit) {
 				let p1 = circularArray(contour, p1I);
 				if (p1.kind === 0) {
 					for (let idxC2 = 0; idxC2 < contours.length; idxC2++) {
+						if (idxC2 <= idxC1) continue;
 						let contour2 = contours[idxC2];
-						if (idxC2 === idxC1) continue;
 						for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
 							let p2I = circularIndex(contour2, idxP2);
 							let p2 = circularArray(contour2, p2I);
@@ -846,9 +846,10 @@ function preProcess(font, references, limit) {
 				let p1 = circularArray(contour, p1I);
 				let matched = false;
 				if (p1.kind === 0) {
+					let matched = false;
 					for (let idxC2 = 0; idxC2 < oldContours.length; idxC2++) {
+						if (idxC2 <= idxC1) continue;
 						let contour2 = oldContours[idxC2];
-						if (idxC2 === idxC1) continue;
 						for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
 							let p2I = circularIndex(contour2, idxP2);
 							let p2 = circularArray(contour2, p2I);
@@ -1850,7 +1851,7 @@ function preProcess(font, references, limit) {
 									matched = true;
 									extended = true;
 								}
-								console.log('left-falling-4', name);
+								// console.log('left-falling-4', name);
 								// extended = true;
 								// break;
 							}
@@ -2102,9 +2103,9 @@ function preProcess(font, references, limit) {
 					}
 				}
 			}
-			if (name === "uni3748") {
-				console.log(JSON.stringify(sharedPoints, null, "\t"));
-			}
+			// if (name === "uni3748") {
+			// 	console.log(JSON.stringify(sharedPoints, null, "\t"));
+			// }
 			// ANCHOR - fix downward j hooks
 			// HOVERIMAGE - [img "diagrams/j-hook.svg"]
 			if (newContour.length > 12) {
@@ -2190,9 +2191,9 @@ function preProcess(font, references, limit) {
 						if (newContour.length.isBetween(18,19)) {
 							let top1I = circularIndex(newContour, p0I - 4);
 							let top0I = previousNode(newContour, top1I);
-							if (name === "uni3748") {
-								console.log(top1I);
-							}
+							// if (name === "uni3748") {
+							// 	console.log(top1I);
+							// }
 							let topStroke = distanceHeavy(newContour[top1I], newContour[top0I]);
 							let objIndex1 = sharedPoints.findIndex((obj) => (obj["idxC1"] === idxC1 && obj["p1I"] === top1I) || (obj["idxC2"] === idxC1 && obj["p2I"] === top1I));
 							if (topStroke > strokeY) {
@@ -2437,38 +2438,7 @@ function preProcess(font, references, limit) {
 		
 		//NOTE - re-index shared points
 		sharedPoints = indexSharedPoints(oldContours);
-		// sharedPoints = [];
-		// for (let idxC1 = 0; idxC1 < oldContours.length; idxC1++) {
-		// 	let contour = oldContours[idxC1];
-		// 	for (let idxP1 = 0; idxP1 < contour.length; idxP1++) {
-		// 		let p1I = circularIndex(contour, idxP1);
-		// 		let p1 = circularArray(contour, p1I);
-		// 		if (p1.kind === 0) {
-		// 			for (let idxC2 = 0; idxC2 < oldContours.length; idxC2++) {
-		// 				let contour2 = oldContours[idxC2];
-		// 				if (idxC2 === idxC1) continue;
-		// 				for (let idxP2 = 0; idxP2 < contour2.length; idxP2++) {
-		// 					let p2I = circularIndex(contour2, idxP2);
-		// 					let p2 = circularArray(contour2, p2I);
-		// 					if (p2.kind === 0) {
-		// 						let p1l = pointLight(p1);
-		// 						let p1h = pointHeavy(p1);
-		// 						let p2l = pointLight(p2);
-		// 						let p2h = pointHeavy(p2);
-		// 						if (
-		// 							(JSON.stringify(p1l) === JSON.stringify(p2l) && JSON.stringify(p1h) !== JSON.stringify(p2h) && distanceHeavy(p1, p2) < 4) ||
-		// 							(JSON.stringify(p1l) !== JSON.stringify(p2l) && JSON.stringify(p1h) === JSON.stringify(p2h) && distanceLight(p1, p2) < 4) ||
-		// 							(distanceLight(p1, p2) <= 2 && distanceHeavy(p1, p2) <= 2)
-		// 						) {
-		// 							sharedPoints.push({idxC1, p1I, idxC2, p2I});
-		// 						}
-		// 					}
-		// 				}
-		// 			}
-		// 		}
-		// 	}
-		// }
-		
+		//ANCHOR - Fix improperly overlapped stroke ends that make a corner 
 		for (let idxC1 = 0; idxC1 < oldContours.length; idxC1++) {
 			let contour = oldContours[idxC1];
 			// if (!contour.length.isBetween(4,5) || skipContours.includes(idxC1)) {
@@ -2501,7 +2471,7 @@ function preProcess(font, references, limit) {
 					let p2H = point2GeoJsonHeavy(p2);
 					let p3H = point2GeoJsonHeavy(p3);
 					for (const [idxC2, contour2] of oldContours.entries()) {
-						if (idxC2 === idxC1 || polyGlyphLight[idxC2] === undefined) continue;
+						if (idxC2 <= idxC1 || polyGlyphLight[idxC2] === undefined) continue;
 						let polygonLight = polyGlyphLight[idxC2];
 						let polygonHeavy = polyGlyphHeavy[idxC2];
 						let i1L = inside(p1L, polygonLight);
@@ -2516,15 +2486,19 @@ function preProcess(font, references, limit) {
 									p2H[1] = yH;
 									p3H[1] = yH;
 									modified = true;
+									console.log(`\ntrigger 1 - ${name} - ${idxC1}`);
 								}
 							}
 							if (i2L !== 0 && i2H === 0) {
 								let idxP2 = polygonHeavy[0].findIndex((point) => point[1] === p2H[1]);
 								if (idxP2 >= 0) {
 									let yL = polygonLight[0][idxP2][1];
-									p2L[1] = yL;
-									p3L[1] = yL;
-									modified = true;
+									if (Math.abs(yL - p2L[1]) < 3) {
+										p2L[1] = yL;
+										p3L[1] = yL;
+										modified = true;
+										console.log(`\ntrigger 2 - ${name} - ${idxC1}`);	
+									}
 								}
 							}
 						}
@@ -2536,6 +2510,7 @@ function preProcess(font, references, limit) {
 									p0H[1] = yH;
 									p1H[1] = yH;
 									modified = true;
+									console.log(`\ntrigger 3 - ${name} - ${idxC1}`);
 								}
 							}
 							if (i1L !== 0 && i1H === 0) {
@@ -2545,6 +2520,7 @@ function preProcess(font, references, limit) {
 									p0L[1] = yL;
 									p1L[1] = yL;
 									modified = true;
+									console.log(`\ntrigger 4 - ${name} - ${idxC1}`);
 								}
 							}
 						}
@@ -2556,6 +2532,7 @@ function preProcess(font, references, limit) {
 									p1H[1] = yH;
 									p2H[1] = yH;
 									modified = true;
+									console.log(`\ntrigger 5 - ${name} - ${idxC1}`);
 								}
 							}
 							if (i2L !== 0 && i2H === 0) {
@@ -2565,6 +2542,7 @@ function preProcess(font, references, limit) {
 									p1L[1] = yL;
 									p2L[1] = yL;
 									modified = true;
+									console.log(`\ntrigger 6 - ${name} - ${idxC1}`);
 								}
 							}
 						}
